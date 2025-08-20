@@ -154,6 +154,19 @@ milestone_backup() {
 verify_backup() {
     log "Verifying backup integrity..."
     
+    # Verify SSH fingerprint for security
+    local expected_fingerprint="SHA256:NVCtTVbZYQraMObPNIKCGkCBGM8NujB2/6i/kTQaL2A"
+    local actual_fingerprint=$(ssh-keygen -lf ~/.ssh/id_ed25519.pub | awk '{print $2}')
+    
+    if [ "$actual_fingerprint" = "$expected_fingerprint" ]; then
+        log "✅ SSH key fingerprint verified: $actual_fingerprint"
+    else
+        error "❌ SSH key fingerprint mismatch!"
+        error "Expected: $expected_fingerprint"
+        error "Actual: $actual_fingerprint"
+        return 1
+    fi
+    
     # Check if remote exists
     if ! git ls-remote origin >/dev/null 2>&1; then
         error "Cannot connect to remote repository"

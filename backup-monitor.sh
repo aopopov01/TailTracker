@@ -112,9 +112,22 @@ perform_health_check() {
         fi
     done
     
-    # Check 5: SSH key availability
+    # Check 5: SSH key availability and fingerprint verification
     if [ -f "$HOME/.ssh/id_ed25519" ]; then
         log_health "✅ SSH key exists"
+        
+        # Verify SSH fingerprint for security
+        local expected_fingerprint="SHA256:NVCtTVbZYQraMObPNIKCGkCBGM8NujB2/6i/kTQaL2A"
+        local actual_fingerprint=$(ssh-keygen -lf ~/.ssh/id_ed25519.pub 2>/dev/null | awk '{print $2}' || echo "unknown")
+        
+        if [ "$actual_fingerprint" = "$expected_fingerprint" ]; then
+            log_health "✅ SSH fingerprint verified (WSL Ubuntu Development)"
+        else
+            error_health "❌ SSH fingerprint mismatch!"
+            error_health "Expected: $expected_fingerprint"
+            error_health "Actual: $actual_fingerprint"
+            ((issues++))
+        fi
     else
         error_health "❌ SSH key missing"
         ((issues++))

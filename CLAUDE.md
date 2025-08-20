@@ -479,6 +479,7 @@ const usePermissionSafe = (permission: 'camera' | 'location') => {
 #### GitHub Integration (SSH-based)
 **Primary Repository**: `git@github.com:aopopov01/TailTracker.git`
 **SSH Key**: `~/.ssh/id_ed25519` (aopopov01@github)
+**SSH Fingerprint**: `SHA256:NVCtTVbZYQraMObPNIKCGkCBGM8NujB2/6i/kTQaL2A` (WSL Ubuntu Development)
 
 ```bash
 # MCP GitHub Operations
