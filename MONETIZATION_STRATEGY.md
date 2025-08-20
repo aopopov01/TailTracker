@@ -51,28 +51,29 @@ TailTracker enters a **$2.8 billion pet care app market** growing at 18% CAGR wi
 **Strategy**: Provide genuine value with natural upgrade triggers
 
 **✅ Included Features:**
-- **Digital Pet Passports** (up to 3 pets)
-- **Basic Vaccination Tracking** (manual entry, basic reminders)
+- **Digital Pet Passport** (1 pet only)
+- **Basic Vaccination Tracking** (manual entry, no reminders)
 - **Emergency First Aid Guide** (complete access)
-- **Photo Storage** (25 photos per pet)
+- **Photo Storage** (1 photo per pet)
 - **Basic Health Records** (weight, notes, vet contacts)
-- **Simple Reminders** (vaccination due dates)
 - **Pet Profile Sharing** (via link)
 
 **🔒 Upgrade Triggers:**
-- 3-pet limit reached (family growth)
+- 1-pet limit reached (additional pets)
 - Need for comprehensive lost pet protection (premium-only advanced system)
-- Photo storage limit reached
+- Photo storage limit reached (1 photo limit)
+- Need for vaccination reminders
 - Need for advanced analytics
 - Desire for family collaboration
 
-### Premium Tier: "Complete Care" - $8.99/month
+### Premium Tier: "Complete Care" - €7.99/month
 **Target**: Dedicated pet owners seeking comprehensive management
 **Strategy**: Premium convenience and advanced features
 
 **✅ Premium Features:**
-- **Unlimited Pets** (families, breeders, shelters)
+- **Unlimited Pets** (vs 1 pet free)
 - **Advanced Vaccination Tracking** (automatic vet sync, clinic integration)
+- **Vaccination Reminders** (medication schedules, grooming, training)
 - **Lost Pet Alert System** (10km radius, 7-day visibility, social media auto-posting, community notifications)
 - **Unlimited Photo & Video Storage** (cloud sync across devices)
 - **Family Sharing** (up to 5 family members)
@@ -80,25 +81,11 @@ TailTracker enters a **$2.8 billion pet care app market** growing at 18% CAGR wi
 - **Comprehensive Analytics** (health trends, vaccination compliance)
 - **Priority Support** (24/7 chat support)
 - **Data Export** (PDF reports for vet visits)
-- **Advanced Reminders** (medication schedules, grooming, training)
 
-### Annual Pricing: $89.99/year (17% savings)
+### Annual Pricing: €79.99/year (17% savings)
 **Psychology**: Annual subscriptions reduce churn and improve unit economics
 **Market Standard**: 40%+ of users choose annual when 15%+ discount offered
 
-### Pro Tier: "Professional Care" - $19.99/month
-**Target**: Breeders, veterinarians, pet care professionals
-**Strategy**: Professional tools and unlimited capacity
-
-**✅ Pro Features:**
-- **Unlimited Everything** (pets, storage, family members)
-- **Breeding Records** (lineage tracking, health certifications)
-- **Client Management** (for pet care professionals)
-- **Custom Branding** (white-label profiles)
-- **API Access** (integration with professional systems)
-- **Advanced Analytics Dashboard** (business insights)
-- **Bulk Operations** (import/export, batch updates)
-- **Professional Support** (phone support, dedicated account manager)
 
 ---
 
@@ -112,9 +99,9 @@ TailTracker enters a **$2.8 billion pet care app market** growing at 18% CAGR wi
 - *Trigger Moment*: First time pet goes missing or fear of losing pet
 
 **2. Convenience (77% value)**
-- *Free Limitation*: Manual vaccination tracking
-- *Premium Solution*: Automatic vet integration
-- *Trigger Moment*: Missing important vaccination date
+- *Free Limitation*: Manual vaccination tracking with no reminders
+- *Premium Solution*: Automatic vet integration with smart reminders
+- *Trigger Moment*: Missing important vaccination date due to no reminders
 
 **3. Family Connection (64% share photos)**
 - *Free Limitation*: Basic link sharing only
@@ -217,23 +204,23 @@ Users get complete basic functionality for free, with premium features enhancing
 
 ## 🎯 Pricing Strategy Rationale
 
-### $8.99/month Premium Pricing
+### €7.99/month Premium Pricing
 
 **Market Analysis**:
-- **Below $10 psychological barrier** (market research shows resistance above $10)
-- **Premium positioning** vs $4-6 competitors
-- **Value perception** aligns with $107 annual cost vs $1,248 annual pet spending
+- **Below €10 psychological barrier** (market research shows resistance above €10)
+- **Premium positioning** vs €4-6 competitors
+- **Value perception** aligns with €96 annual cost vs €1,200+ annual pet spending
 
 **Competitor Comparison**:
-- **11pets**: $4-6/month (basic features)
-- **MyPet**: $0.99-8.99/month (limited functionality)
-- **TailTracker**: $8.99/month (comprehensive features)
-- **Value Proposition**: 40-50% more features for minimal price premium
+- **11pets**: €4-6/month (basic features)
+- **MyPet**: €0.99-7.99/month (limited functionality)
+- **TailTracker**: €7.99/month (comprehensive features)
+- **Value Proposition**: 40-50% more features for competitive price
 
 ### Annual Discount Strategy: 17% savings
 
 **Industry Standard**: 15-20% discount drives 40%+ annual adoption
-**TailTracker**: $89.99 annual ($7.50/month equivalent)
+**TailTracker**: €79.99 annual (€6.67/month equivalent)
 **Cash Flow Benefit**: Immediate annual revenue improves unit economics
 **Churn Reduction**: Annual subscribers show 65% lower churn rates
 
