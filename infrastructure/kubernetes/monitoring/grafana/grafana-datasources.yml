@@ -1,0 +1,131 @@
+# TailTracker Grafana Datasources Configuration
+# Automated datasource provisioning for comprehensive monitoring
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-datasources
+  namespace: monitoring
+  labels:
+    app: grafana
+    component: datasources
+data:
+  datasources.yaml: |
+    apiVersion: 1
+    
+    datasources:
+      # Prometheus - Primary metrics datasource
+      - name: Prometheus
+        type: prometheus
+        access: proxy
+        url: http://prometheus-server:9090
+        isDefault: true
+        editable: false
+        jsonData:
+          httpMethod: POST
+          queryTimeout: 60s
+          timeInterval: 15s
+          exemplarTraceIdDestinations:
+            - name: trace_id
+              datasourceUid: jaeger
+        uid: prometheus
+        
+      # Loki - Log aggregation
+      - name: Loki
+        type: loki
+        access: proxy
+        url: http://loki:3100
+        editable: false
+        jsonData:
+          timeout: 60
+          maxLines: 1000
+        uid: loki
+        
+      # Jaeger - Distributed tracing
+      - name: Jaeger
+        type: jaeger
+        access: proxy
+        url: http://jaeger-query:16686
+        editable: false
+        jsonData:
+          tracesToLogs:
+            datasourceUid: loki
+            tags: ['job', 'instance', 'pod', 'namespace']
+            mappedTags: [
+              { key: 'service.name', value: 'service' }
+            ]
+            mapTagNamesEnabled: true
+            spanStartTimeShift: '-1h'
+            spanEndTimeShift: '1h'
+            filterByTraceID: true
+            filterBySpanID: true
+        uid: jaeger
+        
+      # CloudWatch - AWS metrics and logs
+      - name: CloudWatch
+        type: cloudwatch
+        access: proxy
+        jsonData:
+          authType: default
+          defaultRegion: us-east-1
+          customMetricsNamespaces: 'TailTracker/API,TailTracker/Mobile,TailTracker/Business'
+        uid: cloudwatch
+        editable: false
+        
+      # PostgreSQL - Business analytics
+      - name: PostgreSQL
+        type: postgres
+        access: proxy
+        url: ${POSTGRES_HOST}:5432
+        database: ${POSTGRES_DB}
+        user: ${POSTGRES_USER}
+        secureJsonData:
+          password: ${POSTGRES_PASSWORD}
+        jsonData:
+          sslmode: require
+          postgresVersion: 1500
+          timescaledb: false
+        uid: postgres
+        editable: false
+        
+      # Redis - Cache metrics
+      - name: Redis
+        type: redis-datasource
+        access: proxy
+        url: redis://redis-master:6379
+        jsonData:
+          client: standalone
+          poolSize: 5
+          timeout: 10
+          pingInterval: 0
+          pipelineWindow: 0
+        uid: redis
+        editable: false
+        
+      # TestData - For testing dashboards
+      - name: TestData
+        type: testdata
+        access: proxy
+        uid: testdata
+        isDefault: false
+        editable: true
+        orgId: 1
+        
+      # JSON API - Custom business metrics
+      - name: TailTracker Business API
+        type: simplejson
+        access: proxy
+        url: http://tailtracker-api:3000/api/v1/metrics
+        basicAuth: false
+        isDefault: false
+        jsonData:
+          httpHeaderName1: 'Authorization'
+        secureJsonData:
+          httpHeaderValue1: 'Bearer ${BUSINESS_API_TOKEN}'
+        uid: business-api
+        editable: false
+        
+    # Delete existing datasources
+    deleteDatasources:
+      - name: TestData
+        orgId: 1

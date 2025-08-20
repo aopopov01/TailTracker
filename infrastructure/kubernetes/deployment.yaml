@@ -1,0 +1,516 @@
+# TailTracker Kubernetes Deployment
+# Production-ready configuration for 150K+ users with auto-scaling
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: tailtracker
+  labels:
+    name: tailtracker
+
+---
+# ConfigMap for application configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: tailtracker-config
+  namespace: tailtracker
+data:
+  NODE_ENV: "production"
+  REDIS_CACHE_HOST: "redis-cache-service"
+  REDIS_SESSIONS_HOST: "redis-sessions-service"
+  REDIS_PUBSUB_HOST: "redis-pubsub-service"
+  LOG_LEVEL: "info"
+  API_VERSION: "1.0.0"
+
+---
+# Secret for sensitive configuration
+apiVersion: v1
+kind: Secret
+metadata:
+  name: tailtracker-secrets
+  namespace: tailtracker
+type: Opaque
+stringData:
+  DATABASE_URL: "postgresql://user:password@supabase-host:5432/tailtracker"
+  JWT_SECRET: "your-jwt-secret-here"
+  ENCRYPTION_KEY: "your-encryption-key-here"
+  SUPABASE_URL: "https://your-project.supabase.co"
+  SUPABASE_ANON_KEY: "your-anon-key"
+  SUPABASE_SERVICE_ROLE_KEY: "your-service-role-key"
+  STRIPE_SECRET_KEY: "sk_live_..."
+  REVENUECAT_API_KEY: "your-revenuecat-key"
+  SMTP_HOST: "smtp.sendgrid.net"
+  SMTP_USER: "apikey"
+  SMTP_PASS: "your-sendgrid-api-key"
+
+---
+# Redis Cache Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis-cache
+  namespace: tailtracker
+  labels:
+    app: redis-cache
+    tier: cache
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis-cache
+  template:
+    metadata:
+      labels:
+        app: redis-cache
+        tier: cache
+    spec:
+      containers:
+      - name: redis
+        image: redis:7-alpine
+        ports:
+        - containerPort: 6379
+        command: 
+        - redis-server
+        - --appendonly
+        - "yes"
+        - --maxmemory
+        - "1gb"
+        - --maxmemory-policy
+        - "allkeys-lru"
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+        livenessProbe:
+          exec:
+            command:
+            - redis-cli
+            - ping
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          exec:
+            command:
+            - redis-cli
+            - ping
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        volumeMounts:
+        - name: redis-data
+          mountPath: /data
+      volumes:
+      - name: redis-data
+        persistentVolumeClaim:
+          claimName: redis-cache-pvc
+
+---
+# Redis Cache Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-cache-service
+  namespace: tailtracker
+  labels:
+    app: redis-cache
+spec:
+  selector:
+    app: redis-cache
+  ports:
+  - port: 6379
+    targetPort: 6379
+  type: ClusterIP
+
+---
+# Redis Cache PVC
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: redis-cache-pvc
+  namespace: tailtracker
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: fast-ssd
+
+---
+# API Server Deployment with Auto-scaling
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tailtracker-api
+  namespace: tailtracker
+  labels:
+    app: tailtracker-api
+    tier: backend
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: tailtracker-api
+  template:
+    metadata:
+      labels:
+        app: tailtracker-api
+        tier: backend
+    spec:
+      containers:
+      - name: api
+        image: tailtracker/api:latest
+        ports:
+        - containerPort: 3000
+        env:
+        - name: PORT
+          value: "3000"
+        - name: NODE_ENV
+          valueFrom:
+            configMapKeyRef:
+              name: tailtracker-config
+              key: NODE_ENV
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: tailtracker-secrets
+              key: DATABASE_URL
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: tailtracker-secrets
+              key: JWT_SECRET
+        - name: REDIS_CACHE_URL
+          value: "redis://redis-cache-service:6379/0"
+        - name: SUPABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: tailtracker-secrets
+              key: SUPABASE_URL
+        - name: SUPABASE_ANON_KEY
+          valueFrom:
+            secretKeyRef:
+              name: tailtracker-secrets
+              key: SUPABASE_ANON_KEY
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "500m"
+          limits:
+            memory: "1Gi"
+            cpu: "1000m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 3000
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          timeoutSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 3000
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1000
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+        volumeMounts:
+        - name: tmp-volume
+          mountPath: /tmp
+        - name: logs-volume
+          mountPath: /app/logs
+      volumes:
+      - name: tmp-volume
+        emptyDir: {}
+      - name: logs-volume
+        emptyDir: {}
+
+---
+# API Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: tailtracker-api-service
+  namespace: tailtracker
+  labels:
+    app: tailtracker-api
+spec:
+  selector:
+    app: tailtracker-api
+  ports:
+  - port: 80
+    targetPort: 3000
+    protocol: TCP
+  type: ClusterIP
+
+---
+# Horizontal Pod Autoscaler
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: tailtracker-api-hpa
+  namespace: tailtracker
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: tailtracker-api
+  minReplicas: 3
+  maxReplicas: 20
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 120
+      policies:
+      - type: Percent
+        value: 50
+        periodSeconds: 60
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Percent
+        value: 25
+        periodSeconds: 60
+
+---
+# Ingress for external access
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: tailtracker-ingress
+  namespace: tailtracker
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/rate-limit: "1000"
+    nginx.ingress.kubernetes.io/rate-limit-window: "1m"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+    nginx.ingress.kubernetes.io/limit-connections: "10"
+spec:
+  tls:
+  - hosts:
+    - api.tailtracker.com
+    secretName: tailtracker-tls
+  rules:
+  - host: api.tailtracker.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: tailtracker-api-service
+            port:
+              number: 80
+
+---
+# Network Policy for security
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: tailtracker-network-policy
+  namespace: tailtracker
+spec:
+  podSelector:
+    matchLabels:
+      app: tailtracker-api
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: ingress-nginx
+    ports:
+    - protocol: TCP
+      port: 3000
+  - from:
+    - podSelector:
+        matchLabels:
+          app: prometheus
+    ports:
+    - protocol: TCP
+      port: 3000
+  egress:
+  - to:
+    - podSelector:
+        matchLabels:
+          app: redis-cache
+    ports:
+    - protocol: TCP
+      port: 6379
+  - to: []
+    ports:
+    - protocol: TCP
+      port: 443  # HTTPS outbound
+    - protocol: TCP
+      port: 80   # HTTP outbound
+    - protocol: TCP
+      port: 5432 # PostgreSQL
+    - protocol: TCP
+      port: 587  # SMTP
+
+---
+# Job Processor Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tailtracker-jobs
+  namespace: tailtracker
+  labels:
+    app: tailtracker-jobs
+    tier: worker
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: tailtracker-jobs
+  template:
+    metadata:
+      labels:
+        app: tailtracker-jobs
+        tier: worker
+    spec:
+      containers:
+      - name: job-processor
+        image: tailtracker/api:latest
+        command: ["node", "workers/job_processor.js"]
+        env:
+        - name: NODE_ENV
+          valueFrom:
+            configMapKeyRef:
+              name: tailtracker-config
+              key: NODE_ENV
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: tailtracker-secrets
+              key: DATABASE_URL
+        - name: REDIS_CACHE_URL
+          value: "redis://redis-cache-service:6379/0"
+        - name: SUPABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: tailtracker-secrets
+              key: SUPABASE_URL
+        - name: SUPABASE_SERVICE_ROLE_KEY
+          valueFrom:
+            secretKeyRef:
+              name: tailtracker-secrets
+              key: SUPABASE_SERVICE_ROLE_KEY
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1000
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+        volumeMounts:
+        - name: tmp-volume
+          mountPath: /tmp
+      volumes:
+      - name: tmp-volume
+        emptyDir: {}
+
+---
+# ServiceMonitor for Prometheus monitoring
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: tailtracker-api-metrics
+  namespace: tailtracker
+  labels:
+    app: tailtracker-api
+spec:
+  selector:
+    matchLabels:
+      app: tailtracker-api
+  endpoints:
+  - port: http
+    path: /metrics
+    interval: 30s
+    scrapeTimeout: 10s
+
+---
+# Pod Disruption Budget
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: tailtracker-api-pdb
+  namespace: tailtracker
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: tailtracker-api
+
+---
+# Resource Quota for namespace
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: tailtracker-quota
+  namespace: tailtracker
+spec:
+  hard:
+    requests.cpu: "10"
+    requests.memory: "20Gi"
+    limits.cpu: "20"
+    limits.memory: "40Gi"
+    pods: "50"
+    persistentvolumeclaims: "10"
+
+---
+# Limit Range for pod resources
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: tailtracker-limits
+  namespace: tailtracker
+spec:
+  limits:
+  - type: Container
+    default:
+      memory: "512Mi"
+      cpu: "500m"
+    defaultRequest:
+      memory: "256Mi"
+      cpu: "250m"
+    max:
+      memory: "2Gi"
+      cpu: "2"
+    min:
+      memory: "128Mi"
+      cpu: "100m"

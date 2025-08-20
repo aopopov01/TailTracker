@@ -1,0 +1,85 @@
+{
+  "cli": {
+    "version": ">= 3.0.0"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk",
+        "gradleCommand": ":app:assembleDebug"
+      },
+      "ios": {
+        "buildConfiguration": "Debug",
+        "simulator": true,
+        "enterpriseProvisioning": "universal"
+      }
+    },
+    "preview": {
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk",
+        "gradleCommand": ":app:assembleRelease"
+      },
+      "ios": {
+        "buildConfiguration": "Release",
+        "simulator": false,
+        "enterpriseProvisioning": "universal"
+      }
+    },
+    "simulator": {
+      "ios": {
+        "buildConfiguration": "Debug",
+        "simulator": true
+      }
+    },
+    "testflight": {
+      "ios": {
+        "buildConfiguration": "Release",
+        "autoIncrement": "buildNumber",
+        "simulator": false,
+        "bundleIdentifier": "com.tailtracker.app"
+      }
+    },
+    "production": {
+      "android": {
+        "buildType": "aab",
+        "gradleCommand": ":app:bundleRelease"
+      },
+      "ios": {
+        "buildConfiguration": "Release",
+        "autoIncrement": "buildNumber",
+        "simulator": false,
+        "bundleIdentifier": "com.tailtracker.app"
+      }
+    }
+  },
+  "submit": {
+    "production": {
+      "android": {
+        "serviceAccountKeyPath": "./android/service-account-key.json",
+        "track": "internal",
+        "releaseStatus": "draft"
+      },
+      "ios": {
+        "ascApiKeyPath": "./ios/AuthKey.p8",
+        "ascApiKeyId": "your-api-key-id",
+        "ascApiKeyIssuerId": "your-issuer-id",
+        "appleId": "your-apple-id",
+        "ascAppId": "your-app-store-connect-app-id",
+        "bundleIdentifier": "com.tailtracker.app"
+      }
+    },
+    "testflight": {
+      "ios": {
+        "ascApiKeyPath": "./ios/AuthKey.p8",
+        "ascApiKeyId": "your-api-key-id",
+        "ascApiKeyIssuerId": "your-issuer-id",
+        "appleId": "your-apple-id",
+        "ascAppId": "your-app-store-connect-app-id",
+        "bundleIdentifier": "com.tailtracker.app"
+      }
+    }
+  }
+}

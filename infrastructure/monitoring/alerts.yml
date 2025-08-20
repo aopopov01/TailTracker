@@ -1,0 +1,314 @@
+# TailTracker Alerting Rules
+# Comprehensive alerts for 99.9% uptime SLA
+
+groups:
+  # High Priority - Critical System Alerts
+  - name: tailtracker.critical
+    interval: 30s
+    rules:
+      # API Availability
+      - alert: APIServiceDown
+        expr: up{job="tailtracker-api"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: api
+        annotations:
+          summary: "TailTracker API service is down"
+          description: "API service {{ $labels.instance }} has been down for more than 1 minute"
+          runbook_url: "https://docs.tailtracker.com/runbooks/api-down"
+
+      - alert: APIHighErrorRate
+        expr: tailtracker:api_error_rate:rate5m > 0.05
+        for: 2m
+        labels:
+          severity: critical
+          service: api
+        annotations:
+          summary: "High API error rate detected"
+          description: "API error rate is {{ $value | humanizePercentage }} on {{ $labels.instance }}"
+          runbook_url: "https://docs.tailtracker.com/runbooks/high-error-rate"
+
+      - alert: APILatencyHigh
+        expr: tailtracker:api_request_duration_seconds:rate5m > 2.0
+        for: 5m
+        labels:
+          severity: critical
+          service: api
+        annotations:
+          summary: "API response time is too high"
+          description: "API response time is {{ $value }}s on {{ $labels.instance }}, exceeding 2s threshold"
+          runbook_url: "https://docs.tailtracker.com/runbooks/high-latency"
+
+      # Database Alerts
+      - alert: DatabaseDown
+        expr: up{job="postgres"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: database
+        annotations:
+          summary: "Database is unreachable"
+          description: "PostgreSQL database has been unreachable for more than 1 minute"
+          runbook_url: "https://docs.tailtracker.com/runbooks/database-down"
+
+      - alert: DatabaseConnectionsHigh
+        expr: tailtracker:db_connections:max_over_time5m > 180
+        for: 2m
+        labels:
+          severity: critical
+          service: database
+        annotations:
+          summary: "Database connections approaching limit"
+          description: "Database connections are at {{ $value }}, approaching limit of 200"
+          runbook_url: "https://docs.tailtracker.com/runbooks/db-connections"
+
+      - alert: DatabaseSlowQueries
+        expr: tailtracker:db_query_duration:p95_5m > 5.0
+        for: 3m
+        labels:
+          severity: critical
+          service: database
+        annotations:
+          summary: "Database queries are too slow"
+          description: "95th percentile query duration is {{ $value }}s, exceeding 5s threshold"
+          runbook_url: "https://docs.tailtracker.com/runbooks/slow-queries"
+
+      # Redis Alerts
+      - alert: RedisDown
+        expr: up{job="redis-cache"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: redis
+        annotations:
+          summary: "Redis cache is down"
+          description: "Redis cache service has been down for more than 1 minute"
+          runbook_url: "https://docs.tailtracker.com/runbooks/redis-down"
+
+      - alert: RedisMemoryHigh
+        expr: tailtracker:redis_memory_usage:max_over_time5m / redis_config_maxmemory_bytes > 0.9
+        for: 2m
+        labels:
+          severity: critical
+          service: redis
+        annotations:
+          summary: "Redis memory usage is too high"
+          description: "Redis memory usage is {{ $value | humanizePercentage }}"
+          runbook_url: "https://docs.tailtracker.com/runbooks/redis-memory"
+
+  # High Priority - Infrastructure Alerts
+  - name: tailtracker.infrastructure
+    interval: 60s
+    rules:
+      # System Resources
+      - alert: HighCPUUsage
+        expr: tailtracker:cpu_usage:avg_over_time5m > 85
+        for: 5m
+        labels:
+          severity: warning
+          service: infrastructure
+        annotations:
+          summary: "High CPU usage detected"
+          description: "CPU usage is {{ $value }}% on {{ $labels.instance }}"
+          runbook_url: "https://docs.tailtracker.com/runbooks/high-cpu"
+
+      - alert: HighMemoryUsage
+        expr: tailtracker:memory_usage:percent > 85
+        for: 5m
+        labels:
+          severity: warning
+          service: infrastructure
+        annotations:
+          summary: "High memory usage detected"
+          description: "Memory usage is {{ $value }}% on {{ $labels.instance }}"
+          runbook_url: "https://docs.tailtracker.com/runbooks/high-memory"
+
+      - alert: HighDiskUsage
+        expr: tailtracker:disk_usage:percent > 85
+        for: 5m
+        labels:
+          severity: warning
+          service: infrastructure
+        annotations:
+          summary: "High disk usage detected"
+          description: "Disk usage is {{ $value }}% on {{ $labels.instance }}"
+          runbook_url: "https://docs.tailtracker.com/runbooks/high-disk"
+
+      - alert: DiskSpaceCritical
+        expr: tailtracker:disk_usage:percent > 95
+        for: 2m
+        labels:
+          severity: critical
+          service: infrastructure
+        annotations:
+          summary: "Critical disk space usage"
+          description: "Disk usage is {{ $value }}% on {{ $labels.instance }}"
+          runbook_url: "https://docs.tailtracker.com/runbooks/disk-critical"
+
+  # Medium Priority - Performance Alerts
+  - name: tailtracker.performance
+    interval: 60s
+    rules:
+      # API Performance
+      - alert: APIResponseTimeDegraded
+        expr: tailtracker:api_request_duration_seconds:rate5m > 1.0
+        for: 10m
+        labels:
+          severity: warning
+          service: api
+        annotations:
+          summary: "API response time degraded"
+          description: "API response time is {{ $value }}s on {{ $labels.instance }}"
+          runbook_url: "https://docs.tailtracker.com/runbooks/api-performance"
+
+      - alert: APIRequestRateHigh
+        expr: tailtracker:api_request_rate:rate5m > 500
+        for: 5m
+        labels:
+          severity: warning
+          service: api
+        annotations:
+          summary: "High API request rate"
+          description: "API request rate is {{ $value }} req/s on {{ $labels.instance }}"
+          runbook_url: "https://docs.tailtracker.com/runbooks/high-traffic"
+
+      # Cache Performance
+      - alert: RedisCacheHitRateLow
+        expr: tailtracker:redis_hit_rate:rate5m < 0.8
+        for: 10m
+        labels:
+          severity: warning
+          service: redis
+        annotations:
+          summary: "Redis cache hit rate is low"
+          description: "Cache hit rate is {{ $value | humanizePercentage }}"
+          runbook_url: "https://docs.tailtracker.com/runbooks/cache-performance"
+
+  # Business Logic Alerts
+  - name: tailtracker.business
+    interval: 120s
+    rules:
+      # User Activity
+      - alert: UserRegistrationsLow
+        expr: tailtracker:new_registrations:rate1h < 5
+        for: 30m
+        labels:
+          severity: warning
+          service: business
+        annotations:
+          summary: "User registrations are unusually low"
+          description: "Only {{ $value }} new registrations in the last hour"
+          runbook_url: "https://docs.tailtracker.com/runbooks/low-registrations"
+
+      - alert: LostPetAlertsSpike
+        expr: increase(tailtracker:lost_pet_alerts:rate1h[1h]) > 50
+        for: 5m
+        labels:
+          severity: warning
+          service: business
+        annotations:
+          summary: "Unusual spike in lost pet alerts"
+          description: "{{ $value }} lost pet alerts created in the last hour"
+          runbook_url: "https://docs.tailtracker.com/runbooks/alert-spike"
+
+      # Subscription Health
+      - alert: SubscriptionConversionsLow
+        expr: rate(tailtracker_subscription_conversions_total[4h]) < 0.1
+        for: 2h
+        labels:
+          severity: warning
+          service: business
+        annotations:
+          summary: "Subscription conversions are low"
+          description: "Subscription conversion rate is {{ $value | humanizePercentage }}"
+          runbook_url: "https://docs.tailtracker.com/runbooks/low-conversions"
+
+  # Security Alerts
+  - name: tailtracker.security
+    interval: 30s
+    rules:
+      - alert: HighFailedLoginAttempts
+        expr: increase(tailtracker_login_failures_total[5m]) > 50
+        for: 2m
+        labels:
+          severity: warning
+          service: security
+        annotations:
+          summary: "High number of failed login attempts"
+          description: "{{ $value }} failed login attempts in the last 5 minutes"
+          runbook_url: "https://docs.tailtracker.com/runbooks/failed-logins"
+
+      - alert: SuspiciousAPIActivity
+        expr: increase(tailtracker_security_events_total{type="suspicious"}[10m]) > 10
+        for: 2m
+        labels:
+          severity: critical
+          service: security
+        annotations:
+          summary: "Suspicious API activity detected"
+          description: "{{ $value }} suspicious security events in the last 10 minutes"
+          runbook_url: "https://docs.tailtracker.com/runbooks/security-incident"
+
+  # External Dependencies
+  - name: tailtracker.external
+    interval: 60s
+    rules:
+      - alert: ExternalServiceDown
+        expr: probe_success{job="blackbox-http"} == 0
+        for: 2m
+        labels:
+          severity: warning
+          service: external
+        annotations:
+          summary: "External service is unreachable"
+          description: "{{ $labels.instance }} is unreachable"
+          runbook_url: "https://docs.tailtracker.com/runbooks/external-service"
+
+      - alert: SSLCertificateExpiring
+        expr: probe_ssl_earliest_cert_expiry - time() < 86400 * 7  # 7 days
+        for: 1m
+        labels:
+          severity: warning
+          service: security
+        annotations:
+          summary: "SSL certificate expiring soon"
+          description: "SSL certificate for {{ $labels.instance }} expires in {{ $value | humanizeDuration }}"
+          runbook_url: "https://docs.tailtracker.com/runbooks/ssl-expiry"
+
+      - alert: SSLCertificateExpiringSoon
+        expr: probe_ssl_earliest_cert_expiry - time() < 86400 * 3  # 3 days
+        for: 1m
+        labels:
+          severity: critical
+          service: security
+        annotations:
+          summary: "SSL certificate expiring very soon"
+          description: "SSL certificate for {{ $labels.instance }} expires in {{ $value | humanizeDuration }}"
+          runbook_url: "https://docs.tailtracker.com/runbooks/ssl-expiry"
+
+  # SLA Monitoring
+  - name: tailtracker.sla
+    interval: 300s  # 5 minutes
+    rules:
+      - alert: UptimeSLABreach
+        expr: avg_over_time(up{job="tailtracker-api"}[1h]) < 0.999
+        for: 0m  # Immediate alert
+        labels:
+          severity: critical
+          service: sla
+        annotations:
+          summary: "99.9% uptime SLA breach detected"
+          description: "Uptime is {{ $value | humanizePercentage }} over the last hour"
+          runbook_url: "https://docs.tailtracker.com/runbooks/sla-breach"
+
+      - alert: ResponseTimeSLABreach
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{job="tailtracker-api"}[5m])) > 1.0
+        for: 5m
+        labels:
+          severity: critical
+          service: sla
+        annotations:
+          summary: "Response time SLA breach"
+          description: "95th percentile response time is {{ $value }}s, exceeding 1s SLA"
+          runbook_url: "https://docs.tailtracker.com/runbooks/response-time-sla"

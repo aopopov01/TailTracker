@@ -1,0 +1,411 @@
+# TailTracker Logstash Deployment
+# Production-ready Logstash for log processing and transformation
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: logstash
+  namespace: monitoring
+  labels:
+    app: logstash
+    component: monitoring
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app: logstash
+  template:
+    metadata:
+      labels:
+        app: logstash
+        component: monitoring
+    spec:
+      serviceAccountName: logstash
+      containers:
+        - name: logstash
+          image: docker.elastic.co/logstash/logstash:8.10.4
+          ports:
+            - containerPort: 5044
+              name: beats
+            - containerPort: 9600
+              name: http
+            - containerPort: 5000
+              name: tcp
+            - containerPort: 5001
+              name: udp
+              protocol: UDP
+          env:
+            - name: LS_JAVA_OPTS
+              value: "-Xmx2g -Xms2g"
+            - name: ELASTICSEARCH_HOSTS
+              value: "https://elasticsearch:9200"
+            - name: ELASTICSEARCH_USERNAME
+              value: "elastic"
+            - name: ELASTICSEARCH_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: elasticsearch-secret
+                  key: password
+            - name: XPACK_MONITORING_ENABLED
+              value: "true"
+            - name: XPACK_MONITORING_ELASTICSEARCH_HOSTS
+              value: "https://elasticsearch:9200"
+            - name: XPACK_MONITORING_ELASTICSEARCH_USERNAME
+              value: "elastic"
+            - name: XPACK_MONITORING_ELASTICSEARCH_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: elasticsearch-secret
+                  key: password
+          resources:
+            requests:
+              cpu: "500m"
+              memory: "2Gi"
+            limits:
+              cpu: "1"
+              memory: "3Gi"
+          volumeMounts:
+            - name: logstash-config
+              mountPath: /usr/share/logstash/pipeline
+            - name: logstash-settings
+              mountPath: /usr/share/logstash/config/logstash.yml
+              subPath: logstash.yml
+            - name: logstash-patterns
+              mountPath: /usr/share/logstash/patterns
+            - name: elasticsearch-certs
+              mountPath: /usr/share/logstash/config/certs
+              readOnly: true
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 9600
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 9600
+            initialDelaySeconds: 30
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+      volumes:
+        - name: logstash-config
+          configMap:
+            name: logstash-config
+        - name: logstash-settings
+          configMap:
+            name: logstash-settings
+        - name: logstash-patterns
+          configMap:
+            name: logstash-patterns
+        - name: elasticsearch-certs
+          secret:
+            secretName: elasticsearch-certs
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: logstash
+  namespace: monitoring
+  labels:
+    app: logstash
+    component: monitoring
+spec:
+  type: ClusterIP
+  ports:
+    - port: 5044
+      name: beats
+      protocol: TCP
+    - port: 9600
+      name: http
+      protocol: TCP
+    - port: 5000
+      name: tcp
+      protocol: TCP
+    - port: 5001
+      name: udp
+      protocol: UDP
+  selector:
+    app: logstash
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: logstash
+  namespace: monitoring
+  labels:
+    app: logstash
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: logstash-settings
+  namespace: monitoring
+  labels:
+    app: logstash
+data:
+  logstash.yml: |
+    http.host: "0.0.0.0"
+    path.config: /usr/share/logstash/pipeline
+    xpack.monitoring.enabled: true
+    xpack.monitoring.elasticsearch.hosts: ["https://elasticsearch:9200"]
+    xpack.monitoring.elasticsearch.username: elastic
+    xpack.monitoring.elasticsearch.password: "${ELASTICSEARCH_PASSWORD}"
+    xpack.monitoring.elasticsearch.ssl.certificate_authority: "/usr/share/logstash/config/certs/ca.crt"
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: logstash-config
+  namespace: monitoring
+  labels:
+    app: logstash
+data:
+  # Main pipeline configuration
+  logstash.conf: |
+    input {
+      # Filebeat input for application logs
+      beats {
+        port => 5044
+        host => "0.0.0.0"
+      }
+      
+      # TCP input for direct log shipping
+      tcp {
+        port => 5000
+        codec => json_lines
+      }
+      
+      # UDP input for high-throughput logging
+      udp {
+        port => 5001
+        codec => json
+      }
+      
+      # HTTP input for webhook-style logging
+      http {
+        port => 8080
+        codec => json
+      }
+    }
+
+    filter {
+      # Parse TailTracker API logs
+      if [fields][service] == "tailtracker-api" {
+        grok {
+          match => { "message" => "%{TIMESTAMP_ISO8601:timestamp} \[%{LOGLEVEL:level}\] %{DATA:logger} - %{GREEDYDATA:log_message}" }
+        }
+        
+        date {
+          match => [ "timestamp", "ISO8601" ]
+          target => "@timestamp"
+        }
+        
+        # Extract API metrics
+        if [log_message] =~ /API Request/ {
+          grok {
+            match => { "log_message" => "API Request: %{WORD:method} %{URIPATH:endpoint} - %{NUMBER:response_time:float}ms - %{NUMBER:status_code:int}" }
+          }
+        }
+        
+        # Parse error logs
+        if [level] == "ERROR" {
+          grok {
+            match => { "log_message" => "(?<error_type>\w+Error): %{GREEDYDATA:error_message}" }
+          }
+          
+          mutate {
+            add_tag => [ "error" ]
+          }
+        }
+      }
+      
+      # Parse mobile app logs
+      if [fields][service] == "tailtracker-mobile" {
+        json {
+          source => "message"
+        }
+        
+        # Extract user session info
+        if [userId] {
+          mutate {
+            add_field => { "user_session" => "%{userId}-%{sessionId}" }
+          }
+        }
+        
+        # Tag crash reports
+        if [level] == "FATAL" or [crashReport] {
+          mutate {
+            add_tag => [ "crash", "critical" ]
+          }
+        }
+      }
+      
+      # Parse database logs
+      if [fields][service] == "postgresql" {
+        grok {
+          match => { "message" => "%{TIMESTAMP_ISO8601:timestamp} \[%{NUMBER:pid}\] %{WORD:level}: %{GREEDYDATA:log_message}" }
+        }
+        
+        # Extract slow queries
+        if [log_message] =~ /slow query/ {
+          grok {
+            match => { "log_message" => "slow query: duration: %{NUMBER:duration:float} ms  statement: %{GREEDYDATA:query}" }
+          }
+          
+          mutate {
+            add_tag => [ "slow_query", "performance" ]
+          }
+        }
+      }
+      
+      # Parse Nginx access logs
+      if [fields][service] == "nginx" {
+        grok {
+          match => { "message" => "%{NGINXACCESS}" }
+        }
+        
+        # GeoIP enrichment
+        geoip {
+          source => "clientip"
+          target => "geoip"
+        }
+        
+        # User agent parsing
+        useragent {
+          source => "agent"
+          target => "user_agent"
+        }
+      }
+      
+      # Parse Redis logs
+      if [fields][service] == "redis" {
+        grok {
+          match => { "message" => "%{POSINT:pid}:%{CHAR:role} %{REDISTIMESTAMP:timestamp} %{WORD:level} %{GREEDYDATA:log_message}" }
+        }
+      }
+      
+      # Common enrichment for all logs
+      mutate {
+        add_field => { "environment" => "${ENVIRONMENT:unknown}" }
+        add_field => { "cluster" => "tailtracker-production" }
+        add_field => { "processed_timestamp" => "%{+YYYY-MM-dd HH:mm:ss}" }
+      }
+      
+      # Remove sensitive information
+      mutate {
+        remove_field => [ "password", "token", "secret", "key" ]
+      }
+      
+      # Add business metrics tags
+      if [fields][service] == "tailtracker-api" and [endpoint] {
+        if [endpoint] =~ /\/pets/ {
+          mutate { add_tag => [ "pet_management" ] }
+        } else if [endpoint] =~ /\/users/ {
+          mutate { add_tag => [ "user_management" ] }
+        } else if [endpoint] =~ /\/alerts/ {
+          mutate { add_tag => [ "lost_pet_alerts" ] }
+        } else if [endpoint] =~ /\/payments/ {
+          mutate { add_tag => [ "payments", "business_critical" ] }
+        }
+      }
+    }
+
+    output {
+      # Main Elasticsearch output
+      elasticsearch {
+        hosts => ["https://elasticsearch:9200"]
+        user => "elastic"
+        password => "${ELASTICSEARCH_PASSWORD}"
+        ssl => true
+        cacert => "/usr/share/logstash/config/certs/ca.crt"
+        
+        # Dynamic index naming based on service and date
+        index => "tailtracker-%{[fields][service]:unknown}-%{+YYYY.MM.dd}"
+        
+        # Use ILM policy
+        ilm_enabled => true
+        ilm_rollover_alias => "tailtracker-logs"
+        ilm_pattern => "{now/d}-000001"
+        ilm_policy => "tailtracker-logs-policy"
+        
+        template_name => "tailtracker-logs"
+        template => "/usr/share/logstash/templates/tailtracker-template.json"
+        template_overwrite => true
+      }
+      
+      # Error logs to dedicated index
+      if "error" in [tags] or [level] == "ERROR" or [level] == "FATAL" {
+        elasticsearch {
+          hosts => ["https://elasticsearch:9200"]
+          user => "elastic"
+          password => "${ELASTICSEARCH_PASSWORD}"
+          ssl => true
+          cacert => "/usr/share/logstash/config/certs/ca.crt"
+          index => "tailtracker-errors-%{+YYYY.MM.dd}"
+        }
+      }
+      
+      # Business-critical logs to separate index
+      if "business_critical" in [tags] {
+        elasticsearch {
+          hosts => ["https://elasticsearch:9200"]
+          user => "elastic"
+          password => "${ELASTICSEARCH_PASSWORD}"
+          ssl => true
+          cacert => "/usr/share/logstash/config/certs/ca.crt"
+          index => "tailtracker-business-%{+YYYY.MM.dd}"
+        }
+      }
+      
+      # Debug output for development
+      if [@metadata][debug] {
+        stdout {
+          codec => rubydebug
+        }
+      }
+    }
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: logstash-patterns
+  namespace: monitoring
+  labels:
+    app: logstash
+data:
+  tailtracker-patterns: |
+    # TailTracker specific patterns
+    TAILTRACKER_TIMESTAMP %{YEAR}-%{MONTHNUM}-%{MONTHDAY}[T ]%{HOUR}:?%{MINUTE}(?::?%{SECOND})?%{ISO8601_TIMEZONE}?
+    TAILTRACKER_LOGLEVEL (TRACE|DEBUG|INFO|WARN|ERROR|FATAL)
+    TAILTRACKER_THREAD \[%{DATA:thread}\]
+    TAILTRACKER_CLASS (%{JAVACLASS}|%{DATA})
+    
+    # API request patterns
+    TAILTRACKER_API_REQUEST %{WORD:method} %{URIPATH:endpoint}(?:%{URIPARAM:params})? - %{NUMBER:response_time:float}ms - %{NUMBER:status_code:int}
+    TAILTRACKER_USER_ACTION User %{DATA:user_id} performed %{DATA:action} on %{DATA:resource}
+    
+    # Mobile app patterns
+    TAILTRACKER_CRASH_REPORT Crash in %{DATA:component}: %{GREEDYDATA:crash_details}
+    TAILTRACKER_PERFORMANCE %{DATA:component} took %{NUMBER:duration:float}ms to %{DATA:operation}
+    
+    # Database patterns
+    TAILTRACKER_SLOW_QUERY slow query: duration: %{NUMBER:duration:float} ms  statement: %{GREEDYDATA:query}
+    TAILTRACKER_DB_ERROR database error: %{GREEDYDATA:error_message}
+    
+    # Business event patterns
+    TAILTRACKER_PET_ALERT Lost pet alert created: Pet ID %{DATA:pet_id}, User ID %{DATA:user_id}
+    TAILTRACKER_SUBSCRIPTION Subscription %{DATA:action}: User ID %{DATA:user_id}, Plan %{DATA:plan}

@@ -1,0 +1,123 @@
+# TailTracker Monitoring & Alerting Workflow
+# Automated monitoring deployment and alert configuration
+
+name: Deploy Monitoring Stack
+
+on:
+  push:
+    branches: [ main ]
+    paths: 
+      - 'infrastructure/monitoring/**'
+      - 'infrastructure/terraform/monitoring.tf'
+  workflow_dispatch:
+
+env:
+  AWS_REGION: 'us-east-1'
+  GRAFANA_VERSION: '10.2.0'
+  PROMETHEUS_VERSION: '2.47.0'
+
+jobs:
+  deploy-monitoring:
+    name: Deploy Monitoring Infrastructure
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: '1.28.0'
+
+      - name: Update kubeconfig
+        run: |
+          aws eks update-kubeconfig --region ${{ env.AWS_REGION }} --name tailtracker-production
+
+      - name: Deploy Prometheus
+        run: |
+          kubectl apply -f infrastructure/kubernetes/monitoring/prometheus/
+          kubectl rollout status deployment/prometheus-server -n monitoring --timeout=300s
+
+      - name: Deploy Grafana
+        run: |
+          kubectl apply -f infrastructure/kubernetes/monitoring/grafana/
+          kubectl rollout status deployment/grafana -n monitoring --timeout=300s
+
+      - name: Deploy AlertManager
+        run: |
+          kubectl apply -f infrastructure/kubernetes/monitoring/alertmanager/
+          kubectl rollout status deployment/alertmanager -n monitoring --timeout=300s
+
+      - name: Configure Grafana dashboards
+        run: |
+          # Wait for Grafana to be ready
+          kubectl wait --for=condition=ready pod -l app=grafana -n monitoring --timeout=300s
+          
+          # Import dashboards
+          ./scripts/import-grafana-dashboards.sh
+
+      - name: Verify monitoring stack
+        run: |
+          ./scripts/verify-monitoring.sh
+
+      - name: Notify monitoring deployment
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          channel: '#infrastructure'
+          text: |
+            📊 Monitoring stack deployment: ${{ job.status }}
+            • Prometheus: v${{ env.PROMETHEUS_VERSION }}
+            • Grafana: v${{ env.GRAFANA_VERSION }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+  update-alert-rules:
+    name: Update Alert Rules
+    runs-on: ubuntu-latest
+    needs: deploy-monitoring
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Validate alert rules
+        run: |
+          docker run --rm -v $(pwd)/infrastructure/monitoring:/config prom/prometheus:${{ env.PROMETHEUS_VERSION }} promtool check rules /config/alerts.yml
+
+      - name: Deploy alert rules
+        run: |
+          kubectl apply -f infrastructure/monitoring/alerts.yml
+          kubectl rollout restart deployment/prometheus-server -n monitoring
+
+      - name: Test alert rules
+        run: |
+          ./scripts/test-alert-rules.sh
+
+  setup-synthetic-monitoring:
+    name: Setup Synthetic Monitoring
+    runs-on: ubuntu-latest
+    needs: deploy-monitoring
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy Blackbox Exporter
+        run: |
+          kubectl apply -f infrastructure/kubernetes/monitoring/blackbox/
+          kubectl rollout status deployment/blackbox-exporter -n monitoring --timeout=300s
+
+      - name: Configure synthetic tests
+        run: |
+          kubectl apply -f infrastructure/monitoring/synthetic-tests.yml
+
+      - name: Verify synthetic monitoring
+        run: |
+          ./scripts/verify-synthetic-monitoring.sh

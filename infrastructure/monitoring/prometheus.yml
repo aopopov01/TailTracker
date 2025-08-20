@@ -1,0 +1,200 @@
+# TailTracker Prometheus Configuration
+# Comprehensive monitoring for 150K+ users with 99.9% uptime
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'tailtracker-production'
+    environment: 'production'
+
+# Alert rules configuration
+rule_files:
+  - "alerts.yml"
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          - alertmanager:9093
+
+# Scrape configurations
+scrape_configs:
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+    scrape_interval: 30s
+    metrics_path: /metrics
+
+  # TailTracker API monitoring
+  - job_name: 'tailtracker-api'
+    static_configs:
+      - targets: 
+          - 'api_server_1:3000'
+          - 'api_server_2:3000'
+    scrape_interval: 15s
+    metrics_path: /metrics
+    scrape_timeout: 10s
+    honor_labels: false
+    scheme: http
+    params:
+      format: ['prometheus']
+
+  # Node Exporter (system metrics)
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['node_exporter:9100']
+    scrape_interval: 30s
+    metrics_path: /metrics
+
+  # Redis monitoring
+  - job_name: 'redis-cache'
+    static_configs:
+      - targets: ['redis_exporter:9121']
+    scrape_interval: 30s
+    metrics_path: /metrics
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'redis-cache'
+
+  # Container monitoring (cAdvisor)
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['cadvisor:8080']
+    scrape_interval: 30s
+    metrics_path: /metrics
+
+  # Nginx monitoring (if nginx-prometheus-exporter is set up)
+  - job_name: 'nginx'
+    static_configs:
+      - targets: ['nginx:9113']
+    scrape_interval: 30s
+    metrics_path: /metrics
+
+  # Application-specific business metrics
+  - job_name: 'tailtracker-business-metrics'
+    static_configs:
+      - targets: 
+          - 'api_server_1:3000'
+          - 'api_server_2:3000'
+    scrape_interval: 60s
+    metrics_path: /metrics/business
+    scrape_timeout: 10s
+
+  # Database monitoring (if postgres_exporter is set up)
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['postgres_exporter:9187']
+    scrape_interval: 30s
+    metrics_path: /metrics
+
+  # Blackbox monitoring for external endpoints
+  - job_name: 'blackbox-http'
+    metrics_path: /probe
+    params:
+      module: [http_2xx]
+    static_configs:
+      - targets:
+          - https://api.tailtracker.com/health
+          - https://tailtracker.com
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox_exporter:9115
+
+  # SSL certificate monitoring
+  - job_name: 'blackbox-ssl'
+    metrics_path: /probe
+    params:
+      module: [tcp_connect]
+    static_configs:
+      - targets:
+          - api.tailtracker.com:443
+          - tailtracker.com:443
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox_exporter:9115
+
+# Recording rules for performance optimization
+recording_rules:
+  # API performance metrics
+  - record: tailtracker:api_request_duration_seconds:rate5m
+    expr: rate(http_request_duration_seconds_sum[5m]) / rate(http_request_duration_seconds_count[5m])
+    labels:
+      job: tailtracker-api
+
+  - record: tailtracker:api_request_rate:rate5m
+    expr: sum(rate(http_requests_total[5m])) by (instance, method, status)
+
+  - record: tailtracker:api_error_rate:rate5m
+    expr: sum(rate(http_requests_total{status=~"5.."}[5m])) by (instance) / sum(rate(http_requests_total[5m])) by (instance)
+
+  # Database performance metrics
+  - record: tailtracker:db_connections:max_over_time5m
+    expr: max_over_time(pg_stat_database_numbackends[5m])
+
+  - record: tailtracker:db_query_duration:p95_5m
+    expr: histogram_quantile(0.95, rate(pg_stat_database_query_duration_seconds_bucket[5m]))
+
+  # Redis performance metrics
+  - record: tailtracker:redis_memory_usage:max_over_time5m
+    expr: max_over_time(redis_memory_used_bytes[5m])
+
+  - record: tailtracker:redis_hit_rate:rate5m
+    expr: rate(redis_keyspace_hits_total[5m]) / (rate(redis_keyspace_hits_total[5m]) + rate(redis_keyspace_misses_total[5m]))
+
+  # Business metrics
+  - record: tailtracker:active_users:gauge
+    expr: sum(increase(tailtracker_user_login_total[1h]))
+
+  - record: tailtracker:new_registrations:rate1h
+    expr: rate(tailtracker_user_registrations_total[1h])
+
+  - record: tailtracker:pet_profiles:total
+    expr: sum(tailtracker_pets_total)
+
+  - record: tailtracker:lost_pet_alerts:rate1h
+    expr: rate(tailtracker_lost_pet_alerts_total[1h])
+
+  # Infrastructure metrics
+  - record: tailtracker:cpu_usage:avg_over_time5m
+    expr: 100 - (avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100)
+
+  - record: tailtracker:memory_usage:percent
+    expr: ((node_memory_MemTotal_bytes - node_memory_MemFree_bytes - node_memory_Buffers_bytes - node_memory_Cached_bytes) / node_memory_MemTotal_bytes) * 100
+
+  - record: tailtracker:disk_usage:percent
+    expr: (node_filesystem_size_bytes{fstype!="tmpfs"} - node_filesystem_free_bytes{fstype!="tmpfs"}) / node_filesystem_size_bytes{fstype!="tmpfs"} * 100
+
+  - record: tailtracker:network_receive:rate5m
+    expr: rate(node_network_receive_bytes_total[5m]) * 8
+
+  - record: tailtracker:network_transmit:rate5m
+    expr: rate(node_network_transmit_bytes_total[5m]) * 8
+
+# Remote write configuration for long-term storage (optional)
+remote_write:
+  - url: "https://prometheus-remote-write-endpoint.com/api/v1/write"
+    queue_config:
+      max_samples_per_send: 10000
+      max_shards: 200
+      capacity: 500000
+    write_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'tailtracker:.*'
+        action: keep
+
+# Remote read configuration (optional)
+remote_read:
+  - url: "https://prometheus-remote-read-endpoint.com/api/v1/read"
+    read_recent: true

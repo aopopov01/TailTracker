@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <domain-config cleartextTrafficPermitted="false">
+        <!-- Production domains -->
+        <domain includeSubdomains="true">api.tailtracker.com</domain>
+        <domain includeSubdomains="true">supabase.co</domain>
+        <domain includeSubdomains="true">googleapis.com</domain>
+        <domain includeSubdomains="true">firebase.googleapis.com</domain>
+        <domain includeSubdomains="true">firebaseio.com</domain>
+        
+        <!-- Pin certificates for critical domains -->
+        <pin-set expiration="2025-12-31">
+            <pin digest="SHA-256">YourAPIServerCertificateHashHere</pin>
+            <pin digest="SHA-256">YourBackupCertificateHashHere</pin>
+        </pin-set>
+    </domain-config>
+    
+    <!-- Allow cleartext traffic only for development/debugging -->
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">localhost</domain>
+        <domain includeSubdomains="true">10.0.0.0/8</domain>
+        <domain includeSubdomains="true">192.168.0.0/16</domain>
+        <domain includeSubdomains="true">172.16.0.0/12</domain>
+        <domain includeSubdomains="true">api-dev.tailtracker.com</domain>
+        <domain includeSubdomains="true">api-staging.tailtracker.com</domain>
+    </domain-config>
+    
+    <!-- Debug overrides (only in debug builds) -->
+    <debug-overrides>
+        <trust-anchors>
+            <!-- Trust system certificates -->
+            <certificates src="system"/>
+            <!-- Trust user-added CA certificates (for debugging) -->
+            <certificates src="user"/>
+        </trust-anchors>
+    </debug-overrides>
+    
+    <!-- Base config for all other connections -->
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system"/>
+        </trust-anchors>
+    </base-config>
+</network-security-config>

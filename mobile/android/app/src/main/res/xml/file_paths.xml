@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Internal storage paths -->
+    <files-path name="internal_files" path="." />
+    <cache-path name="internal_cache" path="." />
+    
+    <!-- External storage paths -->
+    <external-files-path name="external_files" path="." />
+    <external-cache-path name="external_cache" path="." />
+    
+    <!-- Pet photos directory -->
+    <external-files-path name="pet_photos" path="pet_photos/" />
+    
+    <!-- Documents directory -->
+    <external-files-path name="documents" path="documents/" />
+    
+    <!-- Temp files directory -->
+    <cache-path name="temp_files" path="temp/" />
+    
+    <!-- Shared storage (Android 10+) -->
+    <external-media-path name="external_media" path="." />
+    
+    <!-- Root external storage (use with caution) -->
+    <root-path name="root" path="." />
+</paths>

@@ -1,0 +1,206 @@
+{
+  "expo": {
+    "name": "TailTracker",
+    "slug": "tailtracker",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "tailtracker",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "image": "./assets/images/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.tailtracker.app",
+      "buildNumber": "1",
+      "deploymentTarget": "13.0",
+      "requireFullScreen": false,
+      "config": {
+        "usesNonExemptEncryption": false
+      },
+      "associatedDomains": [
+        "applinks:tailtracker.app",
+        "applinks:www.tailtracker.app"
+      ],
+      "entitlements": {
+        "com.apple.developer.applesignin": ["Default"],
+        "com.apple.developer.in-app-payments": true,
+        "com.apple.developer.location.push": true,
+        "com.apple.developer.usernotifications.time-sensitive": true,
+        "aps-environment": "production"
+      },
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "TailTracker needs location access to help you find lost pets and discover nearby pet services.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "TailTracker needs location access to help you find lost pets and track their safe zones.",
+        "NSLocationAlwaysUsageDescription": "TailTracker needs background location access to monitor your pet's safe zones and send alerts if they wander off.",
+        "NSCameraUsageDescription": "TailTracker needs camera access to take photos of your pets for their profiles.",
+        "NSPhotoLibraryUsageDescription": "TailTracker needs photo library access to select photos of your pets.",
+        "NSPhotoLibraryAddUsageDescription": "TailTracker needs permission to save photos of your pets to your photo library.",
+        "NSMicrophoneUsageDescription": "TailTracker may need microphone access for video recording features.",
+        "NSFaceIDUsageDescription": "TailTracker uses Face ID for secure authentication and to protect your pet's sensitive information.",
+        "NSAppTransportSecurity": {
+          "NSAllowsArbitraryLoads": false,
+          "NSExceptionDomains": {
+            "tailtracker.app": {
+              "NSExceptionRequiresForwardSecrecy": false,
+              "NSExceptionMinimumTLSVersion": "TLSv1.2",
+              "NSExceptionAllowsInsecureHTTPLoads": false,
+              "NSIncludesSubdomains": true
+            }
+          }
+        },
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSSupportsLiveActivities": true,
+        "NSSupportsLiveActivitiesFrequentUpdates": true,
+        "BGTaskSchedulerPermittedIdentifiers": [
+          "$(PRODUCT_BUNDLE_IDENTIFIER).background-location",
+          "$(PRODUCT_BUNDLE_IDENTIFIER).background-refresh"
+        ],
+        "UIBackgroundModes": [
+          "location",
+          "background-processing",
+          "background-fetch",
+          "remote-notification"
+        ],
+        "LSApplicationQueriesSchemes": [
+          "tel",
+          "mailto",
+          "maps",
+          "comgooglemaps",
+          "waze"
+        ],
+        "CFBundleURLTypes": [
+          {
+            "CFBundleURLName": "com.tailtracker.app",
+            "CFBundleURLSchemes": ["tailtracker"]
+          }
+        ]
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "package": "com.tailtracker.app",
+      "versionCode": 1,
+      "compileSdkVersion": 34,
+      "targetSdkVersion": 34,
+      "minSdkVersion": 26,
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_BACKGROUND_LOCATION",
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE",
+        "RECORD_AUDIO",
+        "VIBRATE",
+        "RECEIVE_BOOT_COMPLETED",
+        "WAKE_LOCK",
+        "INTERNET",
+        "ACCESS_NETWORK_STATE"
+      ],
+      "blockedPermissions": [
+        "USE_BIOMETRIC",
+        "USE_FINGERPRINT"
+      ],
+      "config": {
+        "googleMaps": {
+          "apiKey": ""
+        }
+      },
+      "googleServicesFile": "./google-services.json"
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static",
+      "favicon": "./assets/images/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "enableProguardInReleaseBuilds": true,
+            "enableShrinkResourcesInReleaseBuilds": true,
+            "compileSdkVersion": 34,
+            "targetSdkVersion": 34,
+            "minSdkVersion": 26,
+            "buildToolsVersion": "34.0.0",
+            "proguardFiles": ["proguard-android-optimize.txt", "proguard-rules.pro"]
+          }
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "TailTracker needs location access to help you find lost pets and track their safe zones.",
+          "locationAlwaysPermission": "TailTracker needs background location access to monitor your pet's safe zones and send alerts if they wander off.",
+          "locationWhenInUsePermission": "TailTracker needs location access to help you find lost pets and discover nearby pet services.",
+          "isAndroidBackgroundLocationEnabled": true,
+          "isAndroidForegroundServiceEnabled": true
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "TailTracker needs camera access to take photos of your pets for their profiles.",
+          "microphonePermission": "TailTracker may need microphone access for video recording features.",
+          "recordAudioAndroid": false
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "TailTracker needs photo library access to select photos of your pets.",
+          "cameraPermission": "TailTracker needs camera access to take photos of your pets."
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/notification-icon.png",
+          "color": "#ffffff",
+          "sounds": [
+            "./assets/sounds/notification.wav"
+          ]
+        }
+      ],
+      [
+        "expo-dev-client",
+        {
+          "addGeneratedScheme": false
+        }
+      ],
+      [
+        "@react-native-community/push-notification-ios",
+        {}
+      ],
+      [
+        "react-native-purchases",
+        {
+          "appleApiKey": "your-apple-api-key-here"
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "your-project-id-here"
+      }
+    }
+  }
+}

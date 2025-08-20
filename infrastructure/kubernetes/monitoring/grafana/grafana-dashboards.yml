@@ -1,0 +1,412 @@
+# TailTracker Grafana Dashboards Configuration
+# Comprehensive dashboards for operational excellence
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboards-config
+  namespace: monitoring
+  labels:
+    app: grafana
+    component: dashboards
+data:
+  dashboards.yaml: |
+    apiVersion: 1
+    
+    providers:
+      - name: 'TailTracker Dashboards'
+        orgId: 1
+        folder: 'TailTracker'
+        folderUid: 'tailtracker'
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 30
+        allowUiUpdates: true
+        options:
+          path: /var/lib/grafana/dashboards
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboards
+  namespace: monitoring
+  labels:
+    app: grafana
+    component: dashboards
+data:
+  # TailTracker API Performance Dashboard
+  api-performance.json: |
+    {
+      "dashboard": {
+        "id": null,
+        "title": "TailTracker API Performance",
+        "tags": ["tailtracker", "api", "performance"],
+        "style": "dark",
+        "timezone": "browser",
+        "panels": [
+          {
+            "id": 1,
+            "title": "API Response Time",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "tailtracker:api_request_duration_seconds:rate5m",
+                "legendFormat": "{{instance}}"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "unit": "s",
+                "thresholds": {
+                  "steps": [
+                    {"color": "green", "value": null},
+                    {"color": "yellow", "value": 0.5},
+                    {"color": "red", "value": 1.0}
+                  ]
+                }
+              }
+            },
+            "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0}
+          },
+          {
+            "id": 2,
+            "title": "API Request Rate",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "sum(rate(http_requests_total{job=\"tailtracker-api\"}[5m])) by (method, status)",
+                "legendFormat": "{{method}} {{status}}"
+              }
+            ],
+            "yAxes": [
+              {"label": "Requests/sec", "min": 0}
+            ],
+            "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0}
+          },
+          {
+            "id": 3,
+            "title": "Error Rate",
+            "type": "singlestat",
+            "targets": [
+              {
+                "expr": "sum(rate(http_requests_total{job=\"tailtracker-api\",status=~\"5..\"}[5m])) / sum(rate(http_requests_total{job=\"tailtracker-api\"}[5m]))",
+                "legendFormat": "Error Rate"
+              }
+            ],
+            "valueName": "current",
+            "format": "percentunit",
+            "thresholds": "0.01,0.05",
+            "colorBackground": true,
+            "gridPos": {"h": 4, "w": 6, "x": 0, "y": 8}
+          },
+          {
+            "id": 4,
+            "title": "Active Users",
+            "type": "singlestat",
+            "targets": [
+              {
+                "expr": "tailtracker:active_users:gauge",
+                "legendFormat": "Active Users"
+              }
+            ],
+            "valueName": "current",
+            "format": "short",
+            "gridPos": {"h": 4, "w": 6, "x": 6, "y": 8}
+          }
+        ],
+        "time": {
+          "from": "now-1h",
+          "to": "now"
+        },
+        "refresh": "30s"
+      }
+    }
+
+  # Business Metrics Dashboard
+  business-metrics.json: |
+    {
+      "dashboard": {
+        "id": null,
+        "title": "TailTracker Business Metrics",
+        "tags": ["tailtracker", "business", "kpi"],
+        "style": "dark",
+        "timezone": "browser",
+        "panels": [
+          {
+            "id": 1,
+            "title": "User Registrations",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "increase(tailtracker_user_registrations_total[1h])",
+                "legendFormat": "Hourly Registrations"
+              }
+            ],
+            "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0}
+          },
+          {
+            "id": 2,
+            "title": "Subscription Conversions",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "rate(tailtracker_subscription_conversions_total[1h])",
+                "legendFormat": "Conversions/hour"
+              }
+            ],
+            "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0}
+          },
+          {
+            "id": 3,
+            "title": "Lost Pet Alerts",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "increase(tailtracker_lost_pet_alerts_total[24h])",
+                "legendFormat": "Daily Alerts"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "unit": "short",
+                "color": {"mode": "thresholds"},
+                "thresholds": {
+                  "steps": [
+                    {"color": "green", "value": null},
+                    {"color": "yellow", "value": 10},
+                    {"color": "red", "value": 50}
+                  ]
+                }
+              }
+            },
+            "gridPos": {"h": 4, "w": 8, "x": 0, "y": 8}
+          },
+          {
+            "id": 4,
+            "title": "Pet Recovery Rate",
+            "type": "gauge",
+            "targets": [
+              {
+                "expr": "tailtracker_pets_recovered_total / tailtracker_lost_pet_alerts_total",
+                "legendFormat": "Recovery Rate"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "unit": "percentunit",
+                "min": 0,
+                "max": 1,
+                "thresholds": {
+                  "steps": [
+                    {"color": "red", "value": 0},
+                    {"color": "yellow", "value": 0.6},
+                    {"color": "green", "value": 0.8}
+                  ]
+                }
+              }
+            },
+            "gridPos": {"h": 4, "w": 8, "x": 8, "y": 8}
+          }
+        ],
+        "time": {
+          "from": "now-24h",
+          "to": "now"
+        },
+        "refresh": "5m"
+      }
+    }
+
+  # Infrastructure Overview Dashboard
+  infrastructure-overview.json: |
+    {
+      "dashboard": {
+        "id": null,
+        "title": "TailTracker Infrastructure Overview",
+        "tags": ["tailtracker", "infrastructure", "overview"],
+        "style": "dark",
+        "timezone": "browser",
+        "panels": [
+          {
+            "id": 1,
+            "title": "CPU Usage",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "100 - (avg by (instance) (rate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100)",
+                "legendFormat": "{{instance}}"
+              }
+            ],
+            "yAxes": [
+              {"label": "CPU %", "max": 100, "min": 0}
+            ],
+            "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0}
+          },
+          {
+            "id": 2,
+            "title": "Memory Usage",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "((node_memory_MemTotal_bytes - node_memory_MemFree_bytes - node_memory_Buffers_bytes - node_memory_Cached_bytes) / node_memory_MemTotal_bytes) * 100",
+                "legendFormat": "{{instance}}"
+              }
+            ],
+            "yAxes": [
+              {"label": "Memory %", "max": 100, "min": 0}
+            ],
+            "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0}
+          },
+          {
+            "id": 3,
+            "title": "Database Connections",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "sum(pg_stat_database_numbackends)",
+                "legendFormat": "Active Connections"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "unit": "short",
+                "thresholds": {
+                  "steps": [
+                    {"color": "green", "value": null},
+                    {"color": "yellow", "value": 150},
+                    {"color": "red", "value": 180}
+                  ]
+                }
+              }
+            },
+            "gridPos": {"h": 4, "w": 6, "x": 0, "y": 8}
+          },
+          {
+            "id": 4,
+            "title": "Redis Hit Rate",
+            "type": "gauge",
+            "targets": [
+              {
+                "expr": "rate(redis_keyspace_hits_total[5m]) / (rate(redis_keyspace_hits_total[5m]) + rate(redis_keyspace_misses_total[5m]))",
+                "legendFormat": "Hit Rate"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "unit": "percentunit",
+                "min": 0,
+                "max": 1,
+                "thresholds": {
+                  "steps": [
+                    {"color": "red", "value": 0},
+                    {"color": "yellow", "value": 0.8},
+                    {"color": "green", "value": 0.9}
+                  ]
+                }
+              }
+            },
+            "gridPos": {"h": 4, "w": 6, "x": 6, "y": 8}
+          }
+        ],
+        "time": {
+          "from": "now-1h",
+          "to": "now"
+        },
+        "refresh": "30s"
+      }
+    }
+
+  # SLA Monitoring Dashboard
+  sla-monitoring.json: |
+    {
+      "dashboard": {
+        "id": null,
+        "title": "TailTracker SLA Monitoring",
+        "tags": ["tailtracker", "sla", "monitoring"],
+        "style": "dark",
+        "timezone": "browser",
+        "panels": [
+          {
+            "id": 1,
+            "title": "Uptime SLA (99.9%)",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "avg_over_time(up{job=\"tailtracker-api\"}[30d]) * 100",
+                "legendFormat": "30-day Uptime"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "unit": "percent",
+                "decimals": 3,
+                "thresholds": {
+                  "steps": [
+                    {"color": "red", "value": null},
+                    {"color": "yellow", "value": 99.8},
+                    {"color": "green", "value": 99.9}
+                  ]
+                }
+              }
+            },
+            "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0}
+          },
+          {
+            "id": 2,
+            "title": "Response Time SLA (<1s)",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{job=\"tailtracker-api\"}[5m]))",
+                "legendFormat": "95th Percentile"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "unit": "s",
+                "decimals": 3,
+                "thresholds": {
+                  "steps": [
+                    {"color": "green", "value": null},
+                    {"color": "yellow", "value": 0.8},
+                    {"color": "red", "value": 1.0}
+                  ]
+                }
+              }
+            },
+            "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0}
+          },
+          {
+            "id": 3,
+            "title": "Error Budget Remaining",
+            "type": "bargauge",
+            "targets": [
+              {
+                "expr": "((0.001 - (1 - avg_over_time(up{job=\"tailtracker-api\"}[30d]))) / 0.001) * 100",
+                "legendFormat": "Error Budget"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "unit": "percent",
+                "min": 0,
+                "max": 100,
+                "thresholds": {
+                  "steps": [
+                    {"color": "red", "value": 0},
+                    {"color": "yellow", "value": 20},
+                    {"color": "green", "value": 50}
+                  ]
+                }
+              }
+            },
+            "gridPos": {"h": 8, "w": 24, "x": 0, "y": 8}
+          }
+        ],
+        "time": {
+          "from": "now-30d",
+          "to": "now"
+        },
+        "refresh": "1m"
+      }
+    }
