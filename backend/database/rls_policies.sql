@@ -188,14 +188,17 @@ CREATE POLICY "Users can manage own notifications" ON notifications
   );
 
 -- Subscriptions table RLS policies
-CREATE POLICY "Users can manage own subscriptions" ON subscriptions
-  FOR ALL USING (
+CREATE POLICY "Users can view own subscriptions" ON subscriptions
+  FOR SELECT USING (
     EXISTS (
       SELECT 1 FROM users u
       WHERE u.id = user_id
       AND u.auth_user_id = auth.uid()
     )
   );
+
+CREATE POLICY "Service role can manage subscriptions" ON subscriptions
+  FOR ALL TO service_role USING (true);
 
 -- Payments table RLS policies
 CREATE POLICY "Users can view own payments" ON payments
@@ -207,6 +210,26 @@ CREATE POLICY "Users can view own payments" ON payments
       AND u.auth_user_id = auth.uid()
     )
   );
+
+CREATE POLICY "Service role can manage payments" ON payments
+  FOR ALL TO service_role USING (true);
+
+-- Stripe webhook events table RLS policies (service role only)
+CREATE POLICY "Service role can manage webhook events" ON stripe_webhook_events
+  FOR ALL TO service_role USING (true);
+
+-- Feature usage table RLS policies
+CREATE POLICY "Users can view own feature usage" ON feature_usage
+  FOR SELECT USING (
+    EXISTS (
+      SELECT 1 FROM users u
+      WHERE u.id = user_id
+      AND u.auth_user_id = auth.uid()
+    )
+  );
+
+CREATE POLICY "Service role can manage feature usage" ON feature_usage
+  FOR ALL TO service_role USING (true);
 
 -- Files table RLS policies
 CREATE POLICY "Users can manage own files" ON files

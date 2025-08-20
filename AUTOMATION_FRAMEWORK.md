@@ -704,12 +704,12 @@ export class TestDataFactory {
     const envData = {
       development: {
         apiUrl: 'http://localhost:3000',
-        stripeKey: 'pk_test_dev_key',
+        stripeKey: 'STRIPE_PUBLISHABLE_KEY_HERE_key',
         supabaseUrl: 'https://dev.supabase.co'
       },
       staging: {
         apiUrl: 'https://api-staging.tailtracker.app',
-        stripeKey: 'pk_test_staging_key',
+        stripeKey: 'STRIPE_PUBLISHABLE_KEY_HERE_key',
         supabaseUrl: 'https://staging.supabase.co'
       },
       production: {
@@ -790,7 +790,7 @@ class TestConfigManager {
         ...baseConfig,
         apiUrl: 'http://localhost:3000',
         databaseUrl: 'postgresql://localhost:5432/tailtracker_test',
-        stripePublicKey: 'pk_test_development_key',
+        stripePublicKey: 'STRIPE_PUBLISHABLE_KEY_HERE_key',
         supabaseUrl: 'http://localhost:54321',
         supabaseAnonKey: 'test_anon_key'
       },

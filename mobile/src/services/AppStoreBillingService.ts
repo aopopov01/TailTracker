@@ -1,4 +1,5 @@
 import { Platform } from 'react-native';
+import { StripePaymentService } from './StripePaymentService';
 import Purchases, {
   PurchasesOffering,
   PurchasesPackage,
@@ -47,6 +48,7 @@ export interface RestoreResult {
 export class AppStoreBillingService {
   private static instance: AppStoreBillingService;
   private isConfigured = false;
+  private stripePaymentService: StripePaymentService;
 
   // TailTracker subscription identifiers
   private readonly SUBSCRIPTION_IDS = {
@@ -55,7 +57,9 @@ export class AppStoreBillingService {
     PREMIUM_LIFETIME: 'com.tailtracker.premium.lifetime',
   };
 
-  private constructor() {}
+  private constructor() {
+    this.stripePaymentService = StripePaymentService.getInstance();
+  }
 
   static getInstance(): AppStoreBillingService {
     if (!AppStoreBillingService.instance) {
@@ -65,31 +69,34 @@ export class AppStoreBillingService {
   }
 
   /**
-   * Initialize RevenueCat with API keys
+   * Initialize billing service with Stripe integration
+   * On iOS: Uses RevenueCat + Stripe backend
+   * On Android: Uses direct Stripe integration
    */
-  async initialize(apiKey: string, userId?: string): Promise<boolean> {
-    if (Platform.OS !== 'ios') {
-      console.warn('App Store billing is only available on iOS');
-      return false;
-    }
-
+  async initialize(apiKey: string, userId?: string, authToken?: string): Promise<boolean> {
     try {
-      Purchases.configure({ apiKey });
+      // Initialize Stripe payment service for both platforms
+      await this.stripePaymentService.initialize(userId, authToken);
 
-      if (userId) {
-        await this.loginUser(userId);
+      // On iOS, also initialize RevenueCat for App Store compliance
+      if (Platform.OS === 'ios') {
+        Purchases.configure({ apiKey });
+
+        if (userId) {
+          await this.loginUser(userId);
+        }
+
+        // Set up delegate for customer info updates
+        Purchases.addCustomerInfoUpdateListener((customerInfo) => {
+          // Handle customer info updates
+          console.log('Customer info updated:', customerInfo);
+        });
       }
-
-      // Set up delegate for customer info updates
-      Purchases.addCustomerInfoUpdateListener((customerInfo) => {
-        // Handle customer info updates
-        console.log('Customer info updated:', customerInfo);
-      });
 
       this.isConfigured = true;
       return true;
     } catch (error) {
-      console.error('Error initializing RevenueCat:', error);
+      console.error('Error initializing billing service:', error);
       return false;
     }
   }
@@ -288,31 +295,52 @@ export class AppStoreBillingService {
 
   /**
    * Check if user has active subscription
+   * Uses Stripe service for cross-platform compatibility
    */
   async hasActiveSubscription(): Promise<boolean> {
-    const customerInfo = await this.getCustomerInfo();
-    
-    if (!customerInfo) {
+    try {
+      // Use Stripe service as primary source of truth
+      const status = await this.stripePaymentService.getSubscriptionStatus();
+      return status.isActive;
+    } catch (error) {
+      console.error('Error checking subscription status:', error);
+      
+      // Fallback to RevenueCat on iOS
+      if (Platform.OS === 'ios') {
+        const customerInfo = await this.getCustomerInfo();
+        if (!customerInfo) return false;
+        
+        const activeSubscriptions = Object.keys(customerInfo.entitlements.active);
+        return activeSubscriptions.length > 0;
+      }
+      
       return false;
     }
-
-    // Check if any subscription is active
-    const activeSubscriptions = Object.keys(customerInfo.entitlements.active);
-    return activeSubscriptions.length > 0;
   }
 
   /**
    * Check if user has specific premium feature
+   * Uses Stripe service for cross-platform compatibility
    */
   async hasPremiumAccess(): Promise<boolean> {
-    const customerInfo = await this.getCustomerInfo();
-    
-    if (!customerInfo) {
+    try {
+      // Use Stripe service as primary source of truth
+      const hasPremium = await this.stripePaymentService.hasPremiumAccess();
+      return hasPremium;
+    } catch (error) {
+      console.error('Error checking premium access:', error);
+      
+      // Fallback to RevenueCat on iOS
+      if (Platform.OS === 'ios') {
+        const customerInfo = await this.getCustomerInfo();
+        if (!customerInfo) return false;
+        
+        // Check for TailTracker premium entitlement
+        return customerInfo.entitlements.active['premium'] !== undefined;
+      }
+      
       return false;
     }
-
-    // Check for TailTracker premium entitlement
-    return customerInfo.entitlements.active['premium'] !== undefined;
   }
 
   /**
