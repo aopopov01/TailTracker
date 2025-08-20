@@ -52,6 +52,10 @@ TailTracker enters a **$2.8 billion pet care app market** growing at 18% CAGR wi
 
 **✅ Included Features:**
 - **Digital Pet Passport** (1 pet only)
+  - Pet identification (name, breed, age, microchip)
+  - Owner contact information
+  - Basic medical information
+  - Travel documentation storage
 - **Basic Vaccination Tracking** (manual entry, no reminders)
 - **Emergency First Aid Guide** (complete access)
 - **Photo Storage** (1 photo per pet)
@@ -62,7 +66,7 @@ TailTracker enters a **$2.8 billion pet care app market** growing at 18% CAGR wi
 - 1-pet limit reached (additional pets)
 - Need for comprehensive lost pet protection (premium-only advanced system)
 - Photo storage limit reached (1 photo limit)
-- Need for vaccination reminders
+- Need for health reminders (vaccinations, parasite prevention, dental care)
 - Need for advanced analytics
 - Desire for family collaboration
 
@@ -73,7 +77,14 @@ TailTracker enters a **$2.8 billion pet care app market** growing at 18% CAGR wi
 **✅ Premium Features:**
 - **Unlimited Pets** (vs 1 pet free)
 - **Advanced Vaccination Tracking** (automatic vet sync, clinic integration)
-- **Vaccination Reminders** (medication schedules, grooming, training)
+- **Comprehensive Health Reminders**:
+  - Vaccination schedules (annual, multi-year boosters)
+  - Internal parasite treatment (deworming - every 3-6 months)
+  - External parasite prevention (fleas, ticks - monthly/seasonal)
+  - Heartworm prevention (monthly medication)
+  - Dental care reminders (annual cleaning, daily brushing)
+  - Grooming schedules (breed-specific intervals)
+  - Weight monitoring check-ups
 - **Lost Pet Alert System** (10km radius, 7-day visibility, social media auto-posting, community notifications)
 - **Unlimited Photo & Video Storage** (cloud sync across devices)
 - **Family Sharing** (up to 5 family members)
@@ -99,9 +110,9 @@ TailTracker enters a **$2.8 billion pet care app market** growing at 18% CAGR wi
 - *Trigger Moment*: First time pet goes missing or fear of losing pet
 
 **2. Convenience (77% value)**
-- *Free Limitation*: Manual vaccination tracking with no reminders
-- *Premium Solution*: Automatic vet integration with smart reminders
-- *Trigger Moment*: Missing important vaccination date due to no reminders
+- *Free Limitation*: Manual health tracking with no reminders
+- *Premium Solution*: Automatic scheduling with comprehensive health reminders (vaccinations, flea/tick prevention, deworming, dental care)
+- *Trigger Moment*: Missing important vaccination or parasite prevention due to no reminders
 
 **3. Family Connection (64% share photos)**
 - *Free Limitation*: Basic link sharing only
