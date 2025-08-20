@@ -472,6 +472,308 @@ const usePermissionSafe = (permission: 'camera' | 'location') => {
 
 ---
 
+## MCP Tools Integration & Automated Backup System
+
+### 🔧 Available MCP Tools and Usage Patterns
+
+#### GitHub Integration (SSH-based)
+**Primary Repository**: `git@github.com:aopopov01/TailTracker.git`
+**SSH Key**: `~/.ssh/id_ed25519` (aopopov01@github)
+
+```bash
+# MCP GitHub Operations
+mcp__github__create_repository          # Create new repositories
+mcp__github__push_files                 # Batch file uploads
+mcp__github__create_or_update_file      # Single file operations
+mcp__github__get_repository             # Repository information
+mcp__github__list_commits               # Commit history
+mcp__github__create_branch              # Branch management
+```
+
+#### Supabase Integration
+**Usage**: Backend data persistence and real-time features
+```bash
+mcp__supabase-mcp__list_projects        # Project management
+mcp__supabase-mcp__create_project       # New project setup
+mcp__supabase-mcp__execute_sql          # Database operations
+mcp__supabase-mcp__apply_migration      # Schema changes
+mcp__supabase-mcp__list_tables          # Database structure
+```
+
+#### Desktop Commander (File System Operations)
+**Usage**: Local file management and development operations
+```bash
+mcp__desktop-commander__read_file       # File reading
+mcp__desktop-commander__write_file      # File creation/editing
+mcp__desktop-commander__create_directory # Directory management
+mcp__desktop-commander__search_files    # File discovery
+mcp__desktop-commander__start_process   # Process execution
+```
+
+### 🚀 Automated Backup System Architecture
+
+#### Core Backup Scripts
+
+**1. auto-backup.sh** - Main backup orchestrator
+```bash
+# Automated backup triggers
+./auto-backup.sh scheduled              # Every 30 minutes
+./auto-backup.sh feature "feature-name" # Before new features
+./auto-backup.sh error-fix "bug-desc"   # Before bug fixes
+./auto-backup.sh milestone "name"       # After major milestones
+./auto-backup.sh manual "description"   # Manual backups
+```
+
+**2. backup-monitor.sh** - Health monitoring and auto-fixing
+```bash
+# System monitoring
+./backup-monitor.sh health              # Comprehensive health check
+./backup-monitor.sh fix                 # Auto-fix common issues
+./backup-monitor.sh report              # Generate status report
+./backup-monitor.sh watch               # Real-time file monitoring
+```
+
+#### Backup Strategy Matrix
+
+| Trigger | Frequency | Command | Purpose |
+|---------|-----------|---------|---------|
+| **Scheduled** | Every 30 min (9AM-6PM) | `scheduled` | Continuous preservation |
+| **Feature Start** | Before implementation | `feature "name"` | Pre-change backup |
+| **Error Fix** | Before debugging | `error-fix "desc"` | Safety checkpoint |
+| **Milestone** | After completion | `milestone "name"` | Progress marker |
+| **File Changes** | Real-time detection | `manual "auto-detected"` | Change preservation |
+| **Manual** | On-demand | `manual "reason"` | User-initiated |
+
+#### Multi-Layer Backup Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    BACKUP ARCHITECTURE                     │
+├─────────────────────────────────────────────────────────────┤
+│ Layer 1: Local Git Repository                              │
+│  ├── Immediate commits with comprehensive messages         │
+│  ├── Error log timestamped backups                        │
+│  └── Branch-based feature isolation                       │
+├─────────────────────────────────────────────────────────────┤
+│ Layer 2: GitHub Remote (SSH)                              │
+│  ├── Automatic push after every commit                    │
+│  ├── Complete project history preservation                │
+│  └── Distributed backup with GitHub's infrastructure      │
+├─────────────────────────────────────────────────────────────┤
+│ Layer 3: Error Learning System                            │
+│  ├── ERROR_LOG.md with timestamped entries               │
+│  ├── error_logs/ directory with historical backups       │
+│  └── Prevention pattern documentation                     │
+├─────────────────────────────────────────────────────────────┤
+│ Layer 4: Health Monitoring                                │
+│  ├── backup-health.log for system monitoring             │
+│  ├── Automated issue detection and resolution             │
+│  └── Real-time file change detection                      │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### 🔄 Continuous Preservation Workflow
+
+#### Development Lifecycle Integration
+
+**1. Pre-Development**
+```bash
+# Before starting work
+./backup-monitor.sh health              # Check system status
+./auto-backup.sh feature "new-feature"  # Create feature checkpoint
+```
+
+**2. During Development**
+```bash
+# Automated (cron job every 30 minutes)
+./auto-backup.sh scheduled
+
+# Real-time file monitoring (optional)
+./backup-monitor.sh watch &
+```
+
+**3. Error Handling**
+```bash
+# Before fixing any error
+./auto-backup.sh error-fix "error description"
+
+# Document in ERROR_LOG.md
+# Apply fix
+# Verify fix works
+# Commit fix with learning notes
+```
+
+**4. Milestone Completion**
+```bash
+# After completing major work
+./auto-backup.sh milestone "MVP completed"
+./backup-monitor.sh report              # Generate status report
+```
+
+#### Automated Cron Schedule
+
+```bash
+# Setup automated backups (run once)
+./auto-backup.sh setup
+
+# Cron schedule created:
+# */30 9-18 * * 1-5  - Every 30 minutes, 9AM-6PM, weekdays
+```
+
+### 🛡️ Zero Data Loss Guarantee
+
+#### Backup Verification System
+
+```bash
+# Integrity checks
+./auto-backup.sh verify                 # Verify backup integrity
+./auto-backup.sh list                   # List available backups
+
+# Restoration capabilities
+./auto-backup.sh restore "commit-hash"  # Restore to specific state
+```
+
+#### Restoration Process
+
+**Complete Project Restoration**:
+1. Clone repository: `git clone git@github.com:aopopov01/TailTracker.git`
+2. Verify integrity: `./backup-monitor.sh health`
+3. Check available states: `./auto-backup.sh list`
+4. Restore if needed: `./auto-backup.sh restore "hash"`
+
+#### Error Prevention Integration
+
+```typescript
+// Integration with error learning system
+import { ErrorLogger } from '@/utils/errorLogger';
+
+// Before major operations
+await ErrorLogger.createBackupCheckpoint('feature-implementation');
+
+try {
+  // Your code
+  await implementFeature();
+  
+  // Success checkpoint
+  await ErrorLogger.markSuccess('feature-implementation');
+  
+} catch (error) {
+  // Log error and restore if needed
+  await ErrorLogger.logAndRestore(error, 'feature-implementation');
+}
+```
+
+### 📊 Monitoring and Alerts
+
+#### Health Check System
+
+**Automated Monitoring**:
+- Git repository status
+- Remote connectivity (GitHub SSH)
+- Critical file integrity
+- Uncommitted changes detection
+- Disk space monitoring
+- Backup recency verification
+
+**Alert Conditions**:
+- No backup for > 2 hours during work time
+- Git repository corruption
+- GitHub connectivity issues
+- Critical files missing or empty
+- Disk space > 90% usage
+
+#### Status Reporting
+
+```bash
+# Generate comprehensive report
+./backup-monitor.sh report
+
+# Sample report sections:
+# - Repository statistics
+# - Backup status and sync info
+# - Critical files status
+# - Health check summary
+# - Actionable recommendations
+```
+
+### 🔧 Integration with Development Tools
+
+#### IDE Integration (VS Code)
+
+```json
+// .vscode/tasks.json
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Backup: Feature Start",
+      "type": "shell",
+      "command": "./auto-backup.sh",
+      "args": ["feature", "${input:featureName}"],
+      "group": "build"
+    },
+    {
+      "label": "Backup: Manual",
+      "type": "shell", 
+      "command": "./auto-backup.sh",
+      "args": ["manual", "${input:description}"],
+      "group": "build"
+    }
+  ]
+}
+```
+
+#### Git Hooks Integration
+
+```bash
+# .git/hooks/pre-commit
+#!/bin/bash
+# Auto-backup before commits
+./backup-monitor.sh health || exit 1
+
+# .git/hooks/post-commit  
+#!/bin/bash
+# Verify backup after commits
+./auto-backup.sh verify
+```
+
+### 🎯 Usage Examples
+
+#### Daily Development Workflow
+
+```bash
+# Morning startup
+cd /home/he_reat/Desktop/Projects/TailTracker
+./backup-monitor.sh status              # Check overnight status
+
+# Starting new feature
+./auto-backup.sh feature "user authentication"
+
+# Work in progress... (auto-backups every 30 min)
+
+# Before fixing bug
+./auto-backup.sh error-fix "login crash on Android"
+
+# After major milestone
+./auto-backup.sh milestone "authentication module complete"
+
+# End of day
+./backup-monitor.sh report              # Generate daily report
+```
+
+#### Emergency Recovery
+
+```bash
+# If system corruption occurs
+git clone git@github.com:aopopov01/TailTracker.git TailTracker-recovery
+cd TailTracker-recovery
+./backup-monitor.sh health              # Verify integrity
+./auto-backup.sh list                   # Find good restore point
+./auto-backup.sh restore "abc1234"      # Restore to working state
+```
+
+---
+
 ## Technical Architecture
 
 ### Core Technologies
