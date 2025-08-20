@@ -39,7 +39,7 @@ TailTracker enters a **$2.8 billion pet care app market** growing at 18% CAGR wi
 **Pricing Expectations:**
 - Free tier: 2-4 pets minimum expected
 - Premium: $5-10/month maximum for consumer apps
-- Emergency features: Must be free (market standard)
+- Advanced emergency features: Premium positioning acceptable for comprehensive systems
 - Professional features: $200+/month acceptable for businesses
 
 ---
@@ -54,7 +54,6 @@ TailTracker enters a **$2.8 billion pet care app market** growing at 18% CAGR wi
 - **Digital Pet Passports** (up to 3 pets)
 - **Basic Vaccination Tracking** (manual entry, basic reminders)
 - **Emergency First Aid Guide** (complete access)
-- **Lost Pet Alerts** (2km radius, 24-hour visibility)
 - **Photo Storage** (25 photos per pet)
 - **Basic Health Records** (weight, notes, vet contacts)
 - **Simple Reminders** (vaccination due dates)
@@ -62,7 +61,7 @@ TailTracker enters a **$2.8 billion pet care app market** growing at 18% CAGR wi
 
 **🔒 Upgrade Triggers:**
 - 3-pet limit reached (family growth)
-- Geographic radius for lost pets too small
+- Need for comprehensive lost pet protection (premium-only advanced system)
 - Photo storage limit reached
 - Need for advanced analytics
 - Desire for family collaboration
@@ -74,7 +73,7 @@ TailTracker enters a **$2.8 billion pet care app market** growing at 18% CAGR wi
 **✅ Premium Features:**
 - **Unlimited Pets** (families, breeders, shelters)
 - **Advanced Vaccination Tracking** (automatic vet sync, clinic integration)
-- **Enhanced Lost Pet Alerts** (10km radius, 7-day visibility, social media auto-posting)
+- **Lost Pet Alert System** (10km radius, 7-day visibility, social media auto-posting, community notifications)
 - **Unlimited Photo & Video Storage** (cloud sync across devices)
 - **Family Sharing** (up to 5 family members)
 - **AI Health Assistant** (symptom checker, breed-specific insights)
@@ -108,9 +107,9 @@ TailTracker enters a **$2.8 billion pet care app market** growing at 18% CAGR wi
 ### Psychological Triggers for Upgrade
 
 **1. Peace of Mind (89% of users)**
-- *Free Limitation*: 2km lost pet radius
-- *Premium Solution*: 10km radius + social media alerts
-- *Trigger Moment*: First time pet goes missing
+- *Free Limitation*: No comprehensive lost pet protection system
+- *Premium Solution*: Complete lost pet alert system (10km radius, social media, community notifications, 7-day visibility)
+- *Trigger Moment*: First time pet goes missing or fear of losing pet
 
 **2. Convenience (77% value)**
 - *Free Limitation*: Manual vaccination tracking
@@ -181,7 +180,7 @@ Users get complete basic functionality for free, with premium features enhancing
 |------------------|-----------|--------------|----------|
 | **Pet Profiles** | 3 pets max | Unlimited | Unlimited + Breeding |
 | **Health Records** | Basic manual entry | Vet integration + AI insights | Professional analytics |
-| **Lost Pet Alerts** | 2km, 24hrs | 10km, 7 days + social | Unlimited + professional network |
+| **Lost Pet Alerts** | Not included | Full system: 10km, 7 days + social | Unlimited + professional network |
 | **Photo Storage** | 25 per pet | Unlimited + cloud sync | Unlimited + API access |
 | **Family Sharing** | Link sharing only | 5 family members | Unlimited + client management |
 | **Reminders** | Basic vaccination | Advanced multi-type | Custom + bulk operations |
@@ -199,10 +198,10 @@ Users get complete basic functionality for free, with premium features enhancing
 - **Competitors**: 1-2 pets, limited functionality
 - **Impact**: Lower acquisition cost, higher user satisfaction
 
-### 2. **Emergency-First Design**
-- **Market Gap**: No competitor focuses on emergency preparedness
-- **TailTracker Advantage**: Complete first aid guide free + premium alert system
-- **Monetization**: Premium alerts create natural upgrade path
+### 2. **Lost Pet Alert Monetization**
+- **Market Gap**: Most competitors offer basic lost pet features for free
+- **TailTracker Advantage**: Premium-only comprehensive lost pet alert system
+- **Monetization**: Critical safety feature creates strong upgrade motivation
 
 ### 3. **Family-Centric Approach**
 - **User Insight**: 68% of pet care decisions involve multiple family members
