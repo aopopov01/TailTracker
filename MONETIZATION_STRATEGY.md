@@ -90,7 +90,6 @@ TailTracker enters a **$2.8 billion pet care app market** growing at 18% CAGR wi
 - **Family Sharing** (up to 5 family members)
 - **AI Health Assistant** (symptom checker, breed-specific insights)
 - **Comprehensive Analytics** (health trends, vaccination compliance)
-- **Priority Support** (24/7 chat support)
 - **Data Export** (PDF reports for vet visits)
 
 ### Annual Pricing: €79.99/year (17% savings)
