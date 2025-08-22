@@ -54,7 +54,13 @@
     "build:analyze": "npx @next/bundle-analyzer",
     "clean": "rm -rf node_modules/.cache && rm -rf .expo && npm run ios:clean",
     "clean:all": "npm run clean && rm -rf node_modules && npm install",
-    "postinstall": "patch-package"
+    "postinstall": "patch-package",
+    "device:setup": "./scripts/device-testing-setup.sh",
+    "device:status": "./scripts/check-device-testing-status.sh",
+    "device:test": "expo start",
+    "device:tunnel": "expo start --tunnel",
+    "device:clear": "expo start --clear",
+    "device:localhost": "expo start --localhost"
   },
   "dependencies": {
     "@expo/vector-icons": "^14.0.2",

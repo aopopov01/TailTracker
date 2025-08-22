@@ -1,4 +1,5 @@
 import 'react-native-gesture-handler/jestSetup';
+import React from 'react';
 import mockAsyncStorage from '@react-native-async-storage/async-storage/jest/async-storage-mock';
 
 // Mock AsyncStorage
@@ -232,10 +233,10 @@ jest.mock('expo-notifications', () => ({
 jest.mock('react-native-maps', () => {
   const { View } = require('react-native');
   const MockMapView = (props: any) => {
-    return <View {...props} testID="map-view" />;
+    return React.createElement(View, { ...props, testID: "map-view" });
   };
   const MockMarker = (props: any) => {
-    return <View {...props} testID="map-marker" />;
+    return React.createElement(View, { ...props, testID: "map-marker" });
   };
   return {
     default: MockMapView,

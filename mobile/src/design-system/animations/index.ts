@@ -122,7 +122,7 @@ export {
   type PerformanceMetrics,
   type AnimationProfile,
   type PerformanceAlert,
-} from './performanceMonitoring';
+} from './performanceMonitoring.tsx';
 
 // ====================================
 // USAGE EXAMPLES
@@ -197,11 +197,11 @@ export const TailTrackerAnimations = {
   
   // Performance monitoring
   performance: {
-    useAnimationPerformanceMonitor: require('./performanceMonitoring').useAnimationPerformanceMonitor,
-    useAnimationProfiler: require('./performanceMonitoring').useAnimationProfiler,
-    usePerformanceOptimization: require('./performanceMonitoring').usePerformanceOptimization,
-    usePerformanceOverlay: require('./performanceMonitoring').usePerformanceOverlay,
-    AnimationPerformanceMonitor: require('./performanceMonitoring').AnimationPerformanceMonitor,
+    useAnimationPerformanceMonitor: require('./performanceMonitoring.tsx').useAnimationPerformanceMonitor,
+    useAnimationProfiler: require('./performanceMonitoring.tsx').useAnimationProfiler,
+    usePerformanceOptimization: require('./performanceMonitoring.tsx').usePerformanceOptimization,
+    usePerformanceOverlay: require('./performanceMonitoring.tsx').usePerformanceOverlay,
+    AnimationPerformanceMonitor: require('./performanceMonitoring.tsx').AnimationPerformanceMonitor,
   },
   
   // Example components
@@ -245,7 +245,7 @@ export const useQuickAnimations = () => {
  * Call this once in your app root to initialize the animation system
  */
 export const useAnimationSystemSetup = () => {
-  const { useAnimationPerformanceMonitor } = require('./performanceMonitoring');
+  const { useAnimationPerformanceMonitor } = require('./performanceMonitoring.tsx');
   const { useEmotionalIntelligence } = require('./emotionalIntelligenceHooks');
   
   // Initialize performance monitoring

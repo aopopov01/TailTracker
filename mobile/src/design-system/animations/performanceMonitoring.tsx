@@ -21,7 +21,7 @@ import {
   runOnJS,
   cancelAnimation,
 } from 'react-native-reanimated';
-import { DeviceEventEmitter, InteractionManager } from 'react-native';
+import { DeviceEventEmitter, InteractionManager, View, Text } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // ====================================
@@ -486,25 +486,25 @@ export const usePerformanceOverlay = (enabled: boolean = __DEV__) => {
     const fpsColor = metrics.fps >= 50 ? '#4CAF50' : metrics.fps >= 30 ? '#FF9800' : '#F44336';
 
     return (
-      <div style={overlayStyle}>
-        <div style={{ ...textStyle, color: fpsColor }}>
+      <View style={overlayStyle}>
+        <Text style={{ ...textStyle, color: fpsColor }}>
           FPS: {metrics.fps.toFixed(1)} (avg: {metrics.averageFps.toFixed(1)})
-        </div>
-        <div style={textStyle}>
+        </Text>
+        <Text style={textStyle}>
           Animations: {metrics.animationCount}
-        </div>
-        <div style={textStyle}>
+        </Text>
+        <Text style={textStyle}>
           Drops: {metrics.frameDrops}
-        </div>
-        <div style={textStyle}>
+        </Text>
+        <Text style={textStyle}>
           Memory: {metrics.memoryUsage.toFixed(1)}MB
-        </div>
+        </Text>
         {alerts.length > 0 && (
-          <div style={{ ...textStyle, color: '#F44336', marginTop: 5 }}>
+          <Text style={{ ...textStyle, color: '#F44336', marginTop: 5 }}>
             Alerts: {alerts.length}
-          </div>
+          </Text>
         )}
-      </div>
+      </View>
     );
   }, [showOverlay, metrics, alerts]);
 
