@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
-interface PrivacyPolicyAccessProps {
+interface TermsOfServiceAccessProps {
   style?: any;
   showAsLink?: boolean;
   showAsButton?: boolean;
@@ -16,7 +16,7 @@ interface PrivacyPolicyAccessProps {
   navigation?: any;
 }
 
-export const PrivacyPolicyAccess: React.FC<PrivacyPolicyAccessProps> = ({
+export const TermsOfServiceAccess: React.FC<TermsOfServiceAccessProps> = ({
   style,
   showAsLink = false,
   showAsButton = false,
@@ -25,9 +25,10 @@ export const PrivacyPolicyAccess: React.FC<PrivacyPolicyAccessProps> = ({
 }) => {
   const navigationHook = useNavigation();
   const navigation = propNavigation || navigationHook;
-  const openPrivacyPolicy = () => {
+
+  const openTermsOfService = () => {
     try {
-      navigation.navigate('PrivacyPolicyScreen');
+      navigation.navigate('TermsOfServiceScreen');
     } catch (error) {
       console.error('Navigation error:', error);
       // Fallback: could show an alert or handle gracefully
@@ -38,13 +39,13 @@ export const PrivacyPolicyAccess: React.FC<PrivacyPolicyAccessProps> = ({
     return (
       <TouchableOpacity
         style={[styles.button, style]}
-        onPress={openPrivacyPolicy}
+        onPress={openTermsOfService}
         accessibilityRole="button"
-        accessibilityLabel="View Privacy Policy"
-        accessibilityHint="Opens the TailTracker Privacy Policy in your web browser"
+        accessibilityLabel="View Terms of Service"
+        accessibilityHint="Opens the TailTracker Terms of Service screen"
       >
         <Text style={styles.buttonText}>
-          {children || 'Privacy Policy'}
+          {children || 'Terms of Service'}
         </Text>
       </TouchableOpacity>
     );
@@ -53,14 +54,14 @@ export const PrivacyPolicyAccess: React.FC<PrivacyPolicyAccessProps> = ({
   if (showAsLink) {
     return (
       <TouchableOpacity
-        onPress={openPrivacyPolicy}
+        onPress={openTermsOfService}
         style={[styles.link, style]}
         accessibilityRole="link"
-        accessibilityLabel="Privacy Policy link"
-        accessibilityHint="Opens the Privacy Policy in your web browser"
+        accessibilityLabel="Terms of Service link"
+        accessibilityHint="Opens the Terms of Service screen"
       >
         <Text style={styles.linkText}>
-          {children || 'Privacy Policy'}
+          {children || 'Terms of Service'}
         </Text>
       </TouchableOpacity>
     );
@@ -69,16 +70,16 @@ export const PrivacyPolicyAccess: React.FC<PrivacyPolicyAccessProps> = ({
   return (
     <View style={[styles.container, style]}>
       <Text style={styles.description}>
-        Your privacy is important to us. Learn how we collect, use, and protect your data.
+        Please review our Terms of Service to understand your rights and responsibilities.
       </Text>
       <TouchableOpacity
-        onPress={openPrivacyPolicy}
+        onPress={openTermsOfService}
         style={styles.accessButton}
         accessibilityRole="button"
-        accessibilityLabel="View Privacy Policy"
-        accessibilityHint="Opens the complete Privacy Policy document in your web browser"
+        accessibilityLabel="View Terms of Service"
+        accessibilityHint="Opens the complete Terms of Service document"
       >
-        <Text style={styles.accessButtonText}>View Privacy Policy</Text>
+        <Text style={styles.accessButtonText}>View Terms of Service</Text>
       </TouchableOpacity>
     </View>
   );
@@ -136,4 +137,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default PrivacyPolicyAccess;
+export default TermsOfServiceAccess;

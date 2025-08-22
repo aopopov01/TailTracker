@@ -19,6 +19,7 @@ import { PetDetailScreen } from '@/screens/PetDetailScreen';
 import { AddPetScreen } from '@/screens/AddPetScreen';
 import { LocationHistoryScreen } from '@/screens/LocationHistoryScreen';
 import { SubscriptionScreen } from '@/screens/SubscriptionScreen';
+import { PrivacyPolicyScreen, TermsOfServiceScreen } from '@/screens/Settings';
 
 // Navigation types
 export type RootStackParamList = {
@@ -29,6 +30,8 @@ export type RootStackParamList = {
   LocationHistory: { petId: string };
   Subscription: undefined;
   Notifications: undefined;
+  PrivacyPolicyScreen: undefined;
+  TermsOfServiceScreen: undefined;
 };
 
 export type MainTabParamList = {
@@ -319,6 +322,20 @@ const RootNavigator: React.FC = () => {
               style={{ marginRight: 16 }}
             />
           ),
+        }}
+      />
+      <Stack.Screen 
+        name="PrivacyPolicyScreen" 
+        component={PrivacyPolicyScreen}
+        options={{
+          title: 'Privacy Policy',
+        }}
+      />
+      <Stack.Screen 
+        name="TermsOfServiceScreen" 
+        component={TermsOfServiceScreen}
+        options={{
+          title: 'Terms of Service',
         }}
       />
     </Stack.Navigator>

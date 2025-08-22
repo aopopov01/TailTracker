@@ -24,10 +24,6 @@
       "config": {
         "usesNonExemptEncryption": false
       },
-      "associatedDomains": [
-        "applinks:tailtracker.app",
-        "applinks:www.tailtracker.app"
-      ],
       "entitlements": {
         "com.apple.developer.applesignin": ["Default"],
         "com.apple.developer.in-app-payments": true,
@@ -45,15 +41,7 @@
         "NSMicrophoneUsageDescription": "TailTracker may need microphone access for video recording features.",
         "NSFaceIDUsageDescription": "TailTracker uses Face ID for secure authentication and to protect your pet's sensitive information.",
         "NSAppTransportSecurity": {
-          "NSAllowsArbitraryLoads": false,
-          "NSExceptionDomains": {
-            "tailtracker.app": {
-              "NSExceptionRequiresForwardSecrecy": false,
-              "NSExceptionMinimumTLSVersion": "TLSv1.2",
-              "NSExceptionAllowsInsecureHTTPLoads": false,
-              "NSIncludesSubdomains": true
-            }
-          }
+          "NSAllowsArbitraryLoads": false
         },
         "ITSAppUsesNonExemptEncryption": false,
         "NSSupportsLiveActivities": true,

@@ -6,10 +6,6 @@ interface EnvironmentConfig {
   NODE_ENV: 'development' | 'staging' | 'production';
   APP_ENV: 'development' | 'staging' | 'production';
   
-  // API Configuration
-  API_URL: string;
-  WEB_URL: string;
-  
   // Third-party Services
   GOOGLE_MAPS_API_KEY: string;
   SUPABASE_URL: string;
@@ -79,18 +75,6 @@ const createEnvironmentConfig = (): EnvironmentConfig => {
     NODE_ENV: getEnvVar('NODE_ENV', false, 'development') as 'development' | 'staging' | 'production',
     APP_ENV: currentEnv,
     
-    // API URLs based on environment
-    API_URL: isProduction 
-      ? 'https://api.tailtracker.com'
-      : currentEnv === 'staging'
-      ? 'https://api-staging.tailtracker.com'  
-      : 'https://api-dev.tailtracker.com',
-      
-    WEB_URL: isProduction
-      ? 'https://tailtracker.app'
-      : currentEnv === 'staging'
-      ? 'https://staging.tailtracker.app'
-      : 'https://dev.tailtracker.app',
     
     // Third-party service keys (with validation in production)
     GOOGLE_MAPS_API_KEY: getEnvVar('GOOGLE_MAPS_API_KEY', isProduction),
@@ -163,7 +147,7 @@ if (isDevelopment) {
     validation.missingKeys.forEach(key => {
       console.warn(`   - ${key}`);
     });
-    console.warn('   Copy .env.template to .env.local and configure your keys');
+    console.warn('   Set environment variables in your build system or .env file');
   }
 }
 
