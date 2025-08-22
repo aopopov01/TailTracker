@@ -1,0 +1,331 @@
+{
+  "app_details": {
+    "app_name": "TailTracker",
+    "short_description": "Keep your pets safe with real-time GPS tracking, smart geofencing, and instant lost pet alerts.",
+    "full_description": "TailTracker is the ultimate pet safety companion that helps you keep your furry family members safe and secure. With advanced GPS tracking, intelligent geofencing, and instant notifications, you'll never have to worry about your pets again.\n\n🐕 KEY FEATURES:\n\n• Real-Time GPS Tracking: Monitor your pet's location anywhere, anytime\n• Smart Safe Zones: Set up custom boundaries and get instant alerts when your pet wanders\n• Lost Pet Alerts: Immediate notifications with location details if your pet goes missing\n• Family Sharing: Share pet access with family members and pet sitters\n• Health Records: Keep vaccination records, vet visits, and medical notes organized\n• Emergency Contacts: Quick access to veterinarians and emergency services\n• QR Code Tags: Generate smart QR codes for pet collars with your contact information\n• Photo Profiles: Beautiful pet profiles with photos and personality traits\n\n🏆 WHY CHOOSE TAILTRACKER:\n\n• Military-grade encryption keeps your data secure\n• Works with any smartphone - no special hardware required\n• Battery-optimized tracking won't drain your phone\n• Works indoors and outdoors with precision location services\n• 24/7 customer support from fellow pet lovers\n• Privacy-first approach - your data is never sold\n\n💡 PERFECT FOR:\n\n• Dog owners who want peace of mind during walks\n• Cat parents with outdoor adventurers\n• Families with multiple pets\n• Pet sitters and dog walkers\n• Anyone who considers their pet family\n\n🔒 PRIVACY & SECURITY:\n\n• End-to-end encryption for all location data\n• No data selling or sharing with third parties\n• GDPR and CCPA compliant\n• Local data storage with cloud backup\n• Biometric authentication support\n\n📱 PREMIUM FEATURES:\n\n• Unlimited location history (vs 7 days free)\n• Advanced analytics and insights\n• Multiple pet support\n• Priority customer support\n• Offline maps and tracking\n• Export data and reports\n\nDownload TailTracker today and experience the peace of mind that comes with knowing your pets are always safe and sound.",
+    "package_name": "com.tailtracker.app",
+    "default_language": "en-US",
+    "category": "LIFESTYLE",
+    "content_rating": "Everyone",
+    "developer_name": "TailTracker Inc.",
+    "developer_email": "developer@tailtracker.com",
+    "developer_website": "https://tailtracker.app",
+    "privacy_policy": "https://tailtracker.app/privacy"
+  },
+  "store_listing_details": {
+    "app_icon": {
+      "size": "512x512",
+      "format": "PNG",
+      "requirements": "High-res icon, 32-bit PNG, no transparency"
+    },
+    "feature_graphic": {
+      "size": "1024x500",
+      "format": "JPG or PNG",
+      "description": "Main promotional graphic showcasing app features"
+    },
+    "screenshots": {
+      "phone": {
+        "required": true,
+        "minimum": 2,
+        "maximum": 8,
+        "size": "Any size up to 3840x3840",
+        "format": "JPG or PNG"
+      },
+      "tablet_7_inch": {
+        "required": false,
+        "minimum": 1,
+        "maximum": 8,
+        "size": "Any size up to 3840x3840",
+        "format": "JPG or PNG"
+      },
+      "tablet_10_inch": {
+        "required": false,
+        "minimum": 1,
+        "maximum": 8,
+        "size": "Any size up to 3840x3840",
+        "format": "JPG or PNG"
+      }
+    },
+    "video": {
+      "youtube_url": "https://www.youtube.com/watch?v=TailTrackerDemo",
+      "required": false,
+      "recommended": true
+    }
+  },
+  "content_rating_questionnaire": {
+    "violence": {
+      "graphic_violence": false,
+      "cartoon_violence": false,
+      "fantasy_violence": false,
+      "realistic_violence": false,
+      "blood": false
+    },
+    "sexual_content": {
+      "sexual_themes": false,
+      "nudity": false,
+      "sexual_content": false,
+      "mature_themes": false
+    },
+    "profanity": {
+      "mild_profanity": false,
+      "strong_profanity": false,
+      "crude_humor": false
+    },
+    "drugs_alcohol": {
+      "alcohol_use": false,
+      "drug_use": false,
+      "tobacco_use": false,
+      "drug_references": false
+    },
+    "gambling": {
+      "simulated_gambling": false,
+      "real_money_gambling": false,
+      "contests": false
+    },
+    "scary_content": {
+      "horror_themes": false,
+      "fear_themes": false,
+      "jump_scares": false
+    },
+    "user_interaction": {
+      "users_can_interact": true,
+      "shares_location": true,
+      "shares_personal_info": false,
+      "digital_purchases": true,
+      "unrestricted_internet": false
+    }
+  },
+  "target_audience": {
+    "target_age_group": "Ages 13+",
+    "appeals_to_children": false,
+    "mixed_audience": false,
+    "why_appeals_to_children": "N/A - App is designed for responsible pet owners",
+    "advertising": {
+      "contains_ads": false,
+      "ad_content_rating": "N/A"
+    }
+  },
+  "data_safety": {
+    "data_collection": {
+      "app_collects_data": true,
+      "data_shared_with_third_parties": true,
+      "data_sharing_details": "Location data shared with mapping services for core functionality only"
+    },
+    "data_types": {
+      "location": {
+        "approximate_location": {
+          "collected": true,
+          "shared": true,
+          "ephemeral": false,
+          "required": true,
+          "purpose": ["App functionality", "Analytics"]
+        },
+        "precise_location": {
+          "collected": true,
+          "shared": true,
+          "ephemeral": false,
+          "required": true,
+          "purpose": ["App functionality"]
+        }
+      },
+      "personal_info": {
+        "name": {
+          "collected": true,
+          "shared": false,
+          "ephemeral": false,
+          "required": true,
+          "purpose": ["App functionality", "Account management"]
+        },
+        "email_address": {
+          "collected": true,
+          "shared": false,
+          "ephemeral": false,
+          "required": true,
+          "purpose": ["App functionality", "Account management", "Customer support"]
+        },
+        "phone_number": {
+          "collected": true,
+          "shared": false,
+          "ephemeral": false,
+          "required": false,
+          "purpose": ["App functionality", "Customer support"]
+        }
+      },
+      "photos_and_videos": {
+        "photos": {
+          "collected": true,
+          "shared": false,
+          "ephemeral": false,
+          "required": false,
+          "purpose": ["App functionality"]
+        }
+      },
+      "app_activity": {
+        "app_interactions": {
+          "collected": true,
+          "shared": false,
+          "ephemeral": false,
+          "required": false,
+          "purpose": ["Analytics", "App functionality"]
+        },
+        "in_app_search_history": {
+          "collected": false,
+          "shared": false,
+          "ephemeral": false,
+          "required": false,
+          "purpose": []
+        }
+      },
+      "app_info_and_performance": {
+        "crash_logs": {
+          "collected": true,
+          "shared": true,
+          "ephemeral": false,
+          "required": false,
+          "purpose": ["Analytics"]
+        },
+        "diagnostics": {
+          "collected": true,
+          "shared": true,
+          "ephemeral": false,
+          "required": false,
+          "purpose": ["Analytics"]
+        }
+      },
+      "device_or_other_ids": {
+        "device_ids": {
+          "collected": true,
+          "shared": false,
+          "ephemeral": false,
+          "required": false,
+          "purpose": ["Analytics", "App functionality"]
+        }
+      }
+    },
+    "security_practices": {
+      "data_encrypted_in_transit": true,
+      "data_encrypted_at_rest": true,
+      "follows_families_policy": false,
+      "committed_to_play_families_policy": false,
+      "independent_security_review": true,
+      "user_can_request_deletion": true
+    }
+  },
+  "app_access": {
+    "declaration": {
+      "restricted_to_closed_testing": false,
+      "appeals_designed_for_families": false,
+      "contains_ads": false,
+      "has_in_app_purchases": true,
+      "primarily_child_directed": false,
+      "primarily_for_family_audience": false
+    }
+  },
+  "in_app_products": {
+    "subscriptions": [
+      {
+        "product_id": "premium_monthly",
+        "title": "Premium Monthly",
+        "description": "Unlock unlimited location history, multiple pets, and premium features",
+        "price": "$4.99",
+        "billing_period": "P1M",
+        "trial_period": "P7D",
+        "grace_period": "P3D"
+      },
+      {
+        "product_id": "premium_yearly", 
+        "title": "Premium Yearly",
+        "description": "Get the best value with our yearly premium subscription. Save 50% compared to monthly billing",
+        "price": "$29.99",
+        "billing_period": "P1Y",
+        "trial_period": "P7D", 
+        "grace_period": "P3D"
+      }
+    ]
+  },
+  "release_management": {
+    "release_tracks": {
+      "internal_testing": {
+        "description": "Internal team testing track for development builds",
+        "testers": ["dev@tailtracker.com", "qa@tailtracker.com"],
+        "countries": ["US"]
+      },
+      "closed_testing": {
+        "description": "Closed beta testing with selected pet owners",
+        "max_testers": 100,
+        "countries": ["US", "CA", "GB", "AU"],
+        "feedback_channel": "beta@tailtracker.com"
+      },
+      "open_testing": {
+        "description": "Open beta for early adopters",
+        "countries": ["US", "CA", "GB", "AU"],
+        "feedback_url": "https://feedback.tailtracker.app"
+      },
+      "production": {
+        "description": "Production release",
+        "countries": ["US", "CA", "GB", "AU", "DE", "FR", "ES", "IT", "NL", "SE", "NO", "DK", "JP", "KR"],
+        "staged_rollout": true,
+        "rollout_percentage": {
+          "initial": 5,
+          "phase_2": 20,
+          "phase_3": 50,
+          "final": 100
+        }
+      }
+    }
+  },
+  "app_signing": {
+    "play_app_signing": {
+      "enrolled": true,
+      "description": "Use Play App Signing for secure key management"
+    },
+    "upload_key": {
+      "keystore": "tailtracker-upload-key.keystore",
+      "alias": "tailtracker-upload",
+      "key_password": "environment_variable",
+      "store_password": "environment_variable"
+    }
+  },
+  "store_presence": {
+    "countries": {
+      "primary_markets": ["US", "CA", "GB", "AU"],
+      "secondary_markets": ["DE", "FR", "ES", "IT", "NL"],
+      "expansion_markets": ["SE", "NO", "DK", "JP", "KR"]
+    },
+    "pricing": {
+      "free_tier": "Available with basic features",
+      "premium_pricing": "Local currency equivalent to $4.99/month",
+      "family_sharing": true
+    }
+  },
+  "compliance_requirements": {
+    "permissions_declaration": {
+      "location_access": {
+        "permission": "ACCESS_FINE_LOCATION",
+        "justification": "Required for core pet tracking functionality",
+        "user_facing_description": "TailTracker needs precise location access to track your pets and monitor safe zones"
+      },
+      "background_location": {
+        "permission": "ACCESS_BACKGROUND_LOCATION",
+        "justification": "Essential for monitoring pets when app is not actively used",
+        "user_facing_description": "Background location allows TailTracker to monitor your pets' safe zones and send alerts even when the app is closed",
+        "prominent_disclosure": true
+      },
+      "camera": {
+        "permission": "CAMERA",
+        "justification": "Used for taking pet profile photos",
+        "user_facing_description": "Camera access allows you to take photos for your pets' profiles"
+      },
+      "storage": {
+        "permission": "READ_EXTERNAL_STORAGE",
+        "justification": "Access photos for pet profiles",
+        "user_facing_description": "Storage access allows you to select photos from your gallery for pet profiles"
+      }
+    },
+    "sensitive_permissions": {
+      "location_justification": "Pet safety tracking is the core functionality of the app. Location data is used exclusively for pet monitoring and is not shared with advertisers or used for non-essential purposes.",
+      "background_location_necessity": "Background location is essential for the app's primary purpose - ensuring pet safety by monitoring safe zones and providing alerts when pets wander off.",
+      "alternative_implementation": "No viable alternative exists for real-time pet safety monitoring without background location access."
+    }
+  }
+}

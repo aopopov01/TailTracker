@@ -1,2 +1,259 @@
-mobile/node_modules/
+# TailTracker Project - Comprehensive .gitignore
+# Ensures 100% secure backup with no sensitive data exposure
+
+#===========================================
+# SECURITY CRITICAL - NEVER COMMIT THESE
+#===========================================
+
+# Environment Variables - Contains API Keys, Secrets
+.env*
+!.env.template
+!.env.example
+*.env
+.env.local  
+.env.development
+.env.staging
+.env.production
+.env.*.local
+
+# API Keys and Service Credentials
+google-services.json
+GoogleService-Info.plist
+service-account-key.json
+AuthKey.p8
+ios/AuthKey_*.p8
+android/service-account-key.json
+supabase/.env*
+backend/supabase/.env*
+
+# Certificates, Keys, and Keystores
+*.p12
+*.mobileprovision
+*.certSigningRequest
+*.cer
+*.p8
+*.keystore
+*.jks
+!debug.keystore
+keystore.properties
+*.pem
+*.key
+*.crt
+
+# Backup Files (may contain sensitive data)
+*.backup
+*.bak
+*backup*
+backup-*.log
+
+#===========================================
+# BUILD ARTIFACTS & DEPENDENCIES
+#===========================================
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Build Outputs
+build/
+dist/
+out/
+*.apk
+*.aab
+*.ipa
+*.app
+*.dSYM.zip
+*.tar.gz
+
+# Expo
+.expo/
+web-build/
+expo-env.d.ts
+
+# React Native
+.bundle/
+.metro/
+
+# TypeScript
+*.tsbuildinfo
+.tscache/
+
+#===========================================
+# PLATFORM SPECIFIC
+#===========================================
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+# Linux
+*~
+.directory
+.fuse_hidden*
+.nfs*
+
+#===========================================
+# IDE & EDITOR FILES
+#===========================================
+
+# Visual Studio Code
+.vscode/
+!.vscode/settings.json.template
+!.vscode/launch.json.template
+!.vscode/extensions.json.template
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# Xcode
+build/
+*.pbxuser
+!default.pbxuser
+*.mode1v3
+!default.mode1v3
+*.mode2v3
+!default.mode2v3
+*.perspectivev3
+!default.perspectivev3
+xcuserdata/
+*.xccheckout
+*.moved-aside
+DerivedData/
+*.hmap
+*.xcuserstate
+project.xcworkspace/
+ios/Pods/
+
+# Android Studio
+.gradle/
+local.properties
+*.hprof
+.cxx/
+captures/
+.externalNativeBuild/
+.cxx/
+*.ap_
+*.dex
+
+#===========================================
+# TEMPORARY & LOG FILES
+#===========================================
+
+# Logs
+logs/
 *.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Temporary files
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+
+# Testing
+coverage/
+*.lcov
+.nyc_output/
+.jest/
+
+#===========================================
+# DEPLOYMENT & CI/CD
+#===========================================
+
+# Fastlane
+**/fastlane/report.xml
+**/fastlane/Preview.html
+**/fastlane/screenshots/
+**/fastlane/test_output/
+
+# Firebase
+.firebase/
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+
+#===========================================
+# ZONE IDENTIFIER FILES (Windows/WSL)
+#===========================================
+*:Zone.Identifier
+
+#===========================================
+# PROJECT SPECIFIC EXCLUSIONS
+#===========================================
+
+# Error logs and monitoring
+error_logs/
+ERROR_LOG*.md
+
+# Keep templates and examples
+!*.template
+!*.example
+!**/examples/
+!**/templates/
+
+# Auto-backup scripts output
+backup.log
+backup-health.log
+
+#===========================================
+# ALLOW CRITICAL RECOVERY FILES
+#===========================================
+
+# Explicitly include critical files for recovery
+!README.md
+!RECOVERY.md
+!package.json
+!app.json
+!eas.json
+!mobile/package.json
+!mobile/app.json
+!mobile/eas.json
+!tsconfig.json
+!mobile/tsconfig.json

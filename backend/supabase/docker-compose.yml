@@ -1,0 +1,95 @@
+# TailTracker Local Development with Supabase
+version: '3.8'
+
+services:
+  # Supabase Local Development
+  supabase:
+    image: supabase/supabase:latest
+    ports:
+      - "54321:54321"  # API Gateway
+      - "54322:54322"  # Database
+      - "54323:54323"  # Studio
+      - "54324:54324"  # Auth
+      - "54325:54325"  # Realtime
+      - "54326:54326"  # Storage
+    environment:
+      - POSTGRES_PASSWORD=your-super-secret-and-long-postgres-password
+      - JWT_SECRET=your-super-secret-jwt-token-with-at-least-32-characters-long
+      - ANON_KEY=your-anon-key
+      - SERVICE_ROLE_KEY=your-service-role-key
+    volumes:
+      - supabase_data:/var/lib/postgresql/data
+      - ./migrations:/docker-entrypoint-initdb.d
+    networks:
+      - tailtracker-network
+
+  # Redis for caching and rate limiting
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - tailtracker-network
+    command: redis-server --appendonly yes
+
+  # Nginx for local SSL and reverse proxy
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/ssl:/etc/nginx/ssl
+    depends_on:
+      - supabase
+    networks:
+      - tailtracker-network
+
+  # Mailhog for local email testing
+  mailhog:
+    image: mailhog/mailhog
+    ports:
+      - "1025:1025"  # SMTP
+      - "8025:8025"  # Web UI
+    networks:
+      - tailtracker-network
+
+  # Minio for local S3-compatible storage testing
+  minio:
+    image: minio/minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      - MINIO_ROOT_USER=tailtracker
+      - MINIO_ROOT_PASSWORD=tailtracker123
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9001"
+    networks:
+      - tailtracker-network
+
+  # Stripe CLI for webhook testing
+  stripe-cli:
+    image: stripe/stripe-cli
+    environment:
+      - STRIPE_API_KEY=${STRIPE_SECRET_KEY}
+    command: listen --forward-to http://supabase:54321/functions/v1/stripe-webhook
+    depends_on:
+      - supabase
+    networks:
+      - tailtracker-network
+    profiles:
+      - testing
+
+volumes:
+  supabase_data:
+  redis_data:
+  minio_data:
+
+networks:
+  tailtracker-network:
+    driver: bridge

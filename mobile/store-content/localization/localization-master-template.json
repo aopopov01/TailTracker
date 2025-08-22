@@ -1,0 +1,86 @@
+{
+  "localization_strategy": {
+    "overview": "Comprehensive localization strategy for TailTracker app store listings across primary markets",
+    "priority_languages": {
+      "tier_1": ["en-US", "en-GB", "en-CA", "en-AU"],
+      "tier_2": ["es", "fr", "de", "it", "nl"],
+      "tier_3": ["sv", "no", "da", "ja", "ko"]
+    }
+  },
+  "template_structure": {
+    "metadata": {
+      "language_code": "",
+      "region": "",
+      "market_priority": "",
+      "cultural_notes": "",
+      "localization_date": "",
+      "reviewer": "",
+      "status": "draft|review|approved"
+    },
+    "app_store_fields": {
+      "app_name": {
+        "ios": "",
+        "android": "",
+        "notes": "Keep brand consistency while optimizing for local search"
+      },
+      "subtitle_tagline": {
+        "ios_subtitle": "",
+        "android_short_description": "",
+        "character_limits": {
+          "ios": 30,
+          "android": 80
+        }
+      },
+      "description": {
+        "promotional_text": "",
+        "full_description": "",
+        "character_limits": {
+          "ios_promo": 170,
+          "ios_description": 4000,
+          "android_description": 4000
+        }
+      },
+      "keywords": {
+        "ios_keywords": "",
+        "android_keywords_in_description": [],
+        "character_limit_ios": 100
+      },
+      "whats_new": {
+        "version_notes": "",
+        "character_limit": 4000
+      }
+    },
+    "localization_guidelines": {
+      "tone_of_voice": "",
+      "cultural_adaptations": [],
+      "avoid_terms": [],
+      "preferred_terms": [],
+      "formatting_notes": "",
+      "review_process": ""
+    },
+    "market_specific": {
+      "pet_ownership_stats": "",
+      "cultural_pet_preferences": "",
+      "local_regulations": "",
+      "competitor_landscape": "",
+      "pricing_strategy": ""
+    }
+  },
+  "quality_assurance": {
+    "translation_checklist": [
+      "Brand name consistency maintained",
+      "Key features accurately translated",
+      "Cultural sensitivity reviewed",
+      "Local pet terminology used",
+      "Character limits respected",
+      "SEO keywords researched and integrated",
+      "Legal compliance verified",
+      "Native speaker review completed"
+    ],
+    "review_levels": {
+      "level_1": "Machine translation + basic review",
+      "level_2": "Professional translator + editor review",
+      "level_3": "Native speaker + cultural consultant + legal review"
+    }
+  }
+}

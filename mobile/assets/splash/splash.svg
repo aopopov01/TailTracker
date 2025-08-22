@@ -1,0 +1,6 @@
+<svg width="2048" height="2048" xmlns="http://www.w3.org/2000/svg">
+  <rect width="100%" height="100%" fill="#FFFFFF" stroke="#ddd" stroke-width="2"/>
+  <text x="50%" y="45%" text-anchor="middle" font-family="Arial" font-size="102" fill="#666">TailTracker</text>
+  <text x="50%" y="55%" text-anchor="middle" font-family="Arial" font-size="68" fill="#999">Light Splash 2048x2048</text>
+  <text x="50%" y="65%" text-anchor="middle" font-family="Arial" font-size="51" fill="#ccc">Placeholder</text>
+</svg>

@@ -1,25 +1,37 @@
 import React from 'react';
 import { Button, ButtonProps } from 'react-native-paper';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Platform } from 'react-native';
 import { useTheme } from 'react-native-paper';
+import { useMaterialTheme, useThemedStyles } from '../../theme/MaterialThemeProvider';
+import { MaterialComponentStyles, StateLayerOpacity } from '../../theme/materialDesign3Theme';
 
 interface MaterialButtonProps extends Omit<ButtonProps, 'mode'> {
   variant?: 'filled' | 'outlined' | 'text' | 'elevated' | 'tonal';
   size?: 'small' | 'medium' | 'large';
   fullWidth?: boolean;
+  loading?: boolean;
+  loadingText?: string;
+  rippleColor?: string;
+  elevation?: number;
 }
 
 export const MaterialButton: React.FC<MaterialButtonProps> = ({
   variant = 'filled',
   size = 'medium',
   fullWidth = false,
+  loading = false,
+  loadingText,
+  rippleColor,
+  elevation,
   style,
   contentStyle,
   labelStyle,
   children,
+  disabled,
   ...props
 }) => {
   const theme = useTheme();
+  const { isDarkMode } = useMaterialTheme();
   
   const getMode = (): ButtonProps['mode'] => {
     switch (variant) {
@@ -39,33 +51,69 @@ export const MaterialButton: React.FC<MaterialButtonProps> = ({
   };
 
   const getSizeStyles = () => {
+    const baseStyle = MaterialComponentStyles.button[variant] || MaterialComponentStyles.button.filled;
     switch (size) {
       case 'small':
-        return styles.small;
+        return { ...baseStyle, ...styles.small };
       case 'large':
-        return styles.large;
+        return { ...baseStyle, ...styles.large };
       default:
-        return styles.medium;
+        return { ...baseStyle, ...styles.medium };
     }
   };
 
   const getLabelStyles = () => {
     switch (size) {
       case 'small':
-        return { fontSize: 12 };
+        return { fontSize: 12, fontWeight: '500' as const };
       case 'large':
-        return { fontSize: 16 };
+        return { fontSize: 16, fontWeight: '500' as const };
       default:
-        return { fontSize: 14 };
+        return { fontSize: 14, fontWeight: '500' as const };
+    }
+  };
+
+  const getRippleColor = () => {
+    if (rippleColor) return rippleColor;
+    
+    switch (variant) {
+      case 'filled':
+        return `rgba(255, 255, 255, ${StateLayerOpacity.pressed})`;
+      case 'outlined':
+      case 'text':
+        return `rgba(${theme.colors.primary}, ${StateLayerOpacity.pressed})`;
+      case 'elevated':
+      case 'tonal':
+        return `rgba(${theme.colors.onSurface}, ${StateLayerOpacity.pressed})`;
+      default:
+        return `rgba(255, 255, 255, ${StateLayerOpacity.pressed})`;
+    }
+  };
+
+  const getElevation = () => {
+    if (elevation !== undefined) return elevation;
+    
+    switch (variant) {
+      case 'elevated':
+        return disabled ? 0 : 1;
+      case 'filled':
+      case 'tonal':
+        return disabled ? 0 : 0;
+      default:
+        return 0;
     }
   };
 
   return (
     <Button
       mode={getMode()}
+      loading={loading}
+      disabled={disabled || loading}
+      rippleColor={getRippleColor()}
       style={[
         getSizeStyles(),
         fullWidth && styles.fullWidth,
+        Platform.OS === 'android' && { elevation: getElevation() },
         style,
       ]}
       contentStyle={[
@@ -74,12 +122,11 @@ export const MaterialButton: React.FC<MaterialButtonProps> = ({
       ]}
       labelStyle={[
         getLabelStyles(),
-        { color: theme.colors.onPrimary },
         labelStyle,
       ]}
       {...props}
     >
-      {children}
+      {loading && loadingText ? loadingText : children}
     </Button>
   );
 };

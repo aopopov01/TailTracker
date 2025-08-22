@@ -6,57 +6,113 @@
     "development": {
       "developmentClient": true,
       "distribution": "internal",
+      "env": {
+        "NODE_ENV": "development"
+      },
       "android": {
         "buildType": "apk",
-        "gradleCommand": ":app:assembleDebug"
+        "gradleCommand": ":app:assembleDebug",
+        "env": {
+          "ENVIRONMENT": "development"
+        }
       },
       "ios": {
         "buildConfiguration": "Debug",
         "simulator": true,
-        "enterpriseProvisioning": "universal"
-      }
+        "enterpriseProvisioning": "universal",
+        "env": {
+          "ENVIRONMENT": "development"
+        }
+      },
+      "channel": "development"
     },
     "preview": {
-      "distribution": "internal",
+      "distribution": "internal", 
+      "env": {
+        "NODE_ENV": "production"
+      },
       "android": {
         "buildType": "apk",
-        "gradleCommand": ":app:assembleRelease"
+        "gradleCommand": ":app:assembleRelease",
+        "env": {
+          "ENVIRONMENT": "staging"
+        }
       },
       "ios": {
         "buildConfiguration": "Release",
         "simulator": false,
-        "enterpriseProvisioning": "universal"
-      }
+        "enterpriseProvisioning": "universal",
+        "env": {
+          "ENVIRONMENT": "staging"
+        }
+      },
+      "channel": "staging"
     },
     "simulator": {
+      "extends": "development",
       "ios": {
         "buildConfiguration": "Debug",
         "simulator": true
       }
     },
     "testflight": {
+      "extends": "production",
+      "distribution": "internal",
       "ios": {
         "buildConfiguration": "Release",
         "autoIncrement": "buildNumber",
         "simulator": false,
-        "bundleIdentifier": "com.tailtracker.app"
-      }
+        "env": {
+          "ENVIRONMENT": "staging"
+        }
+      },
+      "channel": "testflight"
     },
     "production": {
+      "env": {
+        "NODE_ENV": "production"
+      },
       "android": {
-        "buildType": "aab",
-        "gradleCommand": ":app:bundleRelease"
+        "buildType": "app-bundle",
+        "gradleCommand": ":app:bundleRelease",
+        "env": {
+          "ENVIRONMENT": "production"
+        }
       },
       "ios": {
         "buildConfiguration": "Release",
         "autoIncrement": "buildNumber",
         "simulator": false,
-        "bundleIdentifier": "com.tailtracker.app"
+        "env": {
+          "ENVIRONMENT": "production"
+        }
+      },
+      "channel": "production"
+    },
+    "production-android": {
+      "extends": "production",
+      "android": {
+        "buildType": "app-bundle",
+        "gradleCommand": ":app:bundleRelease",
+        "env": {
+          "ENVIRONMENT": "production"
+        }
+      }
+    },
+    "production-ios": {
+      "extends": "production", 
+      "ios": {
+        "buildConfiguration": "Release",
+        "autoIncrement": "buildNumber",
+        "simulator": false,
+        "env": {
+          "ENVIRONMENT": "production"
+        }
       }
     }
   },
   "submit": {
-    "production": {
+    "preview": {
       "android": {
         "serviceAccountKeyPath": "./android/service-account-key.json",
         "track": "internal",
@@ -64,21 +120,33 @@
       },
       "ios": {
         "ascApiKeyPath": "./ios/AuthKey.p8",
-        "ascApiKeyId": "your-api-key-id",
-        "ascApiKeyIssuerId": "your-issuer-id",
-        "appleId": "your-apple-id",
-        "ascAppId": "your-app-store-connect-app-id",
-        "bundleIdentifier": "com.tailtracker.app"
+        "ascApiKeyId": "${ASC_API_KEY_ID}",
+        "ascApiKeyIssuerId": "${ASC_API_KEY_ISSUER_ID}",
+        "appleId": "${APPLE_ID}", 
+        "ascAppId": "${ASC_APP_ID}"
+      }
+    },
+    "production": {
+      "android": {
+        "serviceAccountKeyPath": "./android/service-account-key.json",
+        "track": "production",
+        "releaseStatus": "draft"
+      },
+      "ios": {
+        "ascApiKeyPath": "./ios/AuthKey.p8",
+        "ascApiKeyId": "${ASC_API_KEY_ID}",
+        "ascApiKeyIssuerId": "${ASC_API_KEY_ISSUER_ID}",
+        "appleId": "${APPLE_ID}",
+        "ascAppId": "${ASC_APP_ID}"
       }
     },
     "testflight": {
       "ios": {
         "ascApiKeyPath": "./ios/AuthKey.p8",
-        "ascApiKeyId": "your-api-key-id",
-        "ascApiKeyIssuerId": "your-issuer-id",
-        "appleId": "your-apple-id",
-        "ascAppId": "your-app-store-connect-app-id",
-        "bundleIdentifier": "com.tailtracker.app"
+        "ascApiKeyId": "${ASC_API_KEY_ID}",
+        "ascApiKeyIssuerId": "${ASC_API_KEY_ISSUER_ID}",
+        "appleId": "${APPLE_ID}",
+        "ascAppId": "${ASC_APP_ID}"
       }
     }
   }

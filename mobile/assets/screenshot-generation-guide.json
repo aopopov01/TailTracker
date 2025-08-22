@@ -1,0 +1,347 @@
+{
+  "screenshot_generation_guide": {
+    "overview": "Comprehensive guide for generating App Store and Google Play Store screenshots for TailTracker",
+    "general_requirements": {
+      "quality_standards": {
+        "resolution": "High resolution, crisp and clear",
+        "compression": "Minimal compression, preserve quality",
+        "format": "PNG preferred, JPEG acceptable",
+        "color_accuracy": "sRGB color space, accurate colors",
+        "text_readability": "All text must be legible at thumbnail size"
+      },
+      "content_guidelines": {
+        "real_functionality": "Show actual app features, no mockups",
+        "authentic_data": "Use realistic pet data, not placeholder text",
+        "consistent_branding": "Maintain TailTracker visual identity",
+        "no_pricing": "Don't show subscription prices in screenshots",
+        "age_appropriate": "Content suitable for all ages"
+      }
+    },
+    "ios_screenshots": {
+      "device_requirements": {
+        "iphone_6_7_inch": {
+          "resolution": "1290x2796",
+          "devices": ["iPhone 14 Pro Max", "iPhone 15 Pro Max"],
+          "priority": "Required - Primary device",
+          "aspect_ratio": "19.5:9"
+        },
+        "iphone_6_1_inch": {
+          "resolution": "1179x2556",
+          "devices": ["iPhone 14 Pro", "iPhone 15 Pro"],
+          "priority": "Required - Secondary device",
+          "aspect_ratio": "19.5:9"
+        },
+        "ipad_pro_12_9_inch": {
+          "resolution": "2048x2732",
+          "devices": ["iPad Pro 12.9-inch"],
+          "priority": "Optional but recommended",
+          "aspect_ratio": "4:3"
+        }
+      },
+      "screenshot_sequence": [
+        {
+          "order": 1,
+          "title": "Pet Dashboard",
+          "description": "Main screen showing multiple pets with status indicators",
+          "key_elements": [
+            "3-4 pet cards with photos and names",
+            "Location status: 'At Home', 'Safe Zone', 'Tracking'",
+            "Battery indicators for tracking devices",
+            "Quick action buttons: 'Locate', 'Safe Zones'",
+            "Clean navigation bar with app branding"
+          ],
+          "overlay_text": {
+            "headline": "Keep Your Pets Safe",
+            "subtext": "Real-time tracking for all your furry family"
+          },
+          "design_notes": "Use warm, friendly colors. Show pets as happy and safe."
+        },
+        {
+          "order": 2,
+          "title": "Live GPS Tracking",
+          "description": "Real-time map view with pet location and movement",
+          "key_elements": [
+            "Map centered on pet location with custom pin",
+            "Accuracy circle around pet position",
+            "Movement trail showing recent path",
+            "Location timestamp: 'Updated 30 seconds ago'",
+            "Map controls and current zoom level"
+          ],
+          "overlay_text": {
+            "headline": "See Exactly Where They Are",
+            "subtext": "Precise GPS tracking in real-time"
+          },
+          "design_notes": "Use real map data, show pet in safe, familiar location."
+        },
+        {
+          "order": 3,
+          "title": "Safe Zone Setup",
+          "description": "Geofencing interface with zone creation",
+          "key_elements": [
+            "Map with circular safe zone boundary",
+            "Radius adjustment slider: '100 meters'",
+            "Zone name field: 'Home Sweet Home'",
+            "Toggle switches for notifications",
+            "Multiple zones visible on map"
+          ],
+          "overlay_text": {
+            "headline": "Create Safe Zones",
+            "subtext": "Get alerts when pets wander off"
+          },
+          "design_notes": "Show zones around home, park, vet clinic for realism."
+        },
+        {
+          "order": 4,
+          "title": "Instant Alerts",
+          "description": "Notification system and alert management",
+          "key_elements": [
+            "Push notification overlay: 'Buddy left the yard'",
+            "Notification settings panel",
+            "Different alert types: zone exit, low battery, lost pet",
+            "Emergency contact quick dial",
+            "Sound and vibration preferences"
+          ],
+          "overlay_text": {
+            "headline": "Instant Alerts",
+            "subtext": "Know immediately if something's wrong"
+          },
+          "design_notes": "Show urgent but not alarming notification design."
+        },
+        {
+          "order": 5,
+          "title": "Pet Profiles",
+          "description": "Comprehensive pet information management",
+          "key_elements": [
+            "Pet photo gallery with multiple images",
+            "Health records: vaccinations, vet visits",
+            "Emergency contacts: vet, poison control",
+            "QR code for pet collar tag",
+            "Family sharing toggle"
+          ],
+          "overlay_text": {
+            "headline": "Complete Pet Profiles",
+            "subtext": "All your pet's info in one place"
+          },
+          "design_notes": "Use high-quality pet photos, organized layout."
+        },
+        {
+          "order": 6,
+          "title": "Family Sharing",
+          "description": "Multi-user access and permissions",
+          "key_elements": [
+            "Family member list with profile photos",
+            "Permission levels: View, Edit, Admin",
+            "Shared notification settings",
+            "Invitation interface",
+            "Activity log of recent actions"
+          ],
+          "overlay_text": {
+            "headline": "Share with Family",
+            "subtext": "Keep everyone in the loop"
+          },
+          "design_notes": "Show diverse family members, clear permission indicators."
+        },
+        {
+          "order": 7,
+          "title": "Lost Pet Emergency",
+          "description": "Emergency features and community alerts",
+          "key_elements": [
+            "Large red 'My Pet is Lost' button",
+            "Last known location on map",
+            "Community alert sharing toggle",
+            "Emergency contact list",
+            "Lost pet poster generation"
+          ],
+          "overlay_text": {
+            "headline": "Find Lost Pets Fast",
+            "subtext": "Community-powered pet recovery"
+          },
+          "design_notes": "Serious but hopeful tone, emphasis on community help."
+        },
+        {
+          "order": 8,
+          "title": "Premium Features",
+          "description": "Subscription benefits and advanced features",
+          "key_elements": [
+            "Feature comparison: Free vs Premium",
+            "Unlimited location history",
+            "Multiple pet support",
+            "Advanced analytics dashboard",
+            "Priority customer support badge"
+          ],
+          "overlay_text": {
+            "headline": "Unlock Premium",
+            "subtext": "Advanced features for serious pet parents"
+          },
+          "design_notes": "Professional upgrade presentation, value-focused."
+        }
+      ]
+    },
+    "android_screenshots": {
+      "device_requirements": {
+        "phone": {
+          "minimum_resolution": "1080x1920",
+          "recommended_resolution": "1440x2960",
+          "aspect_ratios": ["16:9", "18:9", "19:9"],
+          "priority": "Required"
+        },
+        "tablet_7_inch": {
+          "resolution": "1200x1920",
+          "aspect_ratio": "16:10",
+          "priority": "Optional"
+        },
+        "tablet_10_inch": {
+          "resolution": "1600x2560",
+          "aspect_ratio": "16:10", 
+          "priority": "Optional"
+        }
+      },
+      "material_design_compliance": {
+        "navigation": "Use Material Design navigation patterns",
+        "buttons": "Material Design buttons and interactions",
+        "colors": "Material Design color system",
+        "typography": "Roboto font family",
+        "shadows": "Material Design elevation and shadows"
+      },
+      "screenshot_adaptations": {
+        "note": "Use same sequence as iOS but with Material Design UI",
+        "key_differences": [
+          "Material Design floating action button",
+          "Android-style navigation drawer",
+          "Material Design cards and elevation",
+          "Android notification style",
+          "Google Play Store specific requirements"
+        ]
+      }
+    },
+    "screenshot_creation_process": {
+      "preparation": {
+        "test_data_setup": [
+          "Create realistic pet profiles with actual photos",
+          "Set up multiple safe zones in real locations",
+          "Configure family member accounts",
+          "Enable notifications and test alerts",
+          "Prepare emergency contact information"
+        ],
+        "device_preparation": [
+          "Use actual devices for authentic screenshots",
+          "Set device to optimal display settings",
+          "Clear notification bar except for demo notifications",
+          "Set device to airplane mode if needed",
+          "Ensure battery shows 100% or hide battery indicator"
+        ]
+      },
+      "capture_techniques": {
+        "ios_capture": [
+          "Use Xcode Simulator for consistent results",
+          "Screenshot via Device > Screenshot menu",
+          "Alternative: Physical device with AssistiveTouch",
+          "Ensure proper orientation and no status bar clutter"
+        ],
+        "android_capture": [
+          "Use Android Studio emulator for consistency",
+          "Screenshot via emulator controls",
+          "Alternative: Physical device with power+volume down",
+          "Verify Material Design elements appear correctly"
+        ]
+      },
+      "post_processing": {
+        "required_edits": [
+          "Add overlay text and call-to-action",
+          "Ensure text is readable at thumbnail size",
+          "Adjust colors for consistency",
+          "Add drop shadows to text if needed",
+          "Crop to exact required dimensions"
+        ],
+        "quality_check": [
+          "Verify all text is legible",
+          "Check for UI element alignment",
+          "Ensure brand consistency",
+          "Validate color accuracy",
+          "Test thumbnail appearance"
+        ]
+      }
+    },
+    "text_overlay_specifications": {
+      "ios_text_overlay": {
+        "headline_font": "SF Pro Display Bold, 48pt minimum",
+        "subtext_font": "SF Pro Text Medium, 24pt minimum",
+        "color": "#2C3E50 with white text shadow",
+        "positioning": "Top third of screen, left-aligned",
+        "background": "Semi-transparent overlay if needed"
+      },
+      "android_text_overlay": {
+        "headline_font": "Roboto Bold, 48pt minimum",
+        "subtext_font": "Roboto Medium, 24pt minimum", 
+        "color": "#2C3E50 with white text shadow",
+        "positioning": "Top third of screen, left-aligned",
+        "background": "Semi-transparent overlay if needed"
+      },
+      "accessibility": {
+        "contrast_ratio": "Minimum 4.5:1 for readability",
+        "font_size": "Large enough for vision-impaired users",
+        "text_placement": "Not overlapping critical UI elements"
+      }
+    },
+    "localization_requirements": {
+      "primary_language": "English (US)",
+      "secondary_languages": ["Spanish", "French", "German"],
+      "localization_process": [
+        "Translate overlay text accurately",
+        "Adjust text size for longer translations",
+        "Verify cultural appropriateness",
+        "Test UI layout with localized text",
+        "Maintain consistent messaging across languages"
+      ]
+    },
+    "automation_tools": {
+      "ios_automation": [
+        "Fastlane snapshot for iOS automation",
+        "UI Testing with screenshot capture",
+        "Xcode UI Test framework",
+        "Custom automation scripts"
+      ],
+      "android_automation": [
+        "Fastlane screengrab for Android",
+        "Espresso test framework with screenshots",
+        "UI Automator for cross-app testing",
+        "Custom Gradle tasks"
+      ],
+      "cross_platform": [
+        "Detox for React Native screenshot automation",
+        "Appium for cross-platform testing",
+        "Custom scripts for batch processing"
+      ]
+    },
+    "quality_assurance": {
+      "review_checklist": [
+        "✅ All screenshots show actual working features",
+        "✅ No placeholder text or fake data",
+        "✅ Consistent branding and visual style",
+        "✅ Text is readable at thumbnail size",
+        "✅ No competitor references or comparisons",
+        "✅ Age-appropriate content throughout",
+        "✅ Proper device frame and orientation",
+        "✅ High resolution and crisp quality"
+      ],
+      "platform_compliance": [
+        "✅ iOS: No Apple interface recreation",
+        "✅ Android: Material Design compliance",
+        "✅ Both: No pricing information shown",
+        "✅ Both: Accurate feature representation",
+        "✅ Both: No misleading claims"
+      ]
+    },
+    "file_management": {
+      "naming_convention": {
+        "ios": "TailTracker-iOS-{DeviceType}-{ScreenNumber}-{Language}.png",
+        "android": "TailTracker-Android-{DeviceType}-{ScreenNumber}-{Language}.png"
+      },
+      "organization": {
+        "folder_structure": "./assets/store-screenshots/{platform}/{device}/{language}/",
+        "backup_strategy": "Version control all source files and final outputs",
+        "delivery_format": "ZIP archive per platform with organized folders"
+      }
+    }
+  }
+}

@@ -80,11 +80,21 @@ android {
             keyPassword 'android'
         }
         release {
-            if (project.hasProperty('MYAPP_UPLOAD_STORE_FILE')) {
-                storeFile file(MYAPP_UPLOAD_STORE_FILE)
-                storePassword MYAPP_UPLOAD_STORE_PASSWORD
-                keyAlias MYAPP_UPLOAD_KEY_ALIAS
-                keyPassword MYAPP_UPLOAD_KEY_PASSWORD
+            // Load keystore properties
+            def keystorePropertiesFile = rootProject.file("keystore.properties")
+            def keystoreProperties = new Properties()
+            if (keystorePropertiesFile.exists()) {
+                keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+                storeFile file(keystoreProperties['MYAPP_UPLOAD_STORE_FILE'])
+                storePassword keystoreProperties['MYAPP_UPLOAD_STORE_PASSWORD']
+                keyAlias keystoreProperties['MYAPP_UPLOAD_KEY_ALIAS']
+                keyPassword keystoreProperties['MYAPP_UPLOAD_KEY_PASSWORD']
+            } else {
+                // Fallback for CI/CD environments using environment variables
+                storeFile file(System.getenv('KEYSTORE_FILE') ?: 'tailtracker-release.keystore')
+                storePassword System.getenv('KEYSTORE_PASSWORD')
+                keyAlias System.getenv('KEY_ALIAS') ?: 'tailtracker-release'
+                keyPassword System.getenv('KEY_PASSWORD')
             }
         }
     }
@@ -96,11 +106,14 @@ android {
             versionNameSuffix "-debug"
             resValue "string", "app_name", "TailTracker Debug"
             buildConfigField "String", "API_BASE_URL", '"https://api-dev.tailtracker.com"'
-            buildConfigField "String", "SUPABASE_URL", '"https://your-project.supabase.co"'
-            buildConfigField "String", "SUPABASE_ANON_KEY", '"your-anon-key"'
+            buildConfigField "String", "SUPABASE_URL", '"${SUPABASE_URL}"'
+            buildConfigField "String", "SUPABASE_ANON_KEY", '"${SUPABASE_ANON_KEY}"'
+            buildConfigField "boolean", "ENABLE_LOGGING", "true"
+            buildConfigField "boolean", "ENABLE_DEBUG_NETWORKING", "true"
             manifestPlaceholders = [
                 appName: "TailTracker Debug",
-                appIcon: "@mipmap/ic_launcher_debug"
+                appIcon: "@mipmap/ic_launcher",
+                networkSecurityConfig: "@xml/network_security_config"
             ]
         }
         staging {
@@ -122,18 +135,25 @@ android {
             signingConfig signingConfigs.release
             resValue "string", "app_name", "TailTracker"
             buildConfigField "String", "API_BASE_URL", '"https://api.tailtracker.com"'
-            buildConfigField "String", "SUPABASE_URL", '"https://your-prod-project.supabase.co"'
-            buildConfigField "String", "SUPABASE_ANON_KEY", '"your-prod-anon-key"'
+            buildConfigField "String", "SUPABASE_URL", '"${SUPABASE_URL}"'
+            buildConfigField "String", "SUPABASE_ANON_KEY", '"${SUPABASE_ANON_KEY}"'
+            buildConfigField "boolean", "ENABLE_LOGGING", "false"
+            buildConfigField "boolean", "ENABLE_DEBUG_NETWORKING", "false"
             manifestPlaceholders = [
                 appName: "TailTracker",
-                appIcon: "@mipmap/ic_launcher"
+                appIcon: "@mipmap/ic_launcher",
+                networkSecurityConfig: "@xml/network_security_config_production"
             ]
             minifyEnabled true
             shrinkResources true
-            proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
+            proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro", "release-proguard-rules.pro"
             
-            // Bundle optimization
-            crunchPngs false // Disable PNG crunching for faster builds
+            // Production optimizations
+            crunchPngs true
+            debuggable false
+            jniDebuggable false
+            renderscriptDebuggable false
+            zipAlignEnabled true
         }
     }
 

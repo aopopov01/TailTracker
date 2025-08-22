@@ -78,9 +78,11 @@ We may share information in the following circumstances:
 
 **Service Providers**
 - Google Firebase (authentication, analytics, crash reporting)
-- Supabase (database and backend services)
+- Supabase (database and backend services)  
+- Stripe (payment processing for premium subscriptions)
 - Google Maps Platform (mapping and location services)
-- Apple/Google (payment processing for subscriptions)
+- Apple/Google (app distribution and in-app payment processing)
+- Cloud storage providers (secure data backup and synchronization)
 
 **Family Sharing**
 - Pet information shared with authorized family members
@@ -111,9 +113,11 @@ We may share information in the following circumstances:
 - Incident response and breach notification procedures
 
 ### Payment Security
-- PCI DSS compliance for payment processing
+- PCI DSS compliance for payment processing through Stripe
 - No storage of credit card information on our servers
-- Payment processing through Apple App Store and Google Play Store
+- Payment processing through Stripe (premium subscriptions), Apple App Store and Google Play Store (in-app purchases)
+- All payment data encrypted in transit and at rest
+- Regular security audits of payment processing systems
 
 ## Data Retention and Deletion
 

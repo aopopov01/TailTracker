@@ -8,11 +8,16 @@
         <domain includeSubdomains="true">firebase.googleapis.com</domain>
         <domain includeSubdomains="true">firebaseio.com</domain>
         
-        <!-- Pin certificates for critical domains -->
-        <pin-set expiration="2025-12-31">
-            <pin digest="SHA-256">YourAPIServerCertificateHashHere</pin>
-            <pin digest="SHA-256">YourBackupCertificateHashHere</pin>
+        <!-- Certificate pinning configuration 
+             IMPORTANT: Replace with actual certificate hashes before production release
+             Generate hashes using: openssl x509 -in certificate.crt -pubkey -noout | openssl pkey -pubin -outform der | openssl dgst -sha256 -binary | openssl enc -base64
+        -->
+        <!-- Uncomment and configure certificate pinning for production:
+        <pin-set expiration="2026-12-31">
+            <pin digest="SHA-256">ADD_YOUR_API_SERVER_CERT_HASH_HERE</pin>
+            <pin digest="SHA-256">ADD_YOUR_BACKUP_CERT_HASH_HERE</pin>
         </pin-set>
+        -->
     </domain-config>
     
     <!-- Allow cleartext traffic only for development/debugging -->

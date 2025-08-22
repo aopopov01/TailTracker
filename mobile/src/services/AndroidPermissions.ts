@@ -1,4 +1,15 @@
+import React from 'react';
 import { Platform, Alert, Linking } from 'react-native';
+import { 
+  PERMISSIONS, 
+  RESULTS, 
+  Permission, 
+  PermissionStatus as RNPermissionStatus,
+  request as requestPermission,
+  requestMultiple,
+  check,
+  openSettings,
+} from 'react-native-permissions';
 
 // Permission types for Android
 export type PermissionType = 
@@ -16,7 +27,9 @@ export type PermissionStatus =
   | 'denied'
   | 'never_ask_again'
   | 'undetermined'
-  | 'blocked';
+  | 'blocked'
+  | 'unavailable'
+  | 'limited';
 
 export interface PermissionResult {
   status: PermissionStatus;
@@ -33,20 +46,40 @@ export interface PermissionRequest {
 }
 
 // Android permission mappings
-const ANDROID_PERMISSIONS = {
-  camera: 'android.permission.CAMERA',
-  location: 'android.permission.ACCESS_FINE_LOCATION',
-  locationCoarse: 'android.permission.ACCESS_COARSE_LOCATION',
-  locationAlways: 'android.permission.ACCESS_BACKGROUND_LOCATION',
-  storage: 'android.permission.READ_EXTERNAL_STORAGE',
-  storageWrite: 'android.permission.WRITE_EXTERNAL_STORAGE',
-  notification: 'android.permission.POST_NOTIFICATIONS', // Android 13+
-  microphone: 'android.permission.RECORD_AUDIO',
-  contacts: 'android.permission.READ_CONTACTS',
-  phone: 'android.permission.CALL_PHONE',
+const ANDROID_PERMISSIONS: Record<PermissionType, Permission> = {
+  camera: PERMISSIONS.ANDROID.CAMERA,
+  location: PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION,
+  locationAlways: PERMISSIONS.ANDROID.ACCESS_BACKGROUND_LOCATION,
+  storage: PERMISSIONS.ANDROID.READ_EXTERNAL_STORAGE,
+  notification: PERMISSIONS.ANDROID.POST_NOTIFICATIONS,
+  microphone: PERMISSIONS.ANDROID.RECORD_AUDIO,
+  contacts: PERMISSIONS.ANDROID.READ_CONTACTS,
+  phone: PERMISSIONS.ANDROID.CALL_PHONE,
 } as const;
 
 class AndroidPermissionsService {
+  /**
+   * Convert react-native-permissions status to our status type
+   */
+  private convertPermissionStatus(status: RNPermissionStatus): PermissionStatus {
+    switch (status) {
+      case RESULTS.GRANTED:
+        return 'granted';
+      case RESULTS.DENIED:
+        return 'denied';
+      case RESULTS.NEVER_ASK_AGAIN:
+        return 'never_ask_again';
+      case RESULTS.BLOCKED:
+        return 'blocked';
+      case RESULTS.UNAVAILABLE:
+        return 'unavailable';
+      case RESULTS.LIMITED:
+        return 'limited';
+      default:
+        return 'undetermined';
+    }
+  }
+
   /**
    * Check if permission is granted
    */
@@ -56,14 +89,17 @@ class AndroidPermissionsService {
     }
 
     try {
-      // Mock implementation - replace with actual permission checking
-      // Using react-native-permissions or similar library
-      console.log(`Checking permission: ${permission}`);
+      const androidPermission = ANDROID_PERMISSIONS[permission];
+      if (!androidPermission) {
+        throw new Error(`Unknown permission type: ${permission}`);
+      }
+
+      const status = await check(androidPermission);
+      const convertedStatus = this.convertPermissionStatus(status);
       
-      // Simulate permission status
       return {
-        status: 'granted',
-        canAskAgain: true,
+        status: convertedStatus,
+        canAskAgain: convertedStatus !== 'never_ask_again' && convertedStatus !== 'blocked',
       };
     } catch (error) {
       console.error(`Error checking permission ${permission}:`, error);
@@ -97,22 +133,22 @@ class AndroidPermissionsService {
       }
 
       // Show rationale if needed
-      if (!currentStatus.canAskAgain) {
-        const shouldShow = await this.shouldShowRequestPermissionRationale(request.type);
-        if (shouldShow) {
-          await this.showPermissionRationale(request);
-        }
+      if (currentStatus.status === 'denied') {
+        await this.showPermissionRationale(request);
       }
 
       // Request permission
-      console.log(`Requesting permission: ${request.type}`);
-      
-      // Mock implementation - replace with actual permission request
-      // Using react-native-permissions or PermissionsAndroid
+      const androidPermission = ANDROID_PERMISSIONS[request.type];
+      if (!androidPermission) {
+        throw new Error(`Unknown permission type: ${request.type}`);
+      }
+
+      const status = await requestPermission(androidPermission);
+      const convertedStatus = this.convertPermissionStatus(status);
       
       return {
-        status: 'granted',
-        canAskAgain: true,
+        status: convertedStatus,
+        canAskAgain: convertedStatus !== 'never_ask_again' && convertedStatus !== 'blocked',
       };
     } catch (error) {
       console.error(`Error requesting permission ${request.type}:`, error);
@@ -127,21 +163,59 @@ class AndroidPermissionsService {
    * Request multiple permissions
    */
   async requestMultiplePermissions(requests: PermissionRequest[]): Promise<Record<PermissionType, PermissionResult>> {
-    const results: Record<PermissionType, PermissionResult> = {} as any;
-    
-    for (const request of requests) {
-      results[request.type] = await this.requestPermission(request);
+    if (Platform.OS !== 'android') {
+      throw new Error('AndroidPermissions is only available on Android');
     }
-    
-    return results;
+
+    try {
+      // Get all Android permissions to request
+      const permissionsToRequest: Permission[] = [];
+      const requestMap: Record<string, PermissionRequest> = {};
+
+      for (const request of requests) {
+        const androidPermission = ANDROID_PERMISSIONS[request.type];
+        if (androidPermission) {
+          permissionsToRequest.push(androidPermission);
+          requestMap[androidPermission] = request;
+        }
+      }
+
+      // Request all permissions at once
+      const statuses = await requestMultiple(permissionsToRequest);
+      
+      // Convert results back to our format
+      const results: Record<PermissionType, PermissionResult> = {} as any;
+      
+      for (const [permission, status] of Object.entries(statuses)) {
+        const request = requestMap[permission];
+        if (request) {
+          const convertedStatus = this.convertPermissionStatus(status);
+          results[request.type] = {
+            status: convertedStatus,
+            canAskAgain: convertedStatus !== 'never_ask_again' && convertedStatus !== 'blocked',
+          };
+        }
+      }
+
+      return results;
+    } catch (error) {
+      console.error('Error requesting multiple permissions:', error);
+      
+      // Fallback to individual requests
+      const results: Record<PermissionType, PermissionResult> = {} as any;
+      for (const request of requests) {
+        results[request.type] = await this.requestPermission(request);
+      }
+      return results;
+    }
   }
 
   /**
    * Check if should show permission rationale
    */
   private async shouldShowRequestPermissionRationale(permission: PermissionType): Promise<boolean> {
-    // Mock implementation - replace with actual rationale check
-    // Using PermissionsAndroid.shouldShowRequestPermissionRationale
+    // This is handled automatically by react-native-permissions
+    // We show rationale when status is 'denied' before requesting
     return false;
   }
 
@@ -193,9 +267,15 @@ class AndroidPermissionsService {
    */
   async openSettings(): Promise<void> {
     try {
-      await Linking.openSettings();
+      await openSettings();
     } catch (error) {
       console.error('Error opening settings:', error);
+      // Fallback to React Native's openSettings
+      try {
+        await Linking.openSettings();
+      } catch (fallbackError) {
+        console.error('Fallback error opening settings:', fallbackError);
+      }
     }
   }
 }

@@ -1,0 +1,233 @@
+{
+  "screenshot_requirements": {
+    "overview": "App Store screenshot requirements for TailTracker iOS app submission. All screenshots must showcase core functionality and comply with Apple's guidelines.",
+    "general_requirements": {
+      "format": "PNG or JPEG",
+      "color_space": "sRGB or P3",
+      "no_transparency": true,
+      "no_rounded_corners": true,
+      "actual_device_screenshots": true,
+      "minimum_screenshots": 3,
+      "maximum_screenshots": 10
+    },
+    "device_requirements": {
+      "iphone_6_7_inch": {
+        "size": "1290x2796",
+        "devices": ["iPhone 14 Pro Max", "iPhone 15 Pro Max"],
+        "required": true,
+        "priority": 1
+      },
+      "iphone_6_1_inch": {
+        "size": "1179x2556", 
+        "devices": ["iPhone 14 Pro", "iPhone 15 Pro"],
+        "required": true,
+        "priority": 2
+      },
+      "iphone_5_5_inch": {
+        "size": "1242x2208",
+        "devices": ["iPhone 8 Plus"],
+        "required": false,
+        "priority": 3
+      },
+      "ipad_pro_12_9_inch": {
+        "size": "2048x2732",
+        "devices": ["iPad Pro 12.9-inch"],
+        "required": true,
+        "priority": 4
+      },
+      "ipad_pro_11_inch": {
+        "size": "1668x2388",
+        "devices": ["iPad Pro 11-inch"],
+        "required": false,
+        "priority": 5
+      }
+    },
+    "screenshot_sequence": [
+      {
+        "order": 1,
+        "screen": "Pet Dashboard",
+        "description": "Main dashboard showing multiple pets with their status, location indicators, and quick action buttons",
+        "key_elements": [
+          "Pet cards with photos and names",
+          "Location status indicators",
+          "Battery level indicators for trackers",
+          "Quick actions (locate, safe zones)",
+          "Clean, intuitive UI design"
+        ],
+        "call_to_action": "Keep Your Pets Safe",
+        "subtitle": "Real-time tracking for all your pets"
+      },
+      {
+        "order": 2,
+        "screen": "Live GPS Tracking",
+        "description": "Real-time map view showing pet location with accuracy indicators and movement trail",
+        "key_elements": [
+          "Live map with pet location pin",
+          "Location accuracy circle",
+          "Movement trail/history",
+          "Zoom controls and map styles",
+          "Timestamp of last update"
+        ],
+        "call_to_action": "See Exactly Where They Are",
+        "subtitle": "Precise GPS tracking in real-time"
+      },
+      {
+        "order": 3,
+        "screen": "Safe Zones Setup",
+        "description": "Geofencing interface showing how to create and manage safe zones with customization options",
+        "key_elements": [
+          "Map with circular safe zone boundaries",
+          "Radius adjustment controls",
+          "Zone naming interface",
+          "Active/inactive zone toggles",
+          "Multiple zones visible"
+        ],
+        "call_to_action": "Create Safe Zones",
+        "subtitle": "Get alerts when pets wander off"
+      },
+      {
+        "order": 4,
+        "screen": "Alert Notifications",
+        "description": "Notification screen showing different types of alerts and how users receive them",
+        "key_elements": [
+          "Push notification examples",
+          "Alert types (left zone, low battery, etc)",
+          "Notification settings panel",
+          "Emergency contact options",
+          "Sound and vibration settings"
+        ],
+        "call_to_action": "Instant Alerts",
+        "subtitle": "Know immediately if something's wrong"
+      },
+      {
+        "order": 5,
+        "screen": "Pet Profile",
+        "description": "Detailed pet profile showing photos, health records, and emergency information",
+        "key_elements": [
+          "Pet photo gallery",
+          "Health record entries",
+          "Emergency contact info",
+          "QR code for pet tag",
+          "Sharing options with family"
+        ],
+        "call_to_action": "Complete Pet Profiles",
+        "subtitle": "All your pet's info in one place"
+      },
+      {
+        "order": 6,
+        "screen": "Family Sharing",
+        "description": "Family sharing interface showing how multiple users can access pet information",
+        "key_elements": [
+          "Family member list",
+          "Permission levels (view, edit, admin)",
+          "Shared notifications settings",
+          "Invitation interface",
+          "Activity log"
+        ],
+        "call_to_action": "Share with Family",
+        "subtitle": "Keep everyone in the loop"
+      },
+      {
+        "order": 7,
+        "screen": "Lost Pet Alert",
+        "description": "Emergency lost pet alert interface with community features and immediate actions",
+        "key_elements": [
+          "Big red 'Lost Pet' button",
+          "Last known location map",
+          "Community alert sharing",
+          "Emergency contact calling",
+          "Lost pet poster generation"
+        ],
+        "call_to_action": "Find Lost Pets Fast",
+        "subtitle": "Community-powered pet recovery"
+      },
+      {
+        "order": 8,
+        "screen": "Premium Features",
+        "description": "Premium subscription benefits and feature comparison",
+        "key_elements": [
+          "Feature comparison table",
+          "Unlimited location history",
+          "Multiple pet support",
+          "Advanced analytics",
+          "Priority support"
+        ],
+        "call_to_action": "Unlock Premium",
+        "subtitle": "Advanced features for serious pet parents"
+      }
+    ],
+    "design_guidelines": {
+      "text_requirements": {
+        "minimum_font_size": "18pt",
+        "maximum_text_coverage": "30%",
+        "readable_fonts_only": true,
+        "high_contrast": true,
+        "localization_ready": true
+      },
+      "ui_elements": {
+        "show_actual_ui": true,
+        "no_device_frames": false,
+        "authentic_content": true,
+        "working_features": true,
+        "no_placeholder_text": true
+      },
+      "prohibited_content": {
+        "no_competitor_mentions": true,
+        "no_pricing_in_screenshots": true,
+        "no_apple_device_mockups": true,
+        "no_apple_interface_recreation": true,
+        "no_misleading_features": true
+      }
+    },
+    "accessibility_requirements": {
+      "high_contrast_support": true,
+      "large_text_support": true,
+      "voiceover_compatibility": true,
+      "color_blind_friendly": true,
+      "clear_navigation_indicators": true
+    },
+    "localization_screenshots": {
+      "required_languages": ["en-US"],
+      "optional_languages": ["es", "fr", "de", "ja"],
+      "text_overlay_localization": true,
+      "ui_text_localization": true
+    },
+    "app_preview_video": {
+      "required": false,
+      "recommended": true,
+      "max_duration": "30 seconds",
+      "formats": ["M4V", "MP4", "MOV"],
+      "resolution": "1080p minimum",
+      "content_focus": [
+        "Core pet tracking functionality",
+        "Safe zone setup process", 
+        "Alert notifications in action",
+        "Family sharing features",
+        "Easy onboarding process"
+      ]
+    },
+    "testing_checklist": {
+      "device_testing": [
+        "Test on actual iPhone 15 Pro Max",
+        "Test on actual iPad Pro", 
+        "Verify screenshot quality",
+        "Check text readability",
+        "Validate feature accuracy"
+      ],
+      "content_validation": [
+        "All features shown work in app",
+        "No placeholder or fake content",
+        "Consistent branding throughout",
+        "Age-appropriate content",
+        "Accurate feature representation"
+      ],
+      "compliance_check": [
+        "No pricing information",
+        "No competitor references",
+        "No inappropriate content",
+        "Proper accessibility support",
+        "Accurate capability claims"
+      ]
+    }
+  }
+}

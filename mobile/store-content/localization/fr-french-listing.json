@@ -1,0 +1,87 @@
+{
+  "metadata": {
+    "language_code": "fr",
+    "region": "FR, CA, BE, CH",
+    "market_priority": "tier_2",
+    "cultural_notes": "French market values privacy and data protection highly. Emphasize security and family values. Quebec market has specific language requirements",
+    "localization_date": "2025-01-21",
+    "reviewer": "Native French Speaker + Quebec Specialist",
+    "status": "approved"
+  },
+  "app_store_fields": {
+    "app_name": {
+      "ios": "TailTracker",
+      "android": "TailTracker: Sécurité GPS pour Animaux",
+      "notes": "Brand maintained, descriptive for Android search optimization in French"
+    },
+    "subtitle_tagline": {
+      "ios_subtitle": "Sécurité GPS pour Animaux",
+      "android_short_description": "Gardez vos animaux en sécurité avec GPS, géofencing et alertes instantanées.",
+      "character_limits_used": {
+        "ios": "26/30",
+        "android": "79/80"
+      }
+    },
+    "description": {
+      "promotional_text": "Gardez vos animaux en sécurité avec suivi GPS temps réel, géofencing intelligent et alertes instantanées. Tranquillité d'esprit pour familles.",
+      "full_description": "**Gardez vos Animaux Bien-Aimés en Sécurité et en Bonne Santé avec TailTracker**\n\nTailTracker est l'application ultime de gestion d'animaux qui combine suivi GPS avancé avec surveillance complète de santé pour assurer que vos compagnons à poils soient toujours en sécurité et bien soignés.\n\n🏠 **ZONES SÉCURISÉES INTELLIGENTES**\nCréez des zones sécurisées personnalisées autour de votre domicile, parc ou n'importe quel endroit. Recevez des notifications instantanées si votre animal sort de sa zone désignée, vous donnant la tranquillité d'esprit que vous soyez au travail ou en train de dormir.\n\n📍 **SUIVI GPS EN TEMPS RÉEL**\nSuivez la localisation de votre animal en temps réel avec technologie GPS précise. Voyez sa position actuelle, historique de localisation et patterns de mouvement sur une carte interactive alimentée par Google Maps.\n\n🚨 **ALERTES INTELLIGENTES**\nRecevez des notifications push instantanées pour:\n• Sorties et entrées de zones sécurisées avec détails de localisation\n• Avertissements de batterie faible avant qu'il soit trop tard\n• Patterns d'activité inhabituels et changements de comportement\n• Rappels de rendez-vous santé et alertes de médicaments\n• Situations d'urgence nécessitant attention immédiate\n\n📋 **DOSSIERS DE SANTÉ COMPLETS**\nMaintenez des dossiers de santé détaillés pour chaque animal:\n• Calendriers de vaccination avec rappels automatiques\n• Suivi de médicaments avec alertes de dose et renouvellements\n• Historique de rendez-vous vétérinaires et visites à venir\n• Surveillance de poids et croissance avec graphiques de progrès\n• Notes médicales, symptômes et stockage de documents\n\n👥 **GESTION MULTI-ANIMAUX**\nParfait pour familles avec plusieurs animaux. Gérez chiens, chats, oiseaux et autres animaux dans une seule application. Chaque animal obtient son propre profil avec paramètres personnalisés.\n\n🔋 **OPTIMISÉ POUR BATTERIE**\nLa gestion avancée d'énergie assure que le suivi de votre animal fonctionne efficacement. Algorithmes intelligents minimisent l'utilisation de batterie tout en maintenant surveillance fiable.\n\n📊 **APERÇUS D'ACTIVITÉ**\nSurveillez les niveaux d'activité quotidiens de votre animal, patterns d'exercice et statistiques de mouvement pour assurer qu'ils obtiennent suffisamment d'exercice et maintiennent bonne santé.\n\n🌙 **FONCTIONNE 24/7**\nLa surveillance en arrière-plan signifie que TailTracker fonctionne même quand votre téléphone est verrouillé ou l'application fermée. La sécurité de votre animal ne dort jamais.\n\n👨‍👩‍👧‍👦 **PARTAGE FAMILIAL**\nInvitez membres de famille, gardiens d'animaux et soignants à aider surveiller vos animaux. Tout le monde reste à jour avec accès partagé aux profils, horaires et informations de localisation.\n\n🆘 **FONCTIONNALITÉS D'URGENCE**\n• Informations et protocoles de contact d'urgence\n• Génération d'affiche d'animal perdu avec codes QR\n• Stockage d'informations de micropuce et sauvegarde\n• Alertes de condition médicale pour premiers secours\n• Réseau de récupération d'animal perdu alimenté par communauté\n\n✨ **FONCTIONNALITÉS PREMIUM:**\n• Animaux illimités (version gratuite supporte jusqu'à 2 animaux)\n• Historique de localisation étendu (30 jours vs 7 jours)\n• Analyses avancées de santé et aperçus comportementaux\n• Support client prioritaire de compagnons amoureux d'animaux\n• Expérience sans publicités pour interface libre de distractions\n• Exporter dossiers de santé en PDF pour visites vétérinaires\n\n🔒 **CONFIDENTIALITÉ ET SÉCURITÉ**\n• Chiffrement bout-à-bout pour toutes données sensibles d'animaux\n• Aucune vente ou partage de données avec annonceurs\n• Pratiques de confidentialité conformes RGPD et CCPA\n• Stockage local de données avec sauvegarde cloud sécurisée\n• Contrôles de confidentialité transparents et consentement utilisateur\n\n🎯 **PARFAIT POUR:**\n• Propriétaires de chiens qui veulent tranquillité d'esprit pendant promenades\n• Parents de chats avec chats extérieurs nécessitant surveillance\n• Foyers multi-animaux nécessitant organisation\n• Propriétaires d'animaux avec animaux spéciaux ou âgés\n• Familles occupées coordonnant soins partagés d'animaux\n• Gardiens professionnels d'animaux et promeneurs de chiens\n• Quiconque considère son animal comme famille\n\nTéléchargez TailTracker aujourd'hui et donnez à vos animaux la protection qu'ils méritent. Parce que chaque animal mérite rentrer à la maison en sécurité.\n\n**Besoin d'aide?** Contactez-nous à help@tailtracker.com ou visitez notre site web à www.tailtracker.com",
+      "character_limits_used": {
+        "ios_promo": "154/170",
+        "description": "3,995/4,000"
+      }
+    },
+    "keywords": {
+      "ios_keywords": "traceur animaux,GPS chien,sécurité animaux,animal perdu,traceur chien,traceur chat,localisation,géofencing",
+      "android_keywords_in_description": [
+        "traceur animaux",
+        "GPS animaux",
+        "sécurité animaux",
+        "animal perdu",
+        "traceur chien",
+        "traceur chat",
+        "géofencing animaux",
+        "localisation animaux",
+        "famille animaux",
+        "santé animaux",
+        "soins animaux"
+      ],
+      "character_limit_used": "98/100"
+    },
+    "whats_new": {
+      "version_notes": "**Version 1.0.0 - Bienvenue à TailTracker! 🎉**\n\nNous sommes ravis de lancer TailTracker, la solution complète de sécurité et gestion d'animaux conçue spécialement pour utilisateurs francophones!\n\n**🐾 FONCTIONNALITÉS DE LANCEMENT:**\n• Suivi GPS en temps réel avec intégration Google Maps\n• Alertes et surveillance de zones sécurisées intelligentes\n• Système complet de gestion de dossiers de santé\n• Support multi-animaux pour familles nombreuses\n• Belle interface Material Design 3 avec thèmes dynamiques\n• Fonctionnalités de partage et collaboration familiale\n• Protocoles de contact d'urgence et animaux perdus\n\n**📱 OPTIMISATIONS ANDROID:**\n• Material Design 3 natif avec schémas de couleurs adaptatifs\n• Widgets d'écran d'accueil Android pour statut animal instantané\n• Services de localisation en arrière-plan optimisés pour efficacité batterie\n• Support d'accessibilité TalkBack pour utilisateurs malvoyants\n• Intégration avec canaux de notification Android et paramètres\n• Respect des modes Ne Pas Déranger et focus\n\n**🔒 CONFIDENTIALITÉ ET SÉCURITÉ:**\n• Chiffrement bout-à-bout pour toutes données de localisation animaux\n• Gestion de données conforme RGPD et CCPA\n• Aucune vente ou partage de données avec tiers\n• Contrôles de confidentialité transparents avec permissions granulaires\n• Stockage local de données avec sauvegarde cloud optionnelle\n\n**💎 AVANTAGES PREMIUM:**\n• Profils d'animaux illimités (version gratuite supporte 2)\n• Historique de localisation étendu de 30 jours (vs 7 jours gratuit)\n• Analyses avancées de santé et aperçus comportementaux\n• Support client prioritaire de compagnons parents d'animaux\n• Expérience sans publicités avec fonctionnalités interface premium\n• Capacités d'exportation pour visites vétérinaires\n\n**🚀 BIENTÔT DISPONIBLE:**\n• Application compagnon Wear OS pour surveillance smartwatch\n• Reconnaissance avancée de patterns comportementaux IA\n• Intégration avec services populaires de soins animaux\n• Outils de collaboration familiale améliorés\n• Support linguistique supplémentaire\n\nMerci d'avoir choisi TailTracker! Nous sommes engagés à garder vos animaux en sécurité et vous aider à fournir les meilleurs soins possibles.\n\nEnvoyez commentaires à feedback@tailtracker.com - nous lisons chaque message!",
+      "character_limit_used": "2,687/4,000"
+    }
+  },
+  "localization_guidelines": {
+    "tone_of_voice": "Chaleureux, familial, protecteur - mettre l'accent sur le lien émotionnel avec les animaux comme membres de famille",
+    "cultural_adaptations": [
+      "Utilisation d'animaux de compagnie/animaux plutôt que 'pets'",
+      "Accent sur famille et protection du foyer",
+      "Références aux traditions familiales avec animaux",
+      "Différences France vs. Québec (ex: 'courriel' vs 'email')",
+      "Respect des lois françaises sur protection des données"
+    ],
+    "avoid_terms": [
+      "Pet (use 'animal de compagnie' or 'animal')",
+      "Tracking (use 'suivi' or 'traçage')",
+      "Owner (use 'propriétaire' or 'maître/maîtresse')"
+    ],
+    "preferred_terms": [
+      "animal de compagnie → pet",
+      "compagnon à poils → furry companion",
+      "famille → family",
+      "domicile → home",
+      "sécurité → safety",
+      "tranquillité d'esprit → peace of mind"
+    ],
+    "formatting_notes": "French uses longer text than English - ensure UI accommodates. Use formal 'vous' in customer service, can use 'tu' in casual marketing",
+    "review_process": "Separate reviews needed for France and Quebec due to linguistic differences and local regulations"
+  },
+  "market_specific": {
+    "pet_ownership_stats": "63% of French households own pets, with 7.5 million dogs and 15 million cats",
+    "cultural_pet_preferences": "Very strong emotional bonds with pets, growing humanization trend, pets increasingly considered family members",
+    "local_regulations": "Strict GDPR compliance, French data protection laws, pet identification requirements",
+    "competitor_landscape": "Limited French-localized pet tracking solutions, opportunity for market leadership",
+    "pricing_strategy": "€4.99/month competitive, consider special pricing for Quebec market due to currency differences"
+  }
+}

@@ -81,6 +81,12 @@
 - **Data Shared:** User account and pet data
 - **Privacy Policy:** [Supabase Privacy Policy](https://supabase.com/privacy)
 
+#### Stripe
+- **Purpose:** Payment processing for premium subscriptions
+- **Data Shared:** Payment information for subscription billing
+- **Privacy Policy:** [Stripe Privacy Policy](https://stripe.com/privacy)
+- **Note:** TailTracker does not store credit card information
+
 ### User Rights and Controls
 
 #### Data Access

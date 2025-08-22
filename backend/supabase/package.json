@@ -1,0 +1,55 @@
+{
+  "name": "tailtracker-supabase-backend",
+  "version": "1.0.0",
+  "description": "TailTracker Supabase backend deployment and management",
+  "scripts": {
+    "dev": "supabase start",
+    "stop": "supabase stop",
+    "reset": "supabase db reset",
+    "migrate": "supabase db push",
+    "deploy:staging": "./deploy.sh staging",
+    "deploy:production": "./deploy.sh production",
+    "functions:deploy": "supabase functions deploy",
+    "functions:serve": "supabase functions serve",
+    "db:diff": "supabase db diff -f",
+    "db:dump": "supabase db dump -f",
+    "types:generate": "supabase gen types typescript --local > types/supabase.ts",
+    "test": "npm run test:functions && npm run test:migrations",
+    "test:functions": "deno test --allow-all functions/**/*test.ts",
+    "test:migrations": "supabase test db",
+    "logs": "supabase functions logs",
+    "setup": "npm run setup:staging",
+    "setup:staging": "npm run migrate && npm run functions:deploy && npm run seed:staging",
+    "setup:production": "npm run migrate && npm run functions:deploy",
+    "seed:staging": "supabase db dump --data-only -f staging_seed.sql",
+    "backup": "npm run backup:staging",
+    "backup:staging": "supabase db dump -f backups/staging_$(date +%Y%m%d_%H%M%S).sql",
+    "backup:production": "supabase db dump -f backups/production_$(date +%Y%m%d_%H%M%S).sql",
+    "health-check": "curl -f $SUPABASE_URL/rest/v1/ || exit 1",
+    "validate": "npm run validate:schema && npm run validate:functions",
+    "validate:schema": "supabase db lint",
+    "validate:functions": "deno check functions/**/*.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.38.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/your-org/tailtracker.git"
+  },
+  "keywords": [
+    "supabase",
+    "backend",
+    "pet-management",
+    "tailtracker"
+  ],
+  "author": "TailTracker Team",
+  "license": "MIT"
+}

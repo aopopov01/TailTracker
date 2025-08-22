@@ -1,0 +1,90 @@
+# TailTracker Supabase Configuration
+# Production-ready setup for backend infrastructure
+
+project_id = "your-project-id"
+organization_id = "your-org-id"
+
+[api]
+port = 54321
+schemas = ["public", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[auth]
+enabled = true
+site_url = "https://tailtracker.app"
+additional_redirect_urls = ["https://staging.tailtracker.app", "https://localhost:3000"]
+jwt_expiry = 3600
+refresh_token_rotation_enabled = true
+security_update_password_require_reauthentication = true
+enable_signup = true
+enable_confirmations = true
+enable_email_confirmations = true
+enable_sms_confirmations = true
+enable_manual_linking = false
+
+[auth.email]
+template = "magic_link"
+double_confirm_changes = true
+enable_signup = true
+
+[auth.sms]
+autoconfirm = false
+max_otp_frequency = 60
+test_otp = "123456"
+
+[auth.external.google]
+enabled = true
+redirect_uri = "https://your-project-id.supabase.co/auth/v1/callback"
+
+[auth.external.apple]
+enabled = true
+redirect_uri = "https://your-project-id.supabase.co/auth/v1/callback"
+
+[auth.external.github]
+enabled = false
+
+[db]
+shadow_port = 54322
+port = 54323
+major_version = 15
+
+[db.pooler]
+enabled = true
+port = 54324
+pool_mode = "transaction"
+default_pool_size = 20
+max_client_conn = 100
+
+[realtime]
+enabled = true
+ip_version = "ipv4"
+port = 54325
+tenant_id = "realtime-dev"
+max_header_length = 4096
+
+[storage]
+enabled = true
+file_size_limit = "50MiB"
+buckets = [
+  { name = "pet-photos", public = true },
+  { name = "vaccination-certificates", public = false },
+  { name = "user-avatars", public = true },
+  { name = "lost-pet-photos", public = true },
+  { name = "medical-documents", public = false }
+]
+
+[analytics]
+enabled = true
+
+[functions]
+verify_jwt = true
+
+[edge-runtime]
+enabled = true
+ip_version = "ipv4"
+port = 54326
+inspector_port = 8083
+
+[experimental]
+webhooks = true

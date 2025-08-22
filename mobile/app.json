@@ -36,9 +36,9 @@
         "aps-environment": "production"
       },
       "infoPlist": {
-        "NSLocationWhenInUseUsageDescription": "TailTracker needs location access to help you find lost pets and discover nearby pet services.",
-        "NSLocationAlwaysAndWhenInUseUsageDescription": "TailTracker needs location access to help you find lost pets and track their safe zones.",
-        "NSLocationAlwaysUsageDescription": "TailTracker needs background location access to monitor your pet's safe zones and send alerts if they wander off.",
+        "NSLocationWhenInUseUsageDescription": "Location access enables TailTracker to show your pet's current location, help you navigate to them when they're lost, display nearby veterinarians and pet services, and set up personalized safe zones around your home and favorite pet areas.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "TailTracker requires location access to provide core pet safety features: real-time pet tracking, instant alerts when pets leave safe zones, and location-based emergency notifications to help reunite you with lost pets quickly.",
+        "NSLocationAlwaysUsageDescription": "Background location access is essential for TailTracker's primary safety features: monitoring your pet's location 24/7, sending immediate alerts if they leave designated safe zones, and automatically tracking their whereabouts to help locate them if they go missing. This background monitoring provides peace of mind and faster emergency response.",
         "NSCameraUsageDescription": "TailTracker needs camera access to take photos of your pets for their profiles.",
         "NSPhotoLibraryUsageDescription": "TailTracker needs photo library access to select photos of your pets.",
         "NSPhotoLibraryAddUsageDescription": "TailTracker needs permission to save photos of your pets to your photo library.",
@@ -113,7 +113,7 @@
       ],
       "config": {
         "googleMaps": {
-          "apiKey": ""
+          "apiKey": "${GOOGLE_MAPS_API_KEY}"
         }
       },
       "googleServicesFile": "./google-services.json"
@@ -142,9 +142,9 @@
       [
         "expo-location",
         {
-          "locationAlwaysAndWhenInUsePermission": "TailTracker needs location access to help you find lost pets and track their safe zones.",
-          "locationAlwaysPermission": "TailTracker needs background location access to monitor your pet's safe zones and send alerts if they wander off.",
-          "locationWhenInUsePermission": "TailTracker needs location access to help you find lost pets and discover nearby pet services.",
+          "locationAlwaysAndWhenInUsePermission": "TailTracker requires location access to provide core pet safety features: real-time pet tracking, instant alerts when pets leave safe zones, and location-based emergency notifications to help reunite you with lost pets quickly.",
+          "locationAlwaysPermission": "Background location access is essential for TailTracker's primary safety features: monitoring your pet's location 24/7, sending immediate alerts if they leave designated safe zones, and automatically tracking their whereabouts to help locate them if they go missing. This background monitoring provides peace of mind and faster emergency response.",
+          "locationWhenInUsePermission": "Location access enables TailTracker to show your pet's current location, help you navigate to them when they're lost, display nearby veterinarians and pet services, and set up personalized safe zones around your home and favorite pet areas.",
           "isAndroidBackgroundLocationEnabled": true,
           "isAndroidForegroundServiceEnabled": true
         }
@@ -179,16 +179,6 @@
         {
           "addGeneratedScheme": false
         }
-      ],
-      [
-        "@react-native-community/push-notification-ios",
-        {}
-      ],
-      [
-        "react-native-purchases",
-        {
-          "appleApiKey": "your-apple-api-key-here"
-        }
       ]
     ],
     "experiments": {
@@ -199,7 +189,7 @@
         "origin": false
       },
       "eas": {
-        "projectId": "your-project-id-here"
+        "projectId": "${EAS_PROJECT_ID}"
       }
     }
   }

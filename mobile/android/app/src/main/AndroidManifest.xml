@@ -54,7 +54,7 @@
         android:label="${appName}"
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="false"
-        android:networkSecurityConfig="@xml/network_security_config"
+        android:networkSecurityConfig="${networkSecurityConfig}"
         android:largeHeap="true"
         android:hardwareAccelerated="true"
         android:supportsRtl="true"
@@ -169,6 +169,31 @@
                 android:name="androidx.work.WorkManagerInitializer"
                 android:value="androidx.startup" />
         </provider>
+
+        <!-- Pet Status Widget -->
+        <receiver
+            android:name=".widgets.PetStatusWidget"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="com.tailtracker.widget.UPDATE" />
+                <action android:name="com.tailtracker.widget.PET_SELECTED" />
+                <action android:name="com.tailtracker.widget.EMERGENCY" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/pet_status_widget_info" />
+        </receiver>
+
+        <!-- Widget Configuration Activity -->
+        <activity
+            android:name=".widgets.PetStatusWidgetConfigActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Transparent">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
+            </intent-filter>
+        </activity>
 
         <!-- File Provider -->
         <provider
