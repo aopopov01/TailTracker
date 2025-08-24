@@ -7,10 +7,11 @@ import {
   StyleSheet,
   SafeAreaView,
   Switch,
-  Alert,
   Platform
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTailTrackerModal } from '../../hooks/useTailTrackerModal';
+import { TailTrackerModal } from '../UI/TailTrackerModal';
 
 interface DataConsentFlowProps {
   onConsentComplete: (consents: ConsentSettings) => void;
@@ -33,6 +34,7 @@ export const DataConsentFlow: React.FC<DataConsentFlowProps> = ({
   onSkip,
   initialConsents = {}
 }) => {
+  const { modalConfig, showModal, hideModal, showConfirm } = useTailTrackerModal();
   const [consents, setConsents] = useState<ConsentSettings>({
     essential: true, // Always required
     analytics: initialConsents.analytics ?? true,
@@ -174,13 +176,13 @@ You can unsubscribe from marketing communications at any time. Essential service
 
   const handleSkip = () => {
     if (onSkip) {
-      Alert.alert(
+      showConfirm(
         'Skip Data Consent',
         'Are you sure you want to skip the consent setup? You can change these settings later in the app.',
-        [
-          { text: 'Cancel', style: 'cancel' },
-          { text: 'Skip', onPress: onSkip }
-        ]
+        onSkip,
+        'Skip',
+        'Cancel',
+        false
       );
     }
   };
@@ -287,6 +289,15 @@ You can unsubscribe from marketing communications at any time. Essential service
           )}
         </TouchableOpacity>
       </View>
+      <TailTrackerModal
+        visible={modalConfig.visible}
+        onClose={modalConfig.actions?.[0]?.onPress || hideModal}
+        title={modalConfig.title}
+        message={modalConfig.message}
+        type={modalConfig.type}
+        actions={modalConfig.actions}
+        icon={modalConfig.icon}
+      />
     </SafeAreaView>
   );
 };

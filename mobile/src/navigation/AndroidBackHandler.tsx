@@ -1,8 +1,9 @@
 import React, { useEffect, useCallback, useRef } from 'react';
-import { BackHandler, Alert, Platform, ToastAndroid } from 'react-native';
+import { BackHandler, Platform, ToastAndroid } from 'react-native';
 import { useNavigation, NavigationState, useFocusEffect } from '@react-navigation/native';
 import { CommonActions } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { modalService } from '../services/modalService';
 
 const DOUBLE_BACK_EXIT_KEY = '@TailTracker:double_back_exit_enabled';
 const BACK_PRESS_TIMEOUT = 2000; // 2 seconds
@@ -130,21 +131,14 @@ class AndroidBackHandlerManager {
   private showExitConfirmation(config: BackHandlerConfig): void {
     const message = config.confirmExitMessage || 'Are you sure you want to exit TailTracker?';
     
-    Alert.alert(
+    modalService.showConfirm(
       'Exit App',
       message,
-      [
-        {
-          text: 'Cancel',
-          style: 'cancel',
-        },
-        {
-          text: 'Exit',
-          style: 'destructive',
-          onPress: () => BackHandler.exitApp(),
-        },
-      ],
-      { cancelable: false }
+      () => BackHandler.exitApp(),
+      'Exit',
+      'Cancel',
+      true,
+      'alert-circle-outline'
     );
   }
 
@@ -301,13 +295,14 @@ export const AndroidBackUtils = {
    */
   exitWithConfirmation: (message?: string) => {
     const confirmMessage = message || 'Are you sure you want to exit TailTracker?';
-    Alert.alert(
+    modalService.showConfirm(
       'Exit App',
       confirmMessage,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Exit', style: 'destructive', onPress: () => BackHandler.exitApp() },
-      ]
+      () => BackHandler.exitApp(),
+      'Exit',
+      'Cancel',
+      true,
+      'alert-circle-outline'
     );
   },
 
@@ -338,18 +333,23 @@ export const AndroidBackUtils = {
       return false; // Allow normal back behavior
     }
 
-    const buttons = [
-      { text: 'Cancel', style: 'cancel' as const },
+    const actions = [
+      {
+        text: 'Cancel',
+        style: 'cancel' as const,
+        onPress: () => {},
+      },
       {
         text: 'Discard',
         style: 'destructive' as const,
-        onPress: onDiscard,
+        onPress: onDiscard || (() => {}),
       },
     ];
 
     if (onSave) {
-      buttons.push({
+      actions.push({
         text: 'Save',
+        style: 'primary' as const,
         onPress: async () => {
           try {
             await onSave();
@@ -360,11 +360,13 @@ export const AndroidBackUtils = {
       });
     }
 
-    Alert.alert(
-      'Unsaved Changes',
-      'You have unsaved changes. What would you like to do?',
-      buttons
-    );
+    modalService.showModal({
+      title: 'Unsaved Changes',
+      message: 'You have unsaved changes. What would you like to do?',
+      type: 'warning',
+      icon: 'alert-circle-outline',
+      actions,
+    });
 
     return true; // Prevent default back behavior
   },

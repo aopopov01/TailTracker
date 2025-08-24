@@ -1,6 +1,6 @@
-import { Alert } from 'react-native';
 import { StripeError } from '@stripe/stripe-react-native';
 import { PaymentError, StripePaymentService } from '../services/StripePaymentService';
+import { modalService } from '../services/modalService';
 
 /**
  * Utility functions for handling payment errors throughout the app
@@ -12,7 +12,7 @@ export class PaymentErrorUtils {
   /**
    * Show a user-friendly alert for payment errors
    */
-  static showPaymentAlert(error: StripeError | PaymentError | string, onRetry?: () => void): void {
+  static showPaymentAlert(error: StripeError<any> | PaymentError | string, onRetry?: () => void): void {
     let parsedError: PaymentError;
 
     if (typeof error === 'string') {
@@ -24,22 +24,26 @@ export class PaymentErrorUtils {
     } else if ('code' in error && 'message' in error && 'type' in error) {
       parsedError = error as PaymentError;
     } else {
-      parsedError = this.paymentService.parseStripeError(error as StripeError);
+      parsedError = this.paymentService.parseStripeError(error as StripeError<any>);
     }
-
-    const buttons = [
-      { text: 'OK', style: 'default' as const },
-    ];
 
     if (onRetry) {
-      buttons.unshift({ text: 'Try Again', onPress: onRetry });
+      modalService.showConfirm(
+        this.getErrorTitle(parsedError.type),
+        parsedError.message,
+        onRetry,
+        'Try Again',
+        'Cancel',
+        true,
+        'card-outline'
+      );
+    } else {
+      modalService.showError(
+        this.getErrorTitle(parsedError.type),
+        parsedError.message,
+        'card-outline'
+      );
     }
-
-    Alert.alert(
-      this.getErrorTitle(parsedError.type),
-      parsedError.message,
-      buttons
-    );
   }
 
   /**
@@ -62,7 +66,7 @@ export class PaymentErrorUtils {
   /**
    * Check if error is retryable
    */
-  static isRetryableError(error: PaymentError | StripeError): boolean {
+  static isRetryableError(error: PaymentError | StripeError<any>): boolean {
     const retryableCodes = [
       'processing_error',
       'api_connection_error',
@@ -97,25 +101,27 @@ export class PaymentErrorUtils {
    */
   static handleSubscriptionError(error: any, onRetry?: () => void): void {
     if (error?.code === 'setup_intent_authentication_failure') {
-      Alert.alert(
+      modalService.showConfirm(
         'Payment Verification Failed',
         'We couldn\'t verify your payment method. This might be due to:\n\n• 3D Secure authentication failure\n• Bank declining the verification\n• Network connectivity issues\n\nPlease try a different payment method or contact your bank.',
-        [
-          { text: 'Try Different Method', onPress: onRetry },
-          { text: 'Cancel', style: 'cancel' },
-        ]
+        onRetry || (() => {}),
+        'Try Different Method',
+        'Cancel',
+        true,
+        'shield-alert-outline'
       );
       return;
     }
 
     if (error?.code === 'payment_intent_authentication_failure') {
-      Alert.alert(
+      modalService.showConfirm(
         'Payment Authentication Failed',
         'Your payment requires additional authentication. Please complete the verification process and try again.',
-        [
-          { text: 'Try Again', onPress: onRetry },
-          { text: 'Cancel', style: 'cancel' },
-        ]
+        onRetry || (() => {}),
+        'Try Again',
+        'Cancel',
+        true,
+        'shield-alert-outline'
       );
       return;
     }
@@ -128,13 +134,14 @@ export class PaymentErrorUtils {
    */
   static handlePaymentMethodError(error: any, onRetry?: () => void): void {
     if (error?.code === 'card_declined') {
-      Alert.alert(
+      modalService.showConfirm(
         'Card Declined',
         'Your card was declined. This could be due to:\n\n• Insufficient funds\n• Card restrictions\n• Security measures\n\nPlease try a different payment method or contact your bank.',
-        [
-          { text: 'Try Different Card', onPress: onRetry },
-          { text: 'Cancel', style: 'cancel' },
-        ]
+        onRetry || (() => {}),
+        'Try Different Card',
+        'Cancel',
+        true,
+        'card-outline'
       );
       return;
     }
@@ -146,10 +153,10 @@ export class PaymentErrorUtils {
    * Handle billing portal errors
    */
   static handleBillingPortalError(error: any): void {
-    Alert.alert(
+    modalService.showError(
       'Billing Portal Error',
       'We couldn\'t open the billing portal at this time. Please try again later or contact support.',
-      [{ text: 'OK' }]
+      'receipt-outline'
     );
   }
 
@@ -157,24 +164,33 @@ export class PaymentErrorUtils {
    * Show connection error alert
    */
   static showConnectionError(onRetry?: () => void): void {
-    Alert.alert(
-      'Connection Error',
-      'We\'re having trouble connecting to our payment service. Please check your internet connection and try again.',
-      [
-        { text: 'Try Again', onPress: onRetry },
-        { text: 'Cancel', style: 'cancel' },
-      ]
-    );
+    if (onRetry) {
+      modalService.showConfirm(
+        'Connection Error',
+        'We\'re having trouble connecting to our payment service. Please check your internet connection and try again.',
+        onRetry,
+        'Try Again',
+        'Cancel',
+        true,
+        'wifi-outline'
+      );
+    } else {
+      modalService.showError(
+        'Connection Error',
+        'We\'re having trouble connecting to our payment service. Please check your internet connection and try again.',
+        'wifi-outline'
+      );
+    }
   }
 
   /**
    * Show maintenance alert
    */
   static showMaintenanceAlert(): void {
-    Alert.alert(
+    modalService.showInfo(
       'Service Temporarily Unavailable',
       'Our payment service is temporarily unavailable for maintenance. Please try again in a few minutes.',
-      [{ text: 'OK' }]
+      'construct-outline'
     );
   }
 

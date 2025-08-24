@@ -70,7 +70,6 @@ export const AccessibleTextInput: React.FC<AccessibleTextInputProps> = ({
         accessibilityLabel={accessibilityLabel}
         accessibilityHint={accessibilityHint}
         accessibilityLabelledBy={labelId}
-        accessibilityDescribedBy={errorMessage ? errorId : undefined}
         testID={testID}
         {...textInputProps}
       />

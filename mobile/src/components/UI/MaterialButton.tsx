@@ -1,9 +1,12 @@
 import React from 'react';
-import { Button, ButtonProps } from 'react-native-paper';
+import { Button } from 'react-native-paper';
+import type { ComponentProps } from 'react';
 import { StyleSheet, Platform } from 'react-native';
 import { useTheme } from 'react-native-paper';
-import { useMaterialTheme, useThemedStyles } from '../../theme/MaterialThemeProvider';
+import { useMaterialTheme, useThemeAwareStyles } from '../../theme/MaterialThemeProvider';
 import { MaterialComponentStyles, StateLayerOpacity } from '../../theme/materialDesign3Theme';
+
+type ButtonProps = ComponentProps<typeof Button>;
 
 interface MaterialButtonProps extends Omit<ButtonProps, 'mode'> {
   variant?: 'filled' | 'outlined' | 'text' | 'elevated' | 'tonal';

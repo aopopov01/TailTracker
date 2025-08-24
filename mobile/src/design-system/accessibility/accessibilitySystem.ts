@@ -420,10 +420,10 @@ export class FocusManager {
     // Platform-specific focus implementation
     if (Platform.OS === 'ios') {
       // iOS focus implementation
-      AccessibilityInfo.setAccessibilityFocus(elementId);
+      AccessibilityInfo.setAccessibilityFocus(parseInt(elementId));
     } else {
       // Android focus implementation
-      AccessibilityInfo.setAccessibilityFocus(elementId);
+      AccessibilityInfo.setAccessibilityFocus(parseInt(elementId));
     }
   }
   
@@ -947,6 +947,8 @@ export const accessibilityChecklist = {
 // ====================================
 // ACCESSIBILITY HOOKS AND UTILITIES
 // ====================================
+
+import React from 'react';
 
 /**
  * React Hook for Accessibility State

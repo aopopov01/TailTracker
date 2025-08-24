@@ -3,7 +3,6 @@ import {
   View,
   StyleSheet,
   ScrollView,
-  Alert,
   Platform,
 } from 'react-native';
 import {
@@ -26,6 +25,8 @@ import {
   PaymentCardForm, 
   PaymentMethodSelector 
 } from '../../components/Payment';
+import { useTailTrackerModal } from '../../hooks/useTailTrackerModal';
+import { TailTrackerModal } from '../../components/UI/TailTrackerModal';
 
 interface PaymentMethodScreenProps {
   route: {
@@ -48,6 +49,7 @@ export const PaymentMethodScreen: React.FC<PaymentMethodScreenProps> = () => {
   const [loading, setLoading] = useState(false);
 
   const paymentService = StripePaymentService.getInstance();
+  const { modalConfig, showError, showSuccess, showModal, hideModal } = useTailTrackerModal();
 
   useEffect(() => {
     if (planId) {
@@ -73,16 +75,17 @@ export const PaymentMethodScreen: React.FC<PaymentMethodScreenProps> = () => {
       const { success, error } = await paymentService.addPaymentMethod(paymentMethod.id);
       
       if (error) {
-        Alert.alert('Error', error);
+        showError('Error', error, 'card-outline');
         return;
       }
 
       // If we're just adding a payment method, go back
       if (isAddingPaymentMethod) {
-        Alert.alert(
+        showSuccess(
           'Success',
           'Payment method added successfully!',
-          [{ text: 'OK', onPress: () => navigation.goBack() }]
+          'checkmark-circle-outline',
+          () => navigation.goBack()
         );
         return;
       }
@@ -91,16 +94,18 @@ export const PaymentMethodScreen: React.FC<PaymentMethodScreenProps> = () => {
       setSelectedPaymentMethodId(paymentMethod.id);
       setShowAddCardForm(false);
       
-      Alert.alert(
-        'Payment Method Added',
-        'Would you like to use this payment method for your subscription?',
-        [
-          { text: 'No', style: 'cancel' },
-          { text: 'Yes', onPress: () => handleSubscribe(paymentMethod.id) },
+      showModal({
+        title: 'Payment Method Added',
+        message: 'Would you like to use this payment method for your subscription?',
+        type: 'success',
+        icon: 'card-outline',
+        actions: [
+          { text: 'No', style: 'cancel', onPress: hideModal },
+          { text: 'Yes', style: 'primary', onPress: () => { hideModal(); handleSubscribe(paymentMethod.id); } },
         ]
-      );
+      });
     } catch (error) {
-      Alert.alert('Error', 'Failed to add payment method');
+      showError('Error', 'Failed to add payment method', 'alert-circle-outline');
     } finally {
       setProcessing(false);
     }
@@ -108,14 +113,14 @@ export const PaymentMethodScreen: React.FC<PaymentMethodScreenProps> = () => {
 
   const handleSubscribe = async (paymentMethodId?: string) => {
     if (!plan) {
-      Alert.alert('Error', 'No subscription plan selected');
+      showError('Error', 'No subscription plan selected', 'alert-circle-outline');
       return;
     }
 
     const methodId = paymentMethodId || selectedPaymentMethodId;
     
     if (!methodId) {
-      Alert.alert('Error', 'Please select a payment method');
+      showError('Error', 'Please select a payment method', 'card-outline');
       return;
     }
 
@@ -131,7 +136,7 @@ export const PaymentMethodScreen: React.FC<PaymentMethodScreenProps> = () => {
 
         if (error) {
           const parsedError = paymentService.parseStripeError(error);
-          Alert.alert('Payment Error', parsedError.message);
+          showError('Payment Error', parsedError.message, 'logo-apple');
           return;
         }
 
@@ -149,7 +154,7 @@ export const PaymentMethodScreen: React.FC<PaymentMethodScreenProps> = () => {
 
         if (error) {
           const parsedError = paymentService.parseStripeError(error);
-          Alert.alert('Payment Error', parsedError.message);
+          showError('Payment Error', parsedError.message, 'logo-google');
           return;
         }
 
@@ -162,7 +167,7 @@ export const PaymentMethodScreen: React.FC<PaymentMethodScreenProps> = () => {
       // Handle saved payment methods
       await createSubscriptionWithPaymentMethod(methodId);
     } catch (error) {
-      Alert.alert('Error', 'Failed to process subscription');
+      showError('Error', 'Failed to process subscription', 'alert-circle-outline');
     } finally {
       setProcessing(false);
     }
@@ -178,27 +183,23 @@ export const PaymentMethodScreen: React.FC<PaymentMethodScreenProps> = () => {
       );
 
       if (error) {
-        Alert.alert('Subscription Error', error);
+        showError('Subscription Error', error, 'alert-circle-outline');
         return;
       }
 
       if (success) {
-        Alert.alert(
+        showSuccess(
           'Subscription Created!',
           `Welcome to ${plan.name}! Your subscription is now active.`,
-          [
-            {
-              text: 'OK',
-              onPress: () => {
-                navigation.popToTop();
-                navigation.navigate('Subscription');
-              }
-            }
-          ]
+          'checkmark-circle-outline',
+          () => {
+            navigation.popToTop();
+            navigation.navigate('Subscription');
+          }
         );
       }
     } catch (error) {
-      Alert.alert('Error', 'Failed to create subscription');
+      showError('Error', 'Failed to create subscription', 'alert-circle-outline');
     }
   };
 
@@ -256,7 +257,7 @@ export const PaymentMethodScreen: React.FC<PaymentMethodScreenProps> = () => {
         
         <PaymentCardForm
           onPaymentMethodCreated={handlePaymentMethodCreated}
-          onError={(error) => Alert.alert('Error', error)}
+          onError={(error) => showError('Error', error, 'card-outline')}
           loading={processing}
           disabled={processing}
         />
@@ -309,6 +310,16 @@ export const PaymentMethodScreen: React.FC<PaymentMethodScreenProps> = () => {
       </ScrollView>
 
       {renderAddCardModal()}
+      
+      <TailTrackerModal
+        visible={modalConfig.visible}
+        onClose={hideModal}
+        title={modalConfig.title}
+        message={modalConfig.message}
+        type={modalConfig.type}
+        actions={modalConfig.actions}
+        icon={modalConfig.icon}
+      />
     </View>
   );
 };

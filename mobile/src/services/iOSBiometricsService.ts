@@ -1,6 +1,7 @@
-import { Platform, Alert } from 'react-native';
+import { Platform } from 'react-native';
 import * as LocalAuthentication from 'expo-local-authentication';
 import * as Keychain from 'react-native-keychain';
+import { modalService } from '../utils/modalService';
 
 export interface BiometricAuthResult {
   success: boolean;
@@ -344,11 +345,13 @@ export class iOSBiometricsService {
     if (!isAvailable) {
       const biometricType = await this.getBiometricTypeName();
       
-      Alert.alert(
-        'Biometric Authentication Unavailable',
-        `${biometricType} is not set up on this device. Please set it up in Settings to use this feature.`,
-        [{ text: 'OK' }]
-      );
+      modalService.showModal({
+        title: 'Biometric Authentication Unavailable',
+        message: `${biometricType} is not set up on this device. Please set it up in Settings to use this feature.`,
+        type: 'warning',
+        icon: 'finger-print-outline',
+        actions: [{ text: 'OK', style: 'primary', onPress: () => {} }]
+      });
       
       return false;
     }

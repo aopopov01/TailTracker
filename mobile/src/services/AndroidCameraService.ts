@@ -1,11 +1,12 @@
 import React from 'react';
-import { Platform, Alert } from 'react-native';
+import { Platform } from 'react-native';
+import { modalService } from './modalService';
 import { 
   Camera, 
   CameraType, 
   FlashMode, 
   ImageType,
-  MediaTypeOptions,
+  MediaType,
   launchCameraAsync,
   launchImageLibraryAsync,
   getCameraPermissionsAsync,
@@ -148,22 +149,16 @@ class AndroidCameraService {
       // Check and request permissions
       const hasPermission = await this.requestCameraPermissions();
       if (!hasPermission) {
-        Alert.alert(
+        modalService.showError(
           'Permission Required',
-          'Camera permission is required to take photos.',
-          [
-            { text: 'Cancel', style: 'cancel' },
-            { 
-              text: 'Settings', 
-              onPress: () => androidPermissions.openSettings() 
-            },
-          ]
+          'Camera permission is required to take photos. Please enable it in Settings.',
+          'camera-outline'
         );
         return null;
       }
 
       const result = await launchCameraAsync({
-        mediaTypes: MediaTypeOptions.Images,
+        mediaTypes: MediaType.Images,
         allowsEditing: options.allowsEditing ?? true,
         aspect: options.aspect ?? [1, 1],
         quality: options.quality ?? 0.8,
@@ -189,7 +184,11 @@ class AndroidCameraService {
       };
     } catch (error) {
       console.error('Error taking picture:', error);
-      Alert.alert('Error', 'Failed to take picture. Please try again.');
+      modalService.showError(
+        'Camera Error',
+        'Failed to take picture. Please try again.',
+        'camera-outline'
+      );
       return null;
     }
   }
@@ -202,22 +201,16 @@ class AndroidCameraService {
       // Check and request permissions
       const hasPermission = await this.requestMediaLibraryPermissions();
       if (!hasPermission) {
-        Alert.alert(
+        modalService.showError(
           'Permission Required',
-          'Storage permission is required to select photos.',
-          [
-            { text: 'Cancel', style: 'cancel' },
-            { 
-              text: 'Settings', 
-              onPress: () => androidPermissions.openSettings() 
-            },
-          ]
+          'Storage permission is required to select photos. Please enable it in Settings.',
+          'folder-outline'
         );
         return null;
       }
 
       const result = await launchImageLibraryAsync({
-        mediaTypes: MediaTypeOptions.Images,
+        mediaTypes: MediaType.Images,
         allowsEditing: options.allowsEditing ?? true,
         aspect: options.aspect ?? [1, 1],
         quality: options.quality ?? 0.8,
@@ -243,7 +236,11 @@ class AndroidCameraService {
       };
     } catch (error) {
       console.error('Error picking image:', error);
-      Alert.alert('Error', 'Failed to select image. Please try again.');
+      modalService.showError(
+        'Gallery Error',
+        'Failed to select image. Please try again.',
+        'image-outline'
+      );
       return null;
     }
   }
@@ -267,22 +264,16 @@ class AndroidCameraService {
       });
 
       if (!hasCameraPermission || hasMicrophonePermission.status !== 'granted') {
-        Alert.alert(
+        modalService.showError(
           'Permissions Required',
-          'Camera and microphone permissions are required to record videos.',
-          [
-            { text: 'Cancel', style: 'cancel' },
-            { 
-              text: 'Settings', 
-              onPress: () => androidPermissions.openSettings() 
-            },
-          ]
+          'Camera and microphone permissions are required to record videos. Please enable them in Settings.',
+          'videocam-outline'
         );
         return null;
       }
 
       const result = await launchCameraAsync({
-        mediaTypes: MediaTypeOptions.Videos,
+        mediaTypes: MediaType.Videos,
         allowsEditing: options.allowsEditing ?? false,
         quality: this.getVideoQuality(options.quality),
         videoMaxDuration: options.maxDuration ?? 60,
@@ -304,7 +295,11 @@ class AndroidCameraService {
       };
     } catch (error) {
       console.error('Error recording video:', error);
-      Alert.alert('Error', 'Failed to record video. Please try again.');
+      modalService.showError(
+        'Video Recording Error',
+        'Failed to record video. Please try again.',
+        'videocam-outline'
+      );
       return null;
     }
   }
@@ -317,22 +312,16 @@ class AndroidCameraService {
       // Check and request permissions
       const hasPermission = await this.requestMediaLibraryPermissions();
       if (!hasPermission) {
-        Alert.alert(
+        modalService.showError(
           'Permission Required',
-          'Storage permission is required to select videos.',
-          [
-            { text: 'Cancel', style: 'cancel' },
-            { 
-              text: 'Settings', 
-              onPress: () => androidPermissions.openSettings() 
-            },
-          ]
+          'Storage permission is required to select videos. Please enable it in Settings.',
+          'folder-outline'
         );
         return null;
       }
 
       const result = await launchImageLibraryAsync({
-        mediaTypes: MediaTypeOptions.Videos,
+        mediaTypes: MediaType.Videos,
         allowsEditing: options.allowsEditing ?? false,
         quality: this.getVideoQuality(options.quality),
         videoMaxDuration: options.maxDuration ?? 60,
@@ -354,7 +343,11 @@ class AndroidCameraService {
       };
     } catch (error) {
       console.error('Error picking video:', error);
-      Alert.alert('Error', 'Failed to select video. Please try again.');
+      modalService.showError(
+        'Video Selection Error',
+        'Failed to select video. Please try again.',
+        'videocam-outline'
+      );
       return null;
     }
   }
@@ -364,12 +357,15 @@ class AndroidCameraService {
    */
   async showImagePicker(options: PhotoOptions = {}): Promise<CameraResult | null> {
     return new Promise((resolve) => {
-      Alert.alert(
-        'Select Photo',
-        'Choose how you would like to add a photo of your pet',
-        [
+      modalService.showModal({
+        title: 'Select Photo',
+        message: 'Choose how you would like to add a photo of your pet',
+        type: 'info',
+        icon: 'camera-outline',
+        actions: [
           {
             text: 'Camera',
+            style: 'primary',
             onPress: async () => {
               const result = await this.takePicture(options);
               resolve(result);
@@ -377,6 +373,7 @@ class AndroidCameraService {
           },
           {
             text: 'Gallery',
+            style: 'secondary',
             onPress: async () => {
               const result = await this.pickImage(options);
               resolve(result);
@@ -387,8 +384,8 @@ class AndroidCameraService {
             style: 'cancel',
             onPress: () => resolve(null),
           },
-        ]
-      );
+        ],
+      });
     });
   }
 
@@ -397,12 +394,15 @@ class AndroidCameraService {
    */
   async showVideoPicker(options: VideoOptions = {}): Promise<CameraResult | null> {
     return new Promise((resolve) => {
-      Alert.alert(
-        'Select Video',
-        'Choose how you would like to add a video of your pet',
-        [
+      modalService.showModal({
+        title: 'Select Video',
+        message: 'Choose how you would like to add a video of your pet',
+        type: 'info',
+        icon: 'videocam-outline',
+        actions: [
           {
             text: 'Record Video',
+            style: 'primary',
             onPress: async () => {
               const result = await this.recordVideo(options);
               resolve(result);
@@ -410,6 +410,7 @@ class AndroidCameraService {
           },
           {
             text: 'Gallery',
+            style: 'secondary',
             onPress: async () => {
               const result = await this.pickVideo(options);
               resolve(result);
@@ -420,8 +421,8 @@ class AndroidCameraService {
             style: 'cancel',
             onPress: () => resolve(null),
           },
-        ]
-      );
+        ],
+      });
     });
   }
 

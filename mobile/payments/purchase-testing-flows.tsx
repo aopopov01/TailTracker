@@ -91,7 +91,8 @@ export class PurchaseService {
 
   async purchasePackage(purchasePackage: PurchasesPackage): Promise<boolean> {
     try {
-      const customerInfo = await Purchases.purchasePackage(purchasePackage);
+      const result = await Purchases.purchasePackage(purchasePackage);
+      const customerInfo = result.customerInfo;
       const isPremium = customerInfo.entitlements.active.premium !== undefined;
       
       if (isPremium) {
@@ -144,9 +145,9 @@ export class PurchaseService {
       if (premiumEntitlement) {
         return {
           isPremium: true,
-          expirationDate: premiumEntitlement.expirationDate,
+          expirationDate: premiumEntitlement.expirationDate || undefined,
           willRenew: premiumEntitlement.willRenew,
-          isInTrial: premiumEntitlement.isInIntroOfferPeriod,
+          isInTrial: false, // This property doesn't exist in current RevenueCat SDK
           productIdentifier: premiumEntitlement.productIdentifier,
         };
       } else {

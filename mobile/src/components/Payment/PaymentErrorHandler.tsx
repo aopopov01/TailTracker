@@ -2,8 +2,9 @@ import React from 'react';
 import {
   View,
   StyleSheet,
-  Alert,
 } from 'react-native';
+import { useTailTrackerModal } from '../../hooks/useTailTrackerModal';
+import { TailTrackerModal } from '../UI/TailTrackerModal';
 import {
   Card,
   Title,
@@ -28,6 +29,7 @@ export const PaymentErrorHandler: React.FC<PaymentErrorHandlerProps> = ({
   showRetry = true,
   showSuggestions = true,
 }) => {
+  const { modalConfig, showModal, hideModal, showInfo } = useTailTrackerModal();
   if (!error) return null;
 
   const paymentError = typeof error === 'string' 
@@ -196,10 +198,10 @@ export const PaymentErrorHandler: React.FC<PaymentErrorHandlerProps> = ({
 
           <Button
             mode="text"
-            onPress={() => Alert.alert(
+            onPress={() => showInfo(
               'Contact Support',
               'If you continue to experience issues, please contact our support team with error code: ' + paymentError.code,
-              [{ text: 'OK' }]
+              'help-circle'
             )}
             style={styles.button}
           >
@@ -208,6 +210,15 @@ export const PaymentErrorHandler: React.FC<PaymentErrorHandlerProps> = ({
         </View>
       </Card.Content>
     </Card>
+    <TailTrackerModal
+      visible={modalConfig.visible}
+      onClose={modalConfig.actions?.[0]?.onPress || hideModal}
+      title={modalConfig.title}
+      message={modalConfig.message}
+      type={modalConfig.type}
+      actions={modalConfig.actions}
+      icon={modalConfig.icon}
+    />
   );
 };
 

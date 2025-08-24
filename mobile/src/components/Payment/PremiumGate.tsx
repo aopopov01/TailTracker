@@ -108,7 +108,7 @@ export const PremiumGate: React.FC<PremiumGateProps> = ({
     if (onUpgrade) {
       onUpgrade();
     } else {
-      navigation.navigate('Subscription');
+      navigation.navigate('Subscription' as never);
     }
   };
 

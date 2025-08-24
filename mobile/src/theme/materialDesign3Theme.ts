@@ -155,7 +155,7 @@ export const TailTrackerLightTheme = {
     // Custom pet colors
     ...TailTrackerColors.pet,
   },
-  fonts: configureFonts({ config: fontConfig }),
+  fonts: configureFonts({ config: fontConfig as any }),
   roundness: 16, // Material Design 3 rounded corners
 };
 
@@ -215,7 +215,7 @@ export const TailTrackerDarkTheme = {
       },
     },
   },
-  fonts: configureFonts({ config: fontConfig }),
+  fonts: configureFonts({ config: fontConfig as any }),
   roundness: 16,
 };
 

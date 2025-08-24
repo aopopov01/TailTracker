@@ -1,9 +1,10 @@
 import React from 'react';
-import { Platform, Alert, AppState, AppStateStatus } from 'react-native';
+import { Platform, AppState, AppStateStatus } from 'react-native';
 import * as Location from 'expo-location';
 import * as TaskManager from 'expo-task-manager';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { androidPermissions } from './AndroidPermissions';
+import { modalService } from '../utils/modalService';
 
 const LOCATION_TASK_NAME = 'background-location-task';
 const GEOFENCE_TASK_NAME = 'geofence-task';
@@ -226,17 +227,20 @@ class AndroidLocationService {
       if (!permissions.foreground) {
         const requested = await this.requestLocationPermissions(options.enableBackground);
         if (!requested.foreground) {
-          Alert.alert(
-            'Permission Required',
-            'Location permission is required to track your pets.',
-            [
-              { text: 'Cancel', style: 'cancel' },
+          modalService.showModal({
+            title: 'Permission Required',
+            message: 'Location permission is required to track your pets.',
+            type: 'warning',
+            icon: 'location-outline',
+            actions: [
+              { text: 'Cancel', style: 'cancel', onPress: () => {} },
               { 
                 text: 'Settings', 
+                style: 'primary',
                 onPress: () => androidPermissions.openSettings() 
               },
             ]
-          );
+          });
           return false;
         }
       }
@@ -296,7 +300,7 @@ class AndroidLocationService {
       return true;
     } catch (error) {
       console.error('Error starting location tracking:', error);
-      Alert.alert('Error', 'Failed to start location tracking. Please try again.');
+      modalService.showError('Error', 'Failed to start location tracking. Please try again.', 'alert-circle-outline');
       return false;
     }
   }

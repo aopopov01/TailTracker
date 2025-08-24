@@ -3,7 +3,6 @@ import {
   View,
   StyleSheet,
   ScrollView,
-  Alert,
   Platform,
 } from 'react-native';
 import {
@@ -23,6 +22,8 @@ import {
   SubscriptionStatus 
 } from '../../services/StripePaymentService';
 import { SubscriptionPlanCard } from '../../components/Payment';
+import { useTailTrackerModal } from '../../hooks/useTailTrackerModal';
+import { TailTrackerModal } from '../../components/UI/TailTrackerModal';
 
 export const SubscriptionScreen: React.FC = () => {
   const navigation = useNavigation();
@@ -35,6 +36,7 @@ export const SubscriptionScreen: React.FC = () => {
   const [cancelling, setCancelling] = useState(false);
 
   const paymentService = StripePaymentService.getInstance();
+  const { modalConfig, showError, showSuccess, showModal, hideModal } = useTailTrackerModal();
 
   useEffect(() => {
     loadSubscriptionData();
@@ -52,7 +54,7 @@ export const SubscriptionScreen: React.FC = () => {
       const plans = paymentService.getSubscriptionPlans();
       setAvailablePlans(plans);
     } catch (error) {
-      Alert.alert('Error', 'Failed to load subscription information');
+      showError('Error', 'Failed to load subscription information', 'alert-circle-outline');
     } finally {
       setLoading(false);
     }
@@ -75,18 +77,19 @@ export const SubscriptionScreen: React.FC = () => {
       const { success, error } = await paymentService.cancelSubscription(immediately);
       
       if (error) {
-        Alert.alert('Error', error);
+        showError('Error', error, 'alert-circle-outline');
       } else {
-        Alert.alert(
+        showSuccess(
           'Subscription Cancelled',
           immediately 
             ? 'Your subscription has been cancelled immediately.'
             : 'Your subscription will be cancelled at the end of the current billing period.',
-          [{ text: 'OK', onPress: loadSubscriptionData }]
+          'checkmark-circle-outline',
+          loadSubscriptionData
         );
       }
     } catch (error) {
-      Alert.alert('Error', 'Failed to cancel subscription');
+      showError('Error', 'Failed to cancel subscription', 'alert-circle-outline');
     } finally {
       setCancelling(false);
     }
@@ -99,16 +102,17 @@ export const SubscriptionScreen: React.FC = () => {
       const { success, error } = await paymentService.reactivateSubscription();
       
       if (error) {
-        Alert.alert('Error', error);
+        showError('Error', error, 'alert-circle-outline');
       } else {
-        Alert.alert(
+        showSuccess(
           'Subscription Reactivated',
           'Your subscription has been reactivated successfully.',
-          [{ text: 'OK', onPress: loadSubscriptionData }]
+          'checkmark-circle-outline',
+          loadSubscriptionData
         );
       }
     } catch (error) {
-      Alert.alert('Error', 'Failed to reactivate subscription');
+      showError('Error', 'Failed to reactivate subscription', 'alert-circle-outline');
     } finally {
       setSubscribing(false);
     }
@@ -119,18 +123,20 @@ export const SubscriptionScreen: React.FC = () => {
       const { url, error } = await paymentService.getBillingPortalUrl();
       
       if (error) {
-        Alert.alert('Error', error);
+        showError('Error', error, 'alert-circle-outline');
       } else if (url) {
         // Open billing portal URL
         // This would typically use Linking.openURL or in-app browser
-        Alert.alert(
-          'Billing Portal',
-          'This would open the Stripe billing portal for subscription management.',
-          [{ text: 'OK' }]
-        );
+        showModal({
+          title: 'Billing Portal',
+          message: 'This would open the Stripe billing portal for subscription management.',
+          type: 'info',
+          icon: 'open-outline',
+          actions: [{ text: 'OK', style: 'primary', onPress: hideModal }]
+        });
       }
     } catch (error) {
-      Alert.alert('Error', 'Failed to open billing portal');
+      showError('Error', 'Failed to open billing portal', 'alert-circle-outline');
     }
   };
 
@@ -308,6 +314,16 @@ export const SubscriptionScreen: React.FC = () => {
       </ScrollView>
 
       {renderCancelModal()}
+      
+      <TailTrackerModal
+        visible={modalConfig.visible}
+        onClose={hideModal}
+        title={modalConfig.title}
+        message={modalConfig.message}
+        type={modalConfig.type}
+        actions={modalConfig.actions}
+        icon={modalConfig.icon}
+      />
     </View>
   );
 };

@@ -8,13 +8,14 @@
  */
 
 import React, { useEffect, useState } from 'react';
-import { View, Alert, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { Text, Button, ActivityIndicator } from 'react-native-paper';
 import { PaymentInitializationService } from '../services/PaymentInitializationService';
 import { StripePaymentService } from '../services/StripePaymentService';
 import { usePremiumAccess } from '../hooks/usePremiumAccess';
 import { PremiumGate } from '../components/Payment/PremiumGate';
 import { PaymentErrorUtils } from '../utils/paymentErrorUtils';
+import { modalService } from '../utils/modalService';
 
 /**
  * Main App Component with Payment Integration
@@ -119,17 +120,19 @@ const PaymentDemoScreen: React.FC = () => {
     
     if (access.allowed) {
       setPetCount(prev => prev + 1);
-      Alert.alert('Success', 'Pet added successfully!');
+      modalService.showSuccess('Success', 'Pet added successfully!', 'checkmark-circle-outline');
     } else {
       // Show premium gate
-      Alert.alert(
-        'Premium Feature Required',
-        access.message,
-        [
-          { text: 'Cancel', style: 'cancel' },
-          { text: 'Upgrade', onPress: () => navigateToSubscription() },
+      modalService.showModal({
+        title: 'Premium Feature Required',
+        message: access.message,
+        type: 'warning',
+        icon: 'star-outline',
+        actions: [
+          { text: 'Cancel', style: 'cancel', onPress: () => {} },
+          { text: 'Upgrade', style: 'primary', onPress: () => navigateToSubscription() },
         ]
-      );
+      });
     }
   };
 
@@ -146,7 +149,7 @@ const PaymentDemoScreen: React.FC = () => {
         // Cancel subscription
         const result = await stripeService.cancelSubscription();
         if (result.success) {
-          Alert.alert('Success', 'Subscription cancelled successfully');
+          modalService.showSuccess('Success', 'Subscription cancelled successfully', 'checkmark-circle-outline');
           await refreshStatus();
         } else {
           PaymentErrorUtils.showPaymentAlert(result.error || 'Failed to cancel subscription');

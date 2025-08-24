@@ -6,16 +6,18 @@ import {
   TouchableOpacity,
   StyleSheet,
   SafeAreaView,
-  Alert,
   Platform
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTailTrackerModal } from '../../hooks/useTailTrackerModal';
+import { TailTrackerModal } from '../UI/TailTrackerModal';
 
 interface DataTransparencyProps {
   navigation?: any;
 }
 
 export const DataTransparency: React.FC<DataTransparencyProps> = ({ navigation }) => {
+  const { modalConfig, showModal, hideModal, showConfirm, showSuccess } = useTailTrackerModal();
   const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({});
 
   const toggleCategory = (categoryId: string) => {
@@ -234,19 +236,20 @@ export const DataTransparency: React.FC<DataTransparencyProps> = ({ navigation }
     };
 
     const config = messages[requestType];
-    Alert.alert(
+    showConfirm(
       config.title,
       config.message,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { 
-          text: config.action, 
-          onPress: () => {
-            // Handle data request - in a real app, this would integrate with your backend
-            Alert.alert('Request Submitted', 'Your data request has been submitted and will be processed within 30 days.');
-          }
-        }
-      ]
+      () => {
+        // Handle data request - in a real app, this would integrate with your backend
+        showSuccess(
+          'Request Submitted',
+          'Your data request has been submitted and will be processed within 30 days.',
+          'checkmark-circle'
+        );
+      },
+      config.action,
+      'Cancel',
+      false
     );
   };
 
@@ -403,6 +406,15 @@ export const DataTransparency: React.FC<DataTransparencyProps> = ({ navigation }
           </Text>
         </View>
       </ScrollView>
+      <TailTrackerModal
+        visible={modalConfig.visible}
+        onClose={modalConfig.actions?.[0]?.onPress || hideModal}
+        title={modalConfig.title}
+        message={modalConfig.message}
+        type={modalConfig.type}
+        actions={modalConfig.actions}
+        icon={modalConfig.icon}
+      />
     </SafeAreaView>
   );
 };

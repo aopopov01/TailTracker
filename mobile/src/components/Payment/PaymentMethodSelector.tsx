@@ -3,7 +3,6 @@ import {
   View,
   StyleSheet,
   Platform,
-  Alert,
 } from 'react-native';
 import {
   Card,
@@ -17,6 +16,8 @@ import {
   Divider,
 } from 'react-native-paper';
 import { StripePaymentService, PaymentMethodInfo } from '../../services/StripePaymentService';
+import { useTailTrackerModal } from '../../hooks/useTailTrackerModal';
+import { TailTrackerModal } from '../UI/TailTrackerModal';
 
 interface PaymentMethodSelectorProps {
   onPaymentMethodSelected: (paymentMethodId: string) => void;
@@ -40,6 +41,7 @@ export const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
   const [deletingMethod, setDeletingMethod] = useState<string | null>(null);
 
   const paymentService = StripePaymentService.getInstance();
+  const { modalConfig, showError, showConfirm, hideModal } = useTailTrackerModal();
 
   useEffect(() => {
     loadPaymentMethods();
@@ -52,12 +54,12 @@ export const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
       const { paymentMethods: methods, error } = await paymentService.getPaymentMethods();
       
       if (error) {
-        Alert.alert('Error', error);
+        showError('Error', error, 'card-outline');
       } else {
         setPaymentMethods(methods);
       }
     } catch (error) {
-      Alert.alert('Error', 'Failed to load payment methods');
+      showError('Error', 'Failed to load payment methods', 'card-outline');
     } finally {
       setLoading(false);
     }
@@ -76,17 +78,14 @@ export const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
   };
 
   const handleDeletePaymentMethod = async (paymentMethodId: string) => {
-    Alert.alert(
+    showConfirm(
       'Remove Payment Method',
       'Are you sure you want to remove this payment method?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Remove',
-          style: 'destructive',
-          onPress: () => deletePaymentMethod(paymentMethodId),
-        },
-      ]
+      () => deletePaymentMethod(paymentMethodId),
+      'Remove',
+      'Cancel',
+      true,
+      'card-outline'
     );
   };
 
@@ -96,7 +95,7 @@ export const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
       const { success, error } = await paymentService.removePaymentMethod(paymentMethodId);
       
       if (error) {
-        Alert.alert('Error', error);
+        showError('Error', error, 'card-outline');
       } else {
         setPaymentMethods(prev => prev.filter(pm => pm.id !== paymentMethodId));
         
@@ -106,7 +105,7 @@ export const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
         }
       }
     } catch (error) {
-      Alert.alert('Error', 'Failed to remove payment method');
+      showError('Error', 'Failed to remove payment method', 'card-outline');
     } finally {
       setDeletingMethod(null);
     }
@@ -117,7 +116,7 @@ export const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
       const { success, error } = await paymentService.setDefaultPaymentMethod(paymentMethodId);
       
       if (error) {
-        Alert.alert('Error', error);
+        showError('Error', error, 'card-outline');
       } else {
         // Update local state to reflect new default
         setPaymentMethods(prev => 
@@ -128,7 +127,7 @@ export const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
         );
       }
     } catch (error) {
-      Alert.alert('Error', 'Failed to set default payment method');
+      showError('Error', 'Failed to set default payment method', 'card-outline');
     }
   };
 
@@ -270,6 +269,16 @@ export const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
       >
         Add New Payment Method
       </Button>
+      
+      <TailTrackerModal
+        visible={modalConfig.visible}
+        onClose={hideModal}
+        title={modalConfig.title}
+        message={modalConfig.message}
+        type={modalConfig.type}
+        actions={modalConfig.actions}
+        icon={modalConfig.icon}
+      />
     </View>
   );
 };

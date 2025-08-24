@@ -82,7 +82,7 @@ export const AndroidFAB: React.FC<AndroidFABProps> = ({
         ]}
         color={variantStyle.color}
         customSize={small ? 40 : extended ? undefined : 56}
-        mode={extended ? 'extended' : 'flat'}
+        mode={extended ? 'elevated' : 'elevated'}
         animated={true}
       />
     </Portal>

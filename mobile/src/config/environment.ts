@@ -35,7 +35,7 @@ interface EnvironmentConfig {
 // Helper function to get environment variable with validation
 const getEnvVar = (key: string, required: boolean = true, defaultValue?: string): string => {
   const value = Constants.expoConfig?.extra?.[key] || 
-                Constants.manifest?.extra?.[key] || 
+                (Constants.manifest as any)?.extra?.[key] || 
                 process.env[key] || 
                 defaultValue;
   

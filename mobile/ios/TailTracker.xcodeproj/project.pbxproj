@@ -14,8 +14,8 @@
 		96905EF65AED1B983A6B3ABC /* libPods-TailTracker.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 58EEBF8E8E6FB1BC6CAF49B5 /* libPods-TailTracker.a */; };
 		B18059E884C0ABDD17F3DC3D /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAC715A2D49A985799AEE119 /* ExpoModulesProvider.swift */; };
 		BB2F792D24A3F905000567C9 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = BB2F792C24A3F905000567C9 /* Expo.plist */; };
-		382E06B233144D8D88D578C8 /* noop-file.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BA53F6436B744FFA191B8BE /* noop-file.swift */; };
-		3C4527CCA0FE4406B915F722 /* notification.wav in Resources */ = {isa = PBXBuildFile; fileRef = 26378A6088CD4F7E9DBDC955 /* notification.wav */; };
+		7ACAA230241E4DD8A433D3F4 /* noop-file.swift in Sources */ = {isa = PBXBuildFile; fileRef = E96A2310C756472383766A2A /* noop-file.swift */; };
+		4D76090B80914C5AB568306D /* notification.wav in Resources */ = {isa = PBXBuildFile; fileRef = CBE853BB9AA5420691D1371C /* notification.wav */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -32,9 +32,9 @@
 		BB2F792C24A3F905000567C9 /* Expo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Expo.plist; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		FAC715A2D49A985799AEE119 /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-TailTracker/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
-		3BA53F6436B744FFA191B8BE /* noop-file.swift */ = {isa = PBXFileReference; name = "noop-file.swift"; path = "TailTracker/noop-file.swift"; sourceTree = "<group>"; fileEncoding = 4; lastKnownFileType = sourcecode.swift; explicitFileType = undefined; includeInIndex = 0; };
-		07A9D72B0BBE444DA9D12F68 /* TailTracker-Bridging-Header.h */ = {isa = PBXFileReference; name = "TailTracker-Bridging-Header.h"; path = "TailTracker/TailTracker-Bridging-Header.h"; sourceTree = "<group>"; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; explicitFileType = undefined; includeInIndex = 0; };
-		26378A6088CD4F7E9DBDC955 /* notification.wav */ = {isa = PBXFileReference; name = "notification.wav"; path = "TailTracker/notification.wav"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		E96A2310C756472383766A2A /* noop-file.swift */ = {isa = PBXFileReference; name = "noop-file.swift"; path = "TailTracker/noop-file.swift"; sourceTree = "<group>"; fileEncoding = 4; lastKnownFileType = sourcecode.swift; explicitFileType = undefined; includeInIndex = 0; };
+		5803EABA2A194F90AD1CF2F9 /* TailTracker-Bridging-Header.h */ = {isa = PBXFileReference; name = "TailTracker-Bridging-Header.h"; path = "TailTracker/TailTracker-Bridging-Header.h"; sourceTree = "<group>"; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; explicitFileType = undefined; includeInIndex = 0; };
+		CBE853BB9AA5420691D1371C /* notification.wav */ = {isa = PBXFileReference; name = "notification.wav"; path = "TailTracker/notification.wav"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -59,9 +59,9 @@
 				13B07FB61A68108700A75B9A /* Info.plist */,
 				13B07FB71A68108700A75B9A /* main.m */,
 				AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */,
-				3BA53F6436B744FFA191B8BE /* noop-file.swift */,
-				07A9D72B0BBE444DA9D12F68 /* TailTracker-Bridging-Header.h */,
-				26378A6088CD4F7E9DBDC955 /* notification.wav */,
+				E96A2310C756472383766A2A /* noop-file.swift */,
+				5803EABA2A194F90AD1CF2F9 /* TailTracker-Bridging-Header.h */,
+				CBE853BB9AA5420691D1371C /* notification.wav */,
 			);
 			name = TailTracker;
 			sourceTree = "<group>";
@@ -201,8 +201,8 @@
 				BB2F792D24A3F905000567C9 /* Expo.plist in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */,
-				177CA39A527B4ADD83878F13 /* TailTracker-Bridging-Header.h in Resources */,
-				3C4527CCA0FE4406B915F722 /* notification.wav in Resources */,
+				33216E4C6C1B48E4BCEC06BC /* TailTracker-Bridging-Header.h in Resources */,
+				4D76090B80914C5AB568306D /* notification.wav in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -278,7 +278,7 @@
 				13B07FBC1A68108700A75B9A /* AppDelegate.mm in Sources */,
 				13B07FC11A68108700A75B9A /* main.m in Sources */,
 				B18059E884C0ABDD17F3DC3D /* ExpoModulesProvider.swift in Sources */,
-				382E06B233144D8D88D578C8 /* noop-file.swift in Sources */,
+				7ACAA230241E4DD8A433D3F4 /* noop-file.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

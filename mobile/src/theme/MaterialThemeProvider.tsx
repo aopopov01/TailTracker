@@ -18,21 +18,25 @@ export const TailTrackerLightTheme = {
 const MaterialThemeContext = React.createContext({
   theme: TailTrackerLightTheme,
   toggleTheme: () => {},
+  isDarkMode: false,
 });
 
 // Theme provider component
 export const MaterialThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [theme, setTheme] = React.useState(TailTrackerLightTheme);
+  const [isDarkMode, setIsDarkMode] = React.useState(false);
 
   const toggleTheme = React.useCallback(() => {
     // For now, just keep the same theme
     setTheme(TailTrackerLightTheme);
-  }, []);
+    setIsDarkMode(!isDarkMode);
+  }, [isDarkMode]);
 
   const value = React.useMemo(() => ({
     theme,
     toggleTheme,
-  }), [theme, toggleTheme]);
+    isDarkMode,
+  }), [theme, toggleTheme, isDarkMode]);
 
   return (
     <MaterialThemeContext.Provider value={value}>

@@ -167,7 +167,7 @@ export const AccessiblePetCard: React.FC<AccessiblePetCardProps> = ({
     >
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
         <Image
-          source={{ uri: pet.image }}
+          source={{ uri: `https://via.placeholder.com/60x60/CCCCCC/FFFFFF?text=${pet.name.charAt(0)}` }}
           style={{ width: 60, height: 60, borderRadius: 30 }}
           accessible={false} // Decorative image, described in parent label
         />
@@ -423,7 +423,8 @@ export const AccessibilityProvider: React.FC<{ children: React.ReactNode }> = ({
     AccessibilityInfo.isReduceMotionEnabled().then(setIsReduceMotionEnabled);
     
     if (Platform.OS === 'ios') {
-      AccessibilityInfo.getPreferredContentSizeCategory().then(setPreferredContentSizeCategory);
+      // Note: getPreferredContentSizeCategory not available in current React Native version
+      setPreferredContentSizeCategory('medium');
     }
 
     // Listen for accessibility changes

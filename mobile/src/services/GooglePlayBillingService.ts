@@ -1,6 +1,7 @@
 import React from 'react';
-import { Platform, Alert } from 'react-native';
+import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { modalService } from '../utils/modalService';
 
 // Note: This would typically use react-native-purchases or @react-native-google-play/billing
 // For this implementation, we'll create the interface and mock the functionality
@@ -437,20 +438,23 @@ class GooglePlayBillingService {
       // In real implementation, this would direct user to Google Play to cancel
       // We can't directly cancel subscriptions through the app
       
-      Alert.alert(
-        'Cancel Subscription',
-        'To cancel your subscription, you need to go to the Google Play Store.',
-        [
-          { text: 'Cancel', style: 'cancel' },
+      modalService.showModal({
+        title: 'Cancel Subscription',
+        message: 'To cancel your subscription, you need to go to the Google Play Store.',
+        type: 'info',
+        icon: 'storefront-outline',
+        actions: [
+          { text: 'Cancel', style: 'cancel', onPress: () => {} },
           {
             text: 'Open Play Store',
+            style: 'primary',
             onPress: () => {
               // Open Play Store subscriptions page
               // Linking.openURL('https://play.google.com/store/account/subscriptions');
             },
           },
         ]
-      );
+      });
       
       return true;
     } catch (error) {

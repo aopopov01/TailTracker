@@ -22,7 +22,7 @@ import {
 import { StripePaymentService } from '../../services/StripePaymentService';
 
 interface PaymentCardFormProps {
-  onPaymentMethodCreated: (paymentMethod: PaymentMethod) => void;
+  onPaymentMethodCreated: (paymentMethod: PaymentMethod.Result) => void;
   onError: (error: string) => void;
   loading?: boolean;
   disabled?: boolean;

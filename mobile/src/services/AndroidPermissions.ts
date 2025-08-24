@@ -1,5 +1,6 @@
 import React from 'react';
-import { Platform, Alert, Linking } from 'react-native';
+import { Platform, Linking } from 'react-native';
+import { modalService } from './modalService';
 import { 
   PERMISSIONS, 
   RESULTS, 
@@ -224,13 +225,13 @@ class AndroidPermissionsService {
    */
   private async showPermissionRationale(request: PermissionRequest): Promise<void> {
     return new Promise((resolve) => {
-      Alert.alert(
+      modalService.alert(
         request.title,
         request.message,
         [
           {
             text: request.buttonNegative || 'Cancel',
-            style: 'cancel',
+            style: 'default',
             onPress: () => resolve(),
           },
           {
@@ -246,13 +247,13 @@ class AndroidPermissionsService {
    * Show settings alert for blocked permissions
    */
   private showSettingsAlert(request: PermissionRequest): void {
-    Alert.alert(
+    modalService.alert(
       'Permission Required',
       `${request.message}\n\nPlease enable this permission in the app settings.`,
       [
         {
           text: 'Cancel',
-          style: 'cancel',
+          style: 'default',
         },
         {
           text: 'Open Settings',

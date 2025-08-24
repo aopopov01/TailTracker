@@ -65,7 +65,6 @@ export const AccessibleNavigationHeader: React.FC<AccessibleNavigationHeaderProp
           <Text
             style={[styles.title, { color: titleColor }]}
             accessibilityRole="header"
-            accessibilityLevel={1}
             numberOfLines={1}
             adjustsFontSizeToFit
           >

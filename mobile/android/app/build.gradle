@@ -2,76 +2,121 @@ apply plugin: "com.android.application"
 apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
 
+def projectRoot = rootDir.getAbsoluteFile().getParentFile().getAbsolutePath()
+
+static def versionToNumber(major, minor, patch) {
+  return patch * 100 + minor * 10000 + major * 1000000
+}
+
+def getRNVersion() {
+  def version = providers.exec {
+    workingDir(projectDir)
+    commandLine("node", "-e", "console.log(require('react-native/package.json').version);")
+  }.standardOutput.asText.get().trim()
+
+  def coreVersion = version.split("-")[0]
+  def (major, minor, patch) = coreVersion.tokenize('.').collect { it.toInteger() }
+
+  return versionToNumber(
+      major,
+      minor,
+      patch
+  )
+}
+def rnVersion = getRNVersion()
+
 /**
  * This is the configuration block to customize your React Native Android app.
+ * By default you don't need to apply any configuration, just uncomment the lines you need.
  */
 react {
+    entryFile = file(["node", "-e", "require('expo/scripts/resolveAppEntry')", projectRoot, "android", "absolute"].execute(null, rootDir).text.trim())
+    reactNativeDir = new File(["node", "--print", "require.resolve('react-native/package.json')"].execute(null, rootDir).text.trim()).getParentFile().getAbsoluteFile()
+    hermesCommand = new File(["node", "--print", "require.resolve('react-native/package.json')"].execute(null, rootDir).text.trim()).getParentFile().getAbsolutePath() + "/sdks/hermesc/%OS-BIN%/hermesc"
+    codegenDir = new File(["node", "--print", "require.resolve('@react-native/codegen/package.json', { paths: [require.resolve('react-native/package.json')] })"].execute(null, rootDir).text.trim()).getParentFile().getAbsoluteFile()
+
+    // Use Expo CLI to bundle the app, this ensures the Metro config
+    // works correctly with Expo projects.
+    cliFile = new File(["node", "--print", "require.resolve('@expo/cli', { paths: [require.resolve('expo/package.json')] })"].execute(null, rootDir).text.trim())
+    bundleCommand = "export:embed"
+
     /* Folders */
-    root = file("../")
-    reactNativeDir = file("../../node_modules/react-native")
-    codegenDir = file("../../node_modules/@react-native/codegen")
-    cliFile = file("../../node_modules/react-native/cli.js")
+    //   The root of your project, i.e. where "package.json" lives. Default is '..'
+    // root = file("../")
+    //   The folder where the react-native NPM package is. Default is ../node_modules/react-native
+    // reactNativeDir = file("../node_modules/react-native")
+    //   The folder where the react-native Codegen package is. Default is ../node_modules/@react-native/codegen
+    // codegenDir = file("../node_modules/@react-native/codegen")
 
     /* Variants */
-    debuggableVariants = ["liteDebug", "prodDebug"]
+    //   The list of variants to that are debuggable. For those we're going to
+    //   skip the bundling of the JS bundle and the assets. By default is just 'debug'.
+    //   If you add flavors like lite, prod, etc. you'll have to list your debuggableVariants.
+    // debuggableVariants = ["liteDebug", "prodDebug"]
 
     /* Bundling */
-    bundleCommand = "ram-bundle"
-    bundleInDebug = false
-    bundleInRelease = true
-    bundleInTest = false
+    //   A list containing the node command and its flags. Default is just 'node'.
+    // nodeExecutableAndArgs = ["node"]
+
+    //
+    //   The path to the CLI configuration file. Default is empty.
+    // bundleConfig = file(../rn-cli.config.js)
+    //
+    //   The name of the generated asset file containing your JS bundle
+    // bundleAssetName = "MyApplication.android.bundle"
+    //
+    //   The entry file for bundle generation. Default is 'index.android.js' or 'index.js'
+    // entryFile = file("../js/MyApplication.android.js")
+    //
+    //   A list of extra flags to pass to the 'bundle' commands.
+    //   See https://github.com/react-native-community/cli/blob/main/docs/commands.md#bundle
+    // extraPackagerArgs = []
 
     /* Hermes Commands */
-    hermesCommand = "../../node_modules/react-native/sdks/hermesvm/linux64-bin/hermes"
+    //   The hermes compiler command to run. By default it is 'hermesc'
+    // hermesCommand = "$rootDir/my-custom-hermesc/bin/hermesc"
+    //
+    //   The list of flags to pass to the Hermes compiler. By default is "-O", "-output-source-map"
+    // hermesFlags = ["-O", "-output-source-map"]
 
-    /* Code Push */
-    bundleInStaging = true
-
-    /* Proguard */
-    enableProguardInReleaseBuilds = true
-    proguardFiles = ["proguard-android-optimize.txt", "proguard-rules.pro"]
-
-    /* Performance */
-    enableSeparateBuildPerCPUArchitecture = false
-    universalApk = false
+    if (rnVersion >= versionToNumber(0, 75, 0)) {
+        /* Autolinking */
+        autolinkLibrariesWithApp()
+    }
 }
+
+/**
+ * Set this to true to Run Proguard on Release builds to minify the Java bytecode.
+ */
+def enableProguardInReleaseBuilds = (findProperty('android.enableProguardInReleaseBuilds') ?: false).toBoolean()
+
+/**
+ * The preferred build flavor of JavaScriptCore (JSC)
+ *
+ * For example, to use the international variant, you can use:
+ * `def jscFlavor = 'org.webkit:android-jsc-intl:+'`
+ *
+ * The international variant includes ICU i18n library and necessary data
+ * allowing to use e.g. `Date.toLocaleString` and `String.localeCompare` that
+ * give correct results when using with locales other than en-US. Note that
+ * this variant is about 6MiB larger per architecture than default.
+ */
+def jscFlavor = 'org.webkit:android-jsc:+'
 
 android {
     ndkVersion rootProject.ext.ndkVersion
+
+    buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace "com.tailtracker.app"
-
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
-    }
-
-    kotlinOptions {
-        jvmTarget = '1.8'
-    }
-
+    namespace 'com.tailtracker.app'
     defaultConfig {
-        applicationId "com.tailtracker.app"
+        applicationId 'com.tailtracker.app'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "1.0.0"
-        buildConfigField "boolean", "IS_NEW_ARCHITECTURE_ENABLED", isNewArchitectureEnabled().toString()
-        
-        // Multidex support
-        multiDexEnabled true
-        
-        // Vector drawable support
-        vectorDrawables.useSupportLibrary = true
-        
-        // Test runner
-        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        
-        // Network security config
-        networkSecurityConfig = file("src/main/res/xml/network_security_config.xml")
     }
-
     signingConfigs {
         debug {
             storeFile file('debug.keystore')
@@ -79,212 +124,80 @@ android {
             keyAlias 'androiddebugkey'
             keyPassword 'android'
         }
-        release {
-            // Load keystore properties
-            def keystorePropertiesFile = rootProject.file("keystore.properties")
-            def keystoreProperties = new Properties()
-            if (keystorePropertiesFile.exists()) {
-                keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
-                storeFile file(keystoreProperties['MYAPP_UPLOAD_STORE_FILE'])
-                storePassword keystoreProperties['MYAPP_UPLOAD_STORE_PASSWORD']
-                keyAlias keystoreProperties['MYAPP_UPLOAD_KEY_ALIAS']
-                keyPassword keystoreProperties['MYAPP_UPLOAD_KEY_PASSWORD']
-            } else {
-                // Fallback for CI/CD environments using environment variables
-                storeFile file(System.getenv('KEYSTORE_FILE') ?: 'tailtracker-release.keystore')
-                storePassword System.getenv('KEYSTORE_PASSWORD')
-                keyAlias System.getenv('KEY_ALIAS') ?: 'tailtracker-release'
-                keyPassword System.getenv('KEY_PASSWORD')
-            }
-        }
     }
-
     buildTypes {
         debug {
             signingConfig signingConfigs.debug
-            applicationIdSuffix ".debug"
-            versionNameSuffix "-debug"
-            resValue "string", "app_name", "TailTracker Debug"
-            buildConfigField "String", "API_BASE_URL", '"https://api-dev.tailtracker.com"'
-            buildConfigField "String", "SUPABASE_URL", '"${SUPABASE_URL}"'
-            buildConfigField "String", "SUPABASE_ANON_KEY", '"${SUPABASE_ANON_KEY}"'
-            buildConfigField "boolean", "ENABLE_LOGGING", "true"
-            buildConfigField "boolean", "ENABLE_DEBUG_NETWORKING", "true"
-            manifestPlaceholders = [
-                appName: "TailTracker Debug",
-                appIcon: "@mipmap/ic_launcher",
-                networkSecurityConfig: "@xml/network_security_config"
-            ]
-        }
-        staging {
-            signingConfig signingConfigs.debug
-            applicationIdSuffix ".staging"
-            versionNameSuffix "-staging"
-            resValue "string", "app_name", "TailTracker Staging"
-            buildConfigField "String", "API_BASE_URL", '"https://api-staging.tailtracker.com"'
-            buildConfigField "String", "SUPABASE_URL", '"https://your-staging-project.supabase.co"'
-            buildConfigField "String", "SUPABASE_ANON_KEY", '"your-staging-anon-key"'
-            manifestPlaceholders = [
-                appName: "TailTracker Staging",
-                appIcon: "@mipmap/ic_launcher_staging"
-            ]
-            minifyEnabled true
-            proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
         }
         release {
-            signingConfig signingConfigs.release
-            resValue "string", "app_name", "TailTracker"
-            buildConfigField "String", "API_BASE_URL", '"https://api.tailtracker.com"'
-            buildConfigField "String", "SUPABASE_URL", '"${SUPABASE_URL}"'
-            buildConfigField "String", "SUPABASE_ANON_KEY", '"${SUPABASE_ANON_KEY}"'
-            buildConfigField "boolean", "ENABLE_LOGGING", "false"
-            buildConfigField "boolean", "ENABLE_DEBUG_NETWORKING", "false"
-            manifestPlaceholders = [
-                appName: "TailTracker",
-                appIcon: "@mipmap/ic_launcher",
-                networkSecurityConfig: "@xml/network_security_config_production"
-            ]
-            minifyEnabled true
-            shrinkResources true
-            proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro", "release-proguard-rules.pro"
-            
-            // Production optimizations
-            crunchPngs true
-            debuggable false
-            jniDebuggable false
-            renderscriptDebuggable false
-            zipAlignEnabled true
+            // Caution! In production, you need to generate your own keystore file.
+            // see https://reactnative.dev/docs/signed-apk-android.
+            signingConfig signingConfigs.debug
+            shrinkResources (findProperty('android.enableShrinkResourcesInReleaseBuilds')?.toBoolean() ?: false)
+            minifyEnabled enableProguardInReleaseBuilds
+            proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
+            crunchPngs (findProperty('android.enablePngCrunchInReleaseBuilds')?.toBoolean() ?: true)
         }
     }
-
-    flavorDimensions "version"
-    productFlavors {
-        lite {
-            dimension "version"
-            applicationIdSuffix ".lite"
-            versionNameSuffix "-lite"
-            buildConfigField "boolean", "IS_PREMIUM", "false"
-        }
-        premium {
-            dimension "version"
-            applicationIdSuffix ".premium"  
-            versionNameSuffix "-premium"
-            buildConfigField "boolean", "IS_PREMIUM", "true"
-        }
-    }
-
     packagingOptions {
-        pickFirst "lib/x86/libc++_shared.so"
-        pickFirst "lib/x86_64/libc++_shared.so"
-        pickFirst "lib/arm64-v8a/libc++_shared.so"
-        pickFirst "lib/armeabi-v7a/libc++_shared.so"
-    }
-
-    // Bundle configuration
-    bundle {
-        language {
-            enableSplit = true
-        }
-        density {
-            enableSplit = true
-        }
-        abi {
-            enableSplit = true
+        jniLibs {
+            useLegacyPackaging (findProperty('expo.useLegacyPackaging')?.toBoolean() ?: false)
         }
     }
+}
 
-    testOptions {
-        unitTests {
-            includeAndroidResources = true
+// Apply static values from `gradle.properties` to the `android.packagingOptions`
+// Accepts values in comma delimited lists, example:
+// android.packagingOptions.pickFirsts=/LICENSE,**/picasa.ini
+["pickFirsts", "excludes", "merges", "doNotStrip"].each { prop ->
+    // Split option: 'foo,bar' -> ['foo', 'bar']
+    def options = (findProperty("android.packagingOptions.$prop") ?: "").split(",");
+    // Trim all elements in place.
+    for (i in 0..<options.size()) options[i] = options[i].trim();
+    // `[] - ""` is essentially `[""].filter(Boolean)` removing all empty strings.
+    options -= ""
+
+    if (options.length > 0) {
+        println "android.packagingOptions.$prop += $options ($options.length)"
+        // Ex: android.packagingOptions.pickFirsts += '**/SCCS/**'
+        options.each {
+            android.packagingOptions[prop] += it
         }
     }
 }
 
 dependencies {
-    implementation fileTree(dir: "libs", include: ["*.jar"])
-
-    // React Native
+    // The version of react-native is set by the React Native Gradle Plugin
     implementation("com.facebook.react:react-android")
-    implementation("com.facebook.react:flipper-integration")
-    
-    // Android core
-    implementation 'androidx.core:core-ktx:1.12.0'
-    implementation 'androidx.appcompat:appcompat:1.6.1'
-    implementation 'androidx.activity:activity-ktx:1.8.2'
-    implementation 'androidx.fragment:fragment-ktx:1.6.2'
-    
-    // Material Design
-    implementation 'com.google.android.material:material:1.11.0'
-    
-    // Constraint Layout
-    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
-    
-    // Navigation
-    implementation 'androidx.navigation:navigation-fragment-ktx:2.7.6'
-    implementation 'androidx.navigation:navigation-ui-ktx:2.7.6'
-    
-    // Lifecycle
-    implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0'
-    implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.7.0'
-    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.7.0'
-    
-    // Google Play Services
-    implementation 'com.google.android.gms:play-services-maps:18.2.0'
-    implementation 'com.google.android.gms:play-services-location:21.0.1'
-    implementation 'com.google.android.gms:play-services-auth:20.7.0'
-    
-    // Google Play Billing
-    implementation 'com.android.billingclient:billing:6.1.0'
-    implementation 'com.android.billingclient:billing-ktx:6.1.0'
-    
-    // Firebase
-    implementation 'com.google.firebase:firebase-messaging:23.4.0'
-    implementation 'com.google.firebase:firebase-analytics:21.5.0'
-    implementation 'com.google.firebase:firebase-crashlytics:18.6.1'
-    
-    // Work Manager
-    implementation 'androidx.work:work-runtime-ktx:2.9.0'
-    
-    // Room Database
-    implementation 'androidx.room:room-runtime:2.6.1'
-    implementation 'androidx.room:room-ktx:2.6.1'
-    kapt 'androidx.room:room-compiler:2.6.1'
-    
-    // Networking
-    implementation 'com.squareup.okhttp3:okhttp:4.12.0'
-    implementation 'com.squareup.retrofit2:retrofit:2.9.0'
-    implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
-    
-    // Image loading
-    implementation 'com.github.bumptech.glide:glide:4.16.0'
-    
-    // Permissions
-    implementation 'com.karumi:dexter:6.2.3'
-    
-    // Multidex
-    implementation 'androidx.multidex:multidex:2.0.1'
-    
-    // Testing
-    testImplementation 'junit:junit:4.13.2'
-    testImplementation 'androidx.test.ext:junit:1.1.5'
-    testImplementation 'androidx.test.espresso:espresso-core:3.5.1'
-    testImplementation 'org.robolectric:robolectric:4.11.1'
-    testImplementation 'androidx.arch.core:core-testing:2.2.0'
-    
-    // Android Testing
-    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
-    androidTestImplementation 'androidx.test.espresso:espresso-intents:3.5.1'
-    androidTestImplementation 'androidx.test:runner:1.5.2'
-    androidTestImplementation 'androidx.test:rules:1.5.0'
-    
-    // Debug
-    debugImplementation("com.facebook.flipper:flipper:${FLIPPER_VERSION}")
-    debugImplementation("com.facebook.flipper:flipper-network-plugin:${FLIPPER_VERSION}")
-    debugImplementation("com.facebook.flipper:flipper-fresco-plugin:${FLIPPER_VERSION}")
-    debugImplementation 'com.squareup.leakcanary:leakcanary-android:2.12'
+
+    def isGifEnabled = (findProperty('expo.gif.enabled') ?: "") == "true";
+    def isWebpEnabled = (findProperty('expo.webp.enabled') ?: "") == "true";
+    def isWebpAnimatedEnabled = (findProperty('expo.webp.animated') ?: "") == "true";
+
+    if (isGifEnabled) {
+        // For animated gif support
+        implementation("com.facebook.fresco:animated-gif:${reactAndroidLibs.versions.fresco.get()}")
+    }
+
+    if (isWebpEnabled) {
+        // For webp support
+        implementation("com.facebook.fresco:webpsupport:${reactAndroidLibs.versions.fresco.get()}")
+        if (isWebpAnimatedEnabled) {
+            // Animated webp support
+            implementation("com.facebook.fresco:animated-webp:${reactAndroidLibs.versions.fresco.get()}")
+        }
+    }
+
+    if (hermesEnabled.toBoolean()) {
+        implementation("com.facebook.react:hermes-android")
+    } else {
+        implementation jscFlavor
+    }
 }
 
-// Google services plugin (must be at bottom)
+if (rnVersion < versionToNumber(0, 75, 0)) {
+    apply from: new File(["node", "--print", "require.resolve('@react-native-community/cli-platform-android/package.json', { paths: [require.resolve('react-native/package.json')] })"].execute(null, rootDir).text.trim(), "../native_modules.gradle");
+    applyNativeModulesAppBuildGradle(project)
+}
+
 apply plugin: 'com.google.gms.google-services'
-apply plugin: 'com.google.firebase.crashlytics'

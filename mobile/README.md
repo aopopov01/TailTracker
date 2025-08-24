@@ -1,26 +1,26 @@
 # TailTracker Mobile App
 
-A comprehensive pet safety and health management application built with React Native and Expo, featuring real-time GPS tracking, smart safe zones, and complete health record management.
+A comprehensive pet management application built with React Native and Expo, featuring digital pet passports, vaccination tracking, and community-powered lost pet alerts.
 
 ## 🚀 Features
 
-### 🏠 Smart Safe Zones
-- Create custom safe zones around your home, park, or any location
-- Instant notifications when pets enter or exit designated areas
-- Visual zone boundaries on interactive maps
-- Zone scheduling for different times of day
+### 🆔 Digital Pet Passport
+- Store all your pet's important information in one secure place
+- Complete pet profiles with photos and details
+- Medical history and records management
+- Emergency contact information
 
-### 📍 Real-Time GPS Tracking
-- Precise GPS location monitoring with Google Maps integration
-- Live location updates and movement tracking
-- Location history with timeline view
-- Movement pattern analysis and insights
+### 💉 Vaccination Tracking
+- Never miss a vaccination with smart reminders
+- Complete vaccination history and records
+- Automatic reminder notifications
+- Veterinary appointment scheduling
 
-### 🚨 Intelligent Alerts
-- Customizable push notifications for safe zone breaches
-- Low battery warnings for tracking devices
-- Device offline notifications
-- Unusual activity pattern detection
+### 🚨 Lost Pet Alerts
+- Community-powered alert system for lost pets
+- Instant notifications to nearby TailTracker users
+- Share pet details and photos quickly
+- Collaborative search coordination
 
 ### 📋 Health Management
 - Complete digital health records for each pet

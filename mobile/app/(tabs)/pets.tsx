@@ -1,14 +1,25 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { MaterialIcons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 
 export default function PetsScreen() {
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>My Pets</Text>
-        <TouchableOpacity style={styles.addButton}>
-          <Text style={styles.addButtonText}>+ Add Pet</Text>
-        </TouchableOpacity>
+        <View style={styles.headerActions}>
+          <TouchableOpacity 
+            style={styles.shareButton}
+            onPress={() => router.push('/sharing')}
+          >
+            <MaterialIcons name="qr-code" size={18} color="#007AFF" />
+            <Text style={styles.shareButtonText}>Share</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.addButton}>
+            <Text style={styles.addButtonText}>+ Add Pet</Text>
+          </TouchableOpacity>
+        </View>
       </View>
       
       <View style={styles.petCard}>
@@ -113,6 +124,27 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     color: '#333',
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  shareButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#007AFF20',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#007AFF',
+  },
+  shareButtonText: {
+    color: '#007AFF',
+    fontSize: 14,
+    fontWeight: '600',
+    marginLeft: 4,
   },
   addButton: {
     backgroundColor: '#2196F3',
