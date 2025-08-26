@@ -26,6 +26,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useTailTrackerModal } from '../../src/hooks/useTailTrackerModal';
 import { TailTrackerModal } from '../../src/components/UI/TailTrackerModal';
+import { usePetProfile } from '../../contexts/PetProfileContext';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -141,9 +142,10 @@ const SPECIES_OPTIONS = [
 export default function BasicInfoScreen() {
   const router = useRouter();
   const { modalConfig, showWarning } = useTailTrackerModal();
-  const [petName, setPetName] = useState('');
-  const [species, setSpecies] = useState('');
-  const [petPhoto, setPetPhoto] = useState<string | null>(null);
+  const { profile, updateBasicInfo } = usePetProfile();
+  const [petName, setPetName] = useState(profile.name || '');
+  const [species, setSpecies] = useState(profile.species || '');
+  const [petPhoto, setPetPhoto] = useState<string | null>(profile.photos?.[0] || null);
   const [nameError, setNameError] = useState('');
   
   const progressWidth = useSharedValue((SCREEN_WIDTH - 40) * (1 / 7));
@@ -223,11 +225,17 @@ export default function BasicInfoScreen() {
       return;
     }
     
-    // Save data to global state/context and pass species to next screen
-    router.push({
-      pathname: '/onboarding/physical-details',
-      params: { species }
+    // Save data to PetProfile context
+    updateBasicInfo({
+      name: petName,
+      species: species as 'dog' | 'cat' | 'bird' | 'other',
+      photos: petPhoto ? [petPhoto] : []
     });
+    
+    console.log('Saving basic info:', { name: petName, species, photos: petPhoto ? [petPhoto] : [] });
+    
+    // Navigate to next screen
+    router.push('/onboarding/physical-details');
   };
 
   const handleBack = () => {

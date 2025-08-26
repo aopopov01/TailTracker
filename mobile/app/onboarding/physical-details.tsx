@@ -214,26 +214,18 @@ export default function PhysicalDetailsScreen() {
   };
 
   const handleDateChange = (event: any, selectedDate?: Date) => {
-    console.log('Date picker event:', event.type, selectedDate);
     const isAndroid = Platform.OS === 'android';
-    
-    // Always close picker on Android when event occurs
-    if (isAndroid) {
-      setShowDatePicker(false);
-    }
     
     // Handle date selection
     if (event.type === 'set' && selectedDate) {
-      console.log('Date selected:', selectedDate);
       setDateOfBirth(selectedDate);
-      // Close picker on iOS after selection
-      if (!isAndroid) {
-        setShowDatePicker(false);
-      }
+      // Close picker after selection
+      setShowDatePicker(false);
     } else if (event.type === 'dismissed' || event.type === 'neutralButtonPressed') {
-      console.log('Date picker dismissed');
+      // Only close on explicit dismissal/cancel
       setShowDatePicker(false);
     }
+    // Note: Don't close on 'onChange' events as user might still be selecting
   };
 
   return (
@@ -385,7 +377,6 @@ export default function PhysicalDetailsScreen() {
             <TouchableOpacity
               style={[styles.textInput, styles.dateButton]}
               onPress={() => {
-                console.log('Date picker button pressed');
                 setShowDatePicker(true);
               }}
               activeOpacity={0.7}
@@ -561,20 +552,23 @@ export default function PhysicalDetailsScreen() {
               </TouchableOpacity>
               <TouchableOpacity onPress={() => {
                 setShowDatePicker(false);
-                console.log('Date confirmed:', dateOfBirth);
               }}>
                 <Text style={styles.iosDatePickerDone}>Done</Text>
               </TouchableOpacity>
             </View>
-            <DateTimePicker
-              value={dateOfBirth}
-              mode="date"
-              display="spinner"
-              onChange={handleDateChange}
-              maximumDate={new Date()}
-              minimumDate={new Date(1900, 0, 1)}
-              style={{ backgroundColor: 'white' }}
-            />
+            <View style={styles.datePickerWrapper}>
+              <DateTimePicker
+                value={dateOfBirth}
+                mode="date"
+                display="spinner"
+                onChange={handleDateChange}
+                maximumDate={new Date()}
+                minimumDate={new Date(1900, 0, 1)}
+                style={{ backgroundColor: 'white', height: 216 }}
+                textColor={COLORS.deepNavy}
+                themeVariant="light"
+              />
+            </View>
           </View>
         </View>
       )}
@@ -590,12 +584,6 @@ export default function PhysicalDetailsScreen() {
         />
       )}
       
-      {/* Debug info - remove in production */}
-      {__DEV__ && (
-        <Text style={{ position: 'absolute', top: 100, left: 20, backgroundColor: 'yellow', padding: 5 }}>
-          Show picker: {showDatePicker.toString()}, Platform: {Platform.OS}
-        </Text>
-      )}
     </KeyboardAvoidingView>
   );
 }
@@ -920,10 +908,14 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   iosDatePickerModal: {
-    backgroundColor: COLORS.white,
+    backgroundColor: '#F5F5F5',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     paddingBottom: 34,
+  },
+  datePickerWrapper: {
+    backgroundColor: COLORS.white,
+    paddingVertical: 10,
   },
   iosDatePickerHeader: {
     flexDirection: 'row',

@@ -189,10 +189,15 @@ function ReviewCompleteScreen() {
     setIsCreating(true);
     
     try {
+      // Debug: Log the profile data being saved
+      console.log('Saving pet profile:', JSON.stringify(profile, null, 2));
+      
       // Save pet profile to database
       const petId = await databaseService.savePetProfile(profile, user?.id || 0);
       
       if (petId) {
+        console.log('Pet profile saved with ID:', petId);
+        
         // Reset the profile context for next use
         resetProfile();
         

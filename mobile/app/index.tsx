@@ -12,6 +12,7 @@ import {
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import { useAuth } from '../src/contexts/AuthContext';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -75,6 +76,7 @@ const FeatureCard: React.FC<FeatureCardProps> = ({ icon, title, description, del
 
 export default function PremiumLandingPage() {
   const router = useRouter();
+  const { user, isAuthenticated } = useAuth();
   const logoScale = useSharedValue(0.8);
   const logoOpacity = useSharedValue(0);
   const floatY = useSharedValue(0);
@@ -106,8 +108,14 @@ export default function PremiumLandingPage() {
     opacity: logoOpacity.value,
   }));
 
-  const navigateToTabs = () => {
-    router.push('/onboarding/welcome');
+  const handleGetStarted = () => {
+    if (isAuthenticated) {
+      // If user is logged in, go to dashboard
+      router.push('/(tabs)/dashboard');
+    } else {
+      // If not logged in, go to registration
+      router.push('/auth/register');
+    }
   };
 
   return (
@@ -142,26 +150,39 @@ export default function PremiumLandingPage() {
           </Text>
         </Animated.View>
 
-        {/* Get Started Button - Moved below tagline */}
+        {/* Get Started Button - Moved to hero section */}
         <Animated.View 
           entering={FadeIn.delay(800).duration(600)}
           style={styles.heroCtaContainer}
         >
           <TouchableOpacity
             style={styles.heroCtaButton}
-            onPress={navigateToTabs}
+            onPress={handleGetStarted}
             activeOpacity={0.9}
           >
             <LinearGradient
-              colors={[COLORS.white, 'rgba(255, 255, 255, 0.95)']}
+              colors={[COLORS.white, 'rgba(255, 255, 255, 0.9)']}
               style={styles.heroCtaGradient}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
             >
               <Text style={styles.heroCtaText}>Get Started</Text>
-              <Ionicons name="arrow-forward" size={20} color={COLORS.midCyan} />
+              <View style={styles.heroCtaArrowContainer}>
+                <Ionicons name="arrow-forward" size={18} color={COLORS.midCyan} />
+              </View>
             </LinearGradient>
           </TouchableOpacity>
+          
+          {/* Sign In Link for existing users */}
+          {!isAuthenticated && (
+            <TouchableOpacity
+              style={styles.heroSignInLink}
+              onPress={() => router.push('/auth/login')}
+            >
+              <Text style={styles.heroSignInText}>Already have an account? </Text>
+              <Text style={styles.heroSignInTextBold}>Sign In</Text>
+            </TouchableOpacity>
+          )}
         </Animated.View>
 
       </LinearGradient>
@@ -201,37 +222,6 @@ export default function PremiumLandingPage() {
             delay={1650}
           />
         </View>
-
-        {/* Trust Section */}
-        <Animated.View
-          entering={FadeIn.delay(1800).duration(600)}
-          style={styles.trustSection}
-        >
-          <LinearGradient
-            colors={[COLORS.softGray, COLORS.white]}
-            style={styles.trustGradient}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-          >
-            <Text style={styles.trustTitle}>Trusted by Pet Parents Worldwide</Text>
-            <View style={styles.trustMetrics}>
-              <View style={styles.metric}>
-                <Text style={styles.metricValue}>50K+</Text>
-                <Text style={styles.metricLabel}>Happy Pets</Text>
-              </View>
-              <View style={styles.metricDivider} />
-              <View style={styles.metric}>
-                <Text style={styles.metricValue}>99.9%</Text>
-                <Text style={styles.metricLabel}>Uptime</Text>
-              </View>
-              <View style={styles.metricDivider} />
-              <View style={styles.metric}>
-                <Text style={styles.metricValue}>4.9★</Text>
-                <Text style={styles.metricLabel}>Rating</Text>
-              </View>
-            </View>
-          </LinearGradient>
-        </Animated.View>
 
       </View>
     </ScrollView>
@@ -319,16 +309,17 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   heroCtaContainer: {
-    marginTop: 20,
     alignItems: 'center',
-    marginBottom: 30,
+    marginTop: 20,
   },
   heroCtaButton: {
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
+    shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 6,
+    shadowRadius: 12,
+    elevation: 8,
+    width: '100%',
+    maxWidth: 260,
   },
   heroCtaGradient: {
     flexDirection: 'row',
@@ -337,53 +328,35 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 10,
-    minWidth: 200,
-  },
-  heroCtaText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: COLORS.midCyan,
-    letterSpacing: 0.5,
-  },
-  ctaButtonContainer: {
-    marginTop: 30,
-    alignItems: 'center',
-  },
-  ctaButton: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.15,
-    shadowRadius: 15,
-    elevation: 8,
-    width: '100%',
-    maxWidth: 280,
-  },
-  ctaGradient: {
-    flexDirection: 'row',
-    paddingVertical: 18,
-    paddingHorizontal: 35,
-    borderRadius: 30,
-    alignItems: 'center',
-    justifyContent: 'center',
     gap: 12,
   },
-  ctaText: {
-    fontSize: 18,
+  heroCtaText: {
+    fontSize: 17,
     fontWeight: '600',
-    color: COLORS.white,
+    color: COLORS.deepNavy,
     letterSpacing: 0.5,
   },
-  ctaArrowContainer: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    overflow: 'hidden',
-  },
-  ctaArrowGradient: {
-    flex: 1,
+  heroCtaArrowContainer: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: 'rgba(77, 168, 181, 0.1)',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  heroSignInLink: {
+    flexDirection: 'row',
+    marginTop: 16,
+    paddingVertical: 8,
+  },
+  heroSignInText: {
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.8)',
+  },
+  heroSignInTextBold: {
+    fontSize: 14,
+    color: COLORS.white,
+    fontWeight: '600',
   },
   featuresSection: {
     padding: 25,
@@ -439,50 +412,5 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: COLORS.mediumGray,
     lineHeight: 18,
-  },
-  trustSection: {
-    marginTop: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.06,
-    shadowRadius: 10,
-    elevation: 4,
-  },
-  trustGradient: {
-    padding: 25,
-    borderRadius: 20,
-  },
-  trustTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: COLORS.deepNavy,
-    textAlign: 'center',
-    marginBottom: 20,
-    letterSpacing: 0.3,
-  },
-  trustMetrics: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-  },
-  metric: {
-    alignItems: 'center',
-  },
-  metricValue: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: COLORS.midCyan,
-    marginBottom: 5,
-  },
-  metricLabel: {
-    fontSize: 12,
-    color: COLORS.mediumGray,
-    letterSpacing: 0.3,
-  },
-  metricDivider: {
-    width: 1,
-    height: 40,
-    backgroundColor: COLORS.mediumGray,
-    opacity: 0.2,
   },
 });

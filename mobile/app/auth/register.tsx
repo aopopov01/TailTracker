@@ -8,7 +8,7 @@ export default function RegisterRoute() {
   return (
     <RegisterScreen 
       onNavigateToLogin={() => router.push('/auth/login')}
-      onRegistrationSuccess={() => router.push('/(tabs)/dashboard')}
+      onRegistrationSuccess={() => router.push('/onboarding/welcome')}
     />
   );
 }

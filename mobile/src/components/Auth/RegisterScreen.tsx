@@ -91,23 +91,11 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
       });
 
       if (result.success) {
-        showModal({
-          title: 'Registration Successful',
-          message: 'Your account has been created successfully. You can now sign in.',
-          type: 'success',
-          icon: 'checkmark-circle',
-          actions: [
-            {
-              text: 'Sign In Now',
-              style: 'primary',
-              onPress: () => {
-                hideModal();
-                onRegistrationSuccess?.();
-                onNavigateToLogin();
-              }
-            }
-          ]
-        });
+        // Registration successful - auto-login is handled by AuthContext
+        // Just navigate to the success callback
+        if (onRegistrationSuccess) {
+          onRegistrationSuccess();
+        }
       } else {
         showError(
           'Registration Failed',

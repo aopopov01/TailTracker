@@ -496,7 +496,7 @@ const styles = StyleSheet.create({
   },
   infoValue: {
     fontSize: 16,
-    color: '#1C1C1E',
+    color: '#000000',
   },
   tagContainer: {
     flexDirection: 'row',

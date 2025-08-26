@@ -153,7 +153,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
       const result = await AuthService.register(userData);
       
-      if (!result.success) {
+      if (result.success && result.user) {
+        // Auto-login after successful registration
+        dispatch({ type: 'LOGIN_SUCCESS', payload: result.user });
+        
+        // Create a session for the new user
+        await SessionService.createSession(result.user);
+      } else {
         dispatch({ type: 'SET_ERROR', payload: result.error || 'Registration failed' });
       }
 

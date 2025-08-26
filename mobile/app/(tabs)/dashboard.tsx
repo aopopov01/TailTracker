@@ -8,6 +8,8 @@ import {
   Dimensions,
   Platform,
   RefreshControl,
+  Alert,
+  Image,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -22,7 +24,11 @@ import Animated, {
   withTiming,
   FadeIn,
   SlideInDown,
+  useAnimatedGestureHandler,
+  runOnJS,
+  withSpring,
 } from 'react-native-reanimated';
+import { PanGestureHandler } from 'react-native-gesture-handler';
 import Svg, { Path, Circle, Ellipse, Polygon, Rect, LinearGradient as SvgLinearGradient, Stop, Defs, G, Line } from 'react-native-svg';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -153,6 +159,186 @@ const getPetIcon = (species: string, size: number = 80) => {
   }
 };
 
+const getPetPhotos = (photosString?: string): string[] => {
+  if (!photosString) return [];
+  try {
+    return JSON.parse(photosString);
+  } catch {
+    return [];
+  }
+};
+
+const PetAvatar: React.FC<{ pet: StoredPetProfile; size?: number }> = ({ pet, size = 70 }) => {
+  const photos = getPetPhotos(pet.photos);
+  const hasPhoto = photos.length > 0;
+
+  if (hasPhoto) {
+    return (
+      <View style={[styles.petImageContainer, { width: size, height: size }]}>
+        <Image 
+          source={{ uri: photos[0] }} 
+          style={[styles.petImage, { width: size, height: size }]}
+          onError={() => {
+            // If image fails to load, fallback to default icon
+            console.log('Failed to load pet image, using default icon');
+          }}
+        />
+      </View>
+    );
+  }
+
+  return getPetIcon(pet.species || 'other', size);
+};
+
+// Swipeable Pet Card Component
+interface SwipeablePetCardProps {
+  pet: StoredPetProfile;
+  onDelete: (petId: number, petName: string) => void;
+  onEdit?: (petId: number) => void;
+  isNewlyCreated: boolean;
+}
+
+const SwipeablePetCard: React.FC<SwipeablePetCardProps> = ({ 
+  pet, 
+  onDelete, 
+  onEdit, 
+  isNewlyCreated 
+}) => {
+  const translateX = useSharedValue(0);
+  const opacity = useSharedValue(1);
+  
+  const SWIPE_THRESHOLD = -80;
+  const DELETE_THRESHOLD = -120;
+
+  const gestureHandler = useAnimatedGestureHandler({
+    onStart: () => {},
+    onActive: (event) => {
+      if (event.translationX < 0) {
+        translateX.value = Math.max(event.translationX, DELETE_THRESHOLD);
+      }
+    },
+    onEnd: (event) => {
+      if (event.translationX < SWIPE_THRESHOLD) {
+        if (event.translationX < DELETE_THRESHOLD) {
+          // Delete action
+          runOnJS(onDelete)(pet.id, pet.name || 'Pet');
+        }
+        // Show delete button
+        translateX.value = withSpring(SWIPE_THRESHOLD);
+      } else {
+        // Snap back
+        translateX.value = withSpring(0);
+      }
+    },
+  });
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: translateX.value }],
+    opacity: opacity.value,
+  }));
+
+  const backgroundStyle = useAnimatedStyle(() => ({
+    opacity: Math.abs(translateX.value) > 10 ? 1 : 0,
+  }));
+
+  return (
+    <View style={styles.swipeContainer}>
+      {/* Delete background */}
+      <Animated.View 
+        style={[
+          styles.deleteBackground, 
+          backgroundStyle,
+          { height: '100%' }
+        ]}
+      >
+        <LinearGradient
+          colors={['#EF4444', '#DC2626']}
+          style={styles.deleteGradient}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+        >
+          <View style={styles.deleteContent}>
+            <Ionicons name="trash-outline" size={24} color={COLORS.white} />
+            <Text style={styles.deleteText}>Delete</Text>
+          </View>
+        </LinearGradient>
+      </Animated.View>
+
+      {/* Pet Card */}
+      <PanGestureHandler onGestureEvent={gestureHandler}>
+        <Animated.View style={[animatedStyle]}>
+          <TouchableOpacity 
+            style={[
+              styles.petCard,
+              isNewlyCreated && styles.petCardHighlighted
+            ]}
+            activeOpacity={0.8}
+            onPress={() => router.push(`/(tabs)/pet-detail?petId=${pet.id}`)}
+          >
+            <View style={styles.petCardContent}>
+              <View style={styles.petIconContainer}>
+                <PetAvatar pet={pet} size={70} />
+              </View>
+              
+              <View style={styles.petInfo}>
+                <View style={styles.petNameContainer}>
+                  <Text style={styles.petName}>{pet.name || 'Unnamed Pet'}</Text>
+                  {isNewlyCreated && (
+                    <View style={styles.newBadge}>
+                      <Text style={styles.newBadgeText}>NEW</Text>
+                    </View>
+                  )}
+                </View>
+                <Text style={styles.petBreed}>{pet.breed || 'Mixed breed'}</Text>
+                <Text style={styles.petAge}>
+                  {calculateAge(pet.dateOfBirth, pet.approximateAge, pet.useApproximateAge)} old
+                </Text>
+                
+                <View style={styles.petStatus}>
+                  <View style={styles.statusItem}>
+                    <Ionicons 
+                      name="checkmark-circle" 
+                      size={16} 
+                      color={COLORS.success} 
+                    />
+                    <Text style={[styles.statusText, { color: COLORS.success }]}>
+                      Profile Complete
+                    </Text>
+                  </View>
+                </View>
+              </View>
+              
+              <View style={styles.petActions}>
+                <TouchableOpacity style={styles.actionButton}>
+                  <Ionicons name="calendar-outline" size={20} color={COLORS.mediumGray} />
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.actionButton}>
+                  <Ionicons name="medical-outline" size={20} color={COLORS.mediumGray} />
+                </TouchableOpacity>
+              </View>
+            </View>
+            
+            <View style={styles.petCardFooter}>
+              <View style={styles.footerItem}>
+                <Text style={styles.footerLabel}>Weight:</Text>
+                <Text style={styles.footerValue}>
+                  {pet.weight ? `${pet.weight} ${pet.weightUnit || 'kg'}` : 'Not specified'}
+                </Text>
+              </View>
+              <View style={styles.footerItem}>
+                <Text style={styles.footerLabel}>Photos:</Text>
+                <Text style={styles.footerValue}>
+                  {getPetPhotos(pet.photos).length > 0 ? `${getPetPhotos(pet.photos).length} uploaded` : 'None'}
+                </Text>
+              </View>
+            </View>
+          </TouchableOpacity>
+        </Animated.View>
+      </PanGestureHandler>
+    </View>
+  );
+};
+
 function DashboardScreen() {
   const router = useRouter();
   const { user } = useAuth();
@@ -177,10 +363,15 @@ function DashboardScreen() {
   };
 
   const loadPets = async () => {
-    if (!user) return;
+    if (!user) {
+      setLoading(false);
+      return;
+    }
     
     try {
+      console.log('Loading pets for user:', user.id);
       const petProfiles = await databaseService.getAllPets(user.id);
+      console.log('Retrieved pet profiles:', JSON.stringify(petProfiles, null, 2));
       setPets(petProfiles);
       
       // Check if there's a newly created pet (within last 5 minutes)
@@ -215,6 +406,34 @@ function DashboardScreen() {
 
   const isNewlyCreated = (pet: StoredPetProfile) => {
     return pet.id === newlyCreatedPetId;
+  };
+
+  const handleDeletePet = (petId: number, petName: string) => {
+    Alert.alert(
+      'Delete Pet',
+      `Are you sure you want to delete ${petName}? This action cannot be undone.`,
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              if (user) {
+                await databaseService.deletePet(petId, user.id);
+                await loadPets(); // Reload the pet list
+              }
+            } catch (error) {
+              console.error('Error deleting pet:', error);
+              Alert.alert('Error', 'Failed to delete pet. Please try again.');
+            }
+          },
+        },
+      ]
+    );
   };
 
   useEffect(() => {
@@ -370,74 +589,11 @@ function DashboardScreen() {
                 </Animated.View>
               )}
               
-              <TouchableOpacity 
-                style={[
-                  styles.petCard, 
-                  isNewlyCreated(pet) && styles.petCardHighlighted
-                ]} 
-                activeOpacity={0.8}
-              >
-                <View style={styles.petCardContent}>
-                  <View style={styles.petIconContainer}>
-                    {getPetIcon(pet.species || 'other', 70)}
-                  </View>
-                  
-                  <View style={styles.petInfo}>
-                    <View style={styles.petNameContainer}>
-                      <Text style={styles.petName}>{pet.name || 'Unnamed Pet'}</Text>
-                      {isNewlyCreated(pet) && (
-                        <View style={styles.newBadge}>
-                          <Text style={styles.newBadgeText}>NEW</Text>
-                        </View>
-                      )}
-                    </View>
-                    <Text style={styles.petBreed}>{pet.breed || 'Mixed breed'}</Text>
-                    <Text style={styles.petAge}>
-                      {calculateAge(pet.dateOfBirth, pet.approximateAge, pet.useApproximateAge)} old
-                    </Text>
-                    
-                    <View style={styles.petStatus}>
-                      <View style={styles.statusItem}>
-                        <Ionicons 
-                          name="checkmark-circle" 
-                          size={16} 
-                          color={COLORS.success} 
-                        />
-                        <Text style={[styles.statusText, { color: COLORS.success }]}>
-                          Profile Complete
-                        </Text>
-                      </View>
-                    </View>
-                  </View>
-                  
-                  <View style={styles.petActions}>
-                    <TouchableOpacity style={styles.actionButton}>
-                      <Ionicons name="calendar-outline" size={20} color={COLORS.mediumGray} />
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.actionButton}>
-                      <Ionicons name="medical-outline" size={20} color={COLORS.mediumGray} />
-                    </TouchableOpacity>
-                  </View>
-                </View>
-                
-                <View style={styles.petCardFooter}>
-                  <View style={styles.footerItem}>
-                    <Text style={styles.footerLabel}>Weight:</Text>
-                    <Text style={styles.footerValue}>
-                      {pet.weight ? `${pet.weight}${pet.weightUnit || 'kg'}` : 'Not specified'}
-                    </Text>
-                  </View>
-                  <View style={styles.footerItem}>
-                    <Text style={styles.footerLabel}>Created:</Text>
-                    <Text style={[
-                      styles.footerValue,
-                      isNewlyCreated(pet) && styles.footerValueHighlighted
-                    ]}>
-                      {isNewlyCreated(pet) ? 'Just now!' : new Date(pet.createdAt).toLocaleDateString()}
-                    </Text>
-                  </View>
-                </View>
-              </TouchableOpacity>
+              <SwipeablePetCard
+                pet={pet}
+                onDelete={handleDeletePet}
+                isNewlyCreated={isNewlyCreated(pet)}
+              />
             </Animated.View>
           ))}
         </Animated.View>
@@ -615,6 +771,18 @@ const styles = StyleSheet.create({
   petIconContainer: {
     marginRight: 16,
   },
+  petImageContainer: {
+    borderRadius: 16,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  petImage: {
+    borderRadius: 16,
+  },
   petInfo: {
     flex: 1,
   },
@@ -789,6 +957,37 @@ const styles = StyleSheet.create({
   footerValueHighlighted: {
     color: COLORS.lightCyan,
     fontWeight: 'bold',
+  },
+  // Swipe-to-delete styles
+  swipeContainer: {
+    marginBottom: 16,
+    position: 'relative',
+    borderRadius: 20,
+    overflow: 'hidden',
+  },
+  deleteBackground: {
+    position: 'absolute',
+    right: 0,
+    top: 0,
+    bottom: 0,
+    width: 120,
+    borderRadius: 20,
+    overflow: 'hidden',
+  },
+  deleteGradient: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingRight: 20,
+  },
+  deleteContent: {
+    alignItems: 'center',
+  },
+  deleteText: {
+    color: COLORS.white,
+    fontSize: 12,
+    fontWeight: '600',
+    marginTop: 4,
   },
 });
 

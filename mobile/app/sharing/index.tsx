@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -44,15 +44,21 @@ const SharingScreen: React.FC = () => {
     setModalConfig(prev => ({ ...prev, visible: false }));
   };
 
+  // Handle authentication check in useEffect to prevent infinite re-renders
+  useEffect(() => {
+    if (!user) {
+      showModal({
+        visible: true,
+        title: 'Authentication Required',
+        message: 'Please log in to use sharing features.',
+        type: 'warning',
+        icon: 'lock',
+        actions: [{ text: 'Go Back', style: 'primary', onPress: () => { hideModal(); router.back(); } }]
+      });
+    }
+  }, [user]);
+
   if (!user) {
-    showModal({
-      visible: true,
-      title: 'Authentication Required',
-      message: 'Please log in to use sharing features.',
-      type: 'warning',
-      icon: 'lock',
-      actions: [{ text: 'Go Back', style: 'primary', onPress: () => { hideModal(); router.back(); } }]
-    });
     return null;
   }
 

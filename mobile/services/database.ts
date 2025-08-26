@@ -154,7 +154,6 @@ class DatabaseService {
         CREATE INDEX IF NOT EXISTS idx_shared_access_ownerUserId ON shared_access (ownerUserId);
       `);
 
-      console.log('Database initialized successfully');
       this.initialized = true;
     } catch (error) {
       console.error('Database initialization error:', error);
@@ -283,6 +282,7 @@ class DatabaseService {
   async savePetProfile(profile: PetProfile, userId: number): Promise<number> {
     await this.initialize();
 
+
     try {
       const now = new Date().toISOString();
       const {
@@ -351,6 +351,7 @@ class DatabaseService {
         'SELECT * FROM pets WHERE userId = ? ORDER BY createdAt DESC',
         [userId]
       ) as any[];
+      
 
       return results.map(row => this.mapRowToPetProfile(row));
     } catch (error) {

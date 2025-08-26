@@ -1,4 +1,4 @@
-import { digestStringAsync, CryptoDigestAlgorithm } from 'expo-crypto';
+import { digestStringAsync, CryptoDigestAlgorithm, getRandomBytes } from 'expo-crypto';
 
 export class CryptoService {
   private static readonly SALT_LENGTH = 32;
@@ -8,8 +8,7 @@ export class CryptoService {
    * Generates a cryptographically secure random salt
    */
   static generateSalt(): string {
-    const array = new Uint8Array(this.SALT_LENGTH);
-    crypto.getRandomValues(array);
+    const array = getRandomBytes(this.SALT_LENGTH);
     return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
   }
 

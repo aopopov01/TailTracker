@@ -8,6 +8,7 @@ import {
   TextInput,
   Dimensions,
   Platform,
+  KeyboardAvoidingView,
 } from 'react-native';
 import { useTailTrackerModal } from '../../src/hooks/useTailTrackerModal';
 import { TailTrackerModal } from '../../src/components/UI/TailTrackerModal';
@@ -256,7 +257,10 @@ export default function OfficialRecordsScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <KeyboardAvoidingView 
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
       {/* Progress Bar */}
       <View style={styles.progressContainer}>
         <View style={styles.progressTrack}>
@@ -276,6 +280,7 @@ export default function OfficialRecordsScreen() {
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
       >
         {/* Header */}
         <Animated.View
@@ -425,7 +430,7 @@ export default function OfficialRecordsScreen() {
         actions={modalConfig.actions}
         icon={modalConfig.icon}
       />
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -463,7 +468,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: 20,
-    paddingBottom: 20,
+    paddingBottom: 100,
   },
   header: {
     alignItems: 'center',
