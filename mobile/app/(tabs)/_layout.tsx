@@ -6,10 +6,17 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: '#2196F3',
+        tabBarActiveTintColor: '#4CAF50',
         tabBarInactiveTintColor: '#666',
+        tabBarStyle: {
+          backgroundColor: '#fff',
+          borderTopColor: '#f0f0f0',
+          height: 60,
+          paddingBottom: 8,
+          paddingTop: 8,
+        },
         headerStyle: {
-          backgroundColor: '#2196F3',
+          backgroundColor: '#4CAF50',
         },
         headerTintColor: '#fff',
         headerTitleStyle: {
@@ -29,9 +36,9 @@ export default function TabLayout() {
       <Tabs.Screen
         name="tracking"
         options={{
-          title: 'Tracking',
+          title: 'Wellness',
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? 'location' : 'location-outline'} size={24} color={color} />
+            <Ionicons name={focused ? 'fitness' : 'fitness-outline'} size={24} color={color} />
           ),
         }}
       />

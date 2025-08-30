@@ -148,31 +148,7 @@ export const TestHelpers = {
     return jest.fn(() => Promise.resolve({ data: null, error }));
   },
 
-  /**
-   * Mock location permission granted
-   */
-  mockLocationPermissionGranted: () => {
-    const mockLocation = require('expo-location');
-    mockLocation.requestForegroundPermissionsAsync.mockResolvedValue({
-      status: 'granted',
-    });
-    mockLocation.requestBackgroundPermissionsAsync.mockResolvedValue({
-      status: 'granted',
-    });
-  },
-
-  /**
-   * Mock location permission denied
-   */
-  mockLocationPermissionDenied: () => {
-    const mockLocation = require('expo-location');
-    mockLocation.requestForegroundPermissionsAsync.mockResolvedValue({
-      status: 'denied',
-    });
-    mockLocation.requestBackgroundPermissionsAsync.mockResolvedValue({
-      status: 'denied',
-    });
-  },
+  // Location permission mocks removed - GPS tracking features removed
 
   /**
    * Mock camera permission granted

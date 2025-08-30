@@ -64,6 +64,10 @@ export interface Pet {
   exerciseNeeds?: 'low' | 'moderate' | 'high';
   specialNotes?: string;
   
+  // Lost Pet Status
+  status?: 'active' | 'lost' | 'found' | 'inactive';
+  lostPetId?: string; // Reference to lost pet report
+  
   // Meta information
   createdAt: Date;
   updatedAt: Date;

@@ -101,7 +101,6 @@ CREATE TABLE veterinarians (
     country VARCHAR(2),
     specialization VARCHAR(255),
     license_number VARCHAR(100),
-    location GEOGRAPHY(POINT, 4326),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -172,27 +171,31 @@ CREATE TABLE medical_records (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Lost pets table
+-- Lost pets table (Premium feature only)
 CREATE TABLE lost_pets (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     pet_id UUID NOT NULL REFERENCES pets(id) ON DELETE CASCADE,
     reported_by UUID NOT NULL REFERENCES users(id),
-    status VARCHAR(20) DEFAULT 'lost',
-    last_seen_location GEOGRAPHY(POINT, 4326),
+    status VARCHAR(20) DEFAULT 'lost' CHECK (status IN ('lost', 'found')),
+    last_seen_location GEOGRAPHY(POINT, 4326) NOT NULL,
     last_seen_address TEXT,
-    last_seen_date TIMESTAMP WITH TIME ZONE,
+    last_seen_date TIMESTAMP WITH TIME ZONE NOT NULL,
     description TEXT,
     reward_amount DECIMAL(10,2),
     reward_currency VARCHAR(3) DEFAULT 'USD',
     contact_phone VARCHAR(20),
     contact_email VARCHAR(255),
     photo_urls TEXT[],
-    search_radius_km INTEGER DEFAULT 10,
+    search_radius_km INTEGER DEFAULT 10 CHECK (search_radius_km BETWEEN 1 AND 50),
     found_date TIMESTAMP WITH TIME ZONE,
     found_by UUID REFERENCES users(id),
     alert_sent_count INTEGER DEFAULT 0,
+    is_premium_feature BOOLEAN DEFAULT true, -- Enforce premium requirement
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    
+    -- Ensure only premium users can create lost pet reports
+    CONSTRAINT premium_only_lost_pets CHECK (is_premium_feature = true)
 );
 
 -- Notifications table
@@ -329,7 +332,6 @@ CREATE INDEX idx_pets_family_id ON pets(family_id);
 CREATE INDEX idx_pets_status ON pets(status);
 CREATE INDEX idx_pets_created_by ON pets(created_by);
 
-CREATE INDEX idx_veterinarians_location ON veterinarians USING GIST(location);
 CREATE INDEX idx_veterinarians_city_state ON veterinarians(city, state);
 
 CREATE INDEX idx_vaccinations_pet_id ON vaccinations(pet_id);
@@ -342,9 +344,12 @@ CREATE INDEX idx_medications_active ON medications(active) WHERE active = true;
 CREATE INDEX idx_medical_records_pet_id ON medical_records(pet_id);
 CREATE INDEX idx_medical_records_date ON medical_records(date_of_record);
 
+-- Lost pets indexes
 CREATE INDEX idx_lost_pets_pet_id ON lost_pets(pet_id);
 CREATE INDEX idx_lost_pets_status ON lost_pets(status);
 CREATE INDEX idx_lost_pets_location ON lost_pets USING GIST(last_seen_location);
+CREATE INDEX idx_lost_pets_reported_by ON lost_pets(reported_by);
+CREATE INDEX idx_lost_pets_last_seen_date ON lost_pets(last_seen_date);
 
 CREATE INDEX idx_notifications_user_id ON notifications(user_id);
 CREATE INDEX idx_notifications_type ON notifications(type);
@@ -391,8 +396,8 @@ CREATE TRIGGER update_veterinarians_updated_at BEFORE UPDATE ON veterinarians FO
 CREATE TRIGGER update_vaccinations_updated_at BEFORE UPDATE ON vaccinations FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_medications_updated_at BEFORE UPDATE ON medications FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_medical_records_updated_at BEFORE UPDATE ON medical_records FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-CREATE TRIGGER update_lost_pets_updated_at BEFORE UPDATE ON lost_pets FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_subscriptions_updated_at BEFORE UPDATE ON subscriptions FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER update_lost_pets_updated_at BEFORE UPDATE ON lost_pets FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- Create family invite code generation function
 CREATE OR REPLACE FUNCTION generate_invite_code()

@@ -15,13 +15,12 @@ import {
 // Permission types for Android
 export type PermissionType = 
   | 'camera'
-  | 'location'
-  | 'locationAlways'
   | 'storage'
   | 'notification'
   | 'microphone'
   | 'contacts'
-  | 'phone';
+  | 'phone'
+  | 'location';
 
 export type PermissionStatus = 
   | 'granted'
@@ -49,13 +48,12 @@ export interface PermissionRequest {
 // Android permission mappings
 const ANDROID_PERMISSIONS: Record<PermissionType, Permission> = {
   camera: PERMISSIONS.ANDROID.CAMERA,
-  location: PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION,
-  locationAlways: PERMISSIONS.ANDROID.ACCESS_BACKGROUND_LOCATION,
   storage: PERMISSIONS.ANDROID.READ_EXTERNAL_STORAGE,
   notification: PERMISSIONS.ANDROID.POST_NOTIFICATIONS,
   microphone: PERMISSIONS.ANDROID.RECORD_AUDIO,
   contacts: PERMISSIONS.ANDROID.READ_CONTACTS,
   phone: PERMISSIONS.ANDROID.CALL_PHONE,
+  location: PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION,
 } as const;
 
 class AndroidPermissionsService {
@@ -292,12 +290,6 @@ export const TailTrackerPermissions = {
   async requestEssentialPermissions(): Promise<boolean> {
     const requests: PermissionRequest[] = [
       {
-        type: 'location',
-        title: 'Location Permission',
-        message: 'TailTracker needs location access to track your pets and find them when they\'re lost.',
-        buttonPositive: 'Grant Permission',
-      },
-      {
         type: 'camera',
         title: 'Camera Permission',
         message: 'TailTracker needs camera access to take photos of your pets for their profiles.',
@@ -306,7 +298,7 @@ export const TailTrackerPermissions = {
       {
         type: 'notification',
         title: 'Notification Permission',
-        message: 'TailTracker needs to send notifications about your pets\' safety and health.',
+        message: 'TailTracker needs to send notifications about your pets\' health and care.',
         buttonPositive: 'Grant Permission',
       },
     ];
@@ -314,43 +306,11 @@ export const TailTrackerPermissions = {
     const results = await androidPermissions.requestMultiplePermissions(requests);
     
     // Check if essential permissions are granted
-    return results.location.status === 'granted' && 
-           results.camera.status === 'granted' && 
+    return results.camera.status === 'granted' && 
            results.notification.status === 'granted';
   },
 
-  /**
-   * Request background location permission
-   */
-  async requestBackgroundLocation(): Promise<boolean> {
-    // First ensure foreground location is granted
-    const foregroundResult = await androidPermissions.checkPermission('location');
-    
-    if (foregroundResult.status !== 'granted') {
-      const request: PermissionRequest = {
-        type: 'location',
-        title: 'Location Permission',
-        message: 'TailTracker needs location access to track your pets.',
-        buttonPositive: 'Grant Permission',
-      };
-      
-      const result = await androidPermissions.requestPermission(request);
-      if (result.status !== 'granted') {
-        return false;
-      }
-    }
-
-    // Now request background location
-    const backgroundRequest: PermissionRequest = {
-      type: 'locationAlways',
-      title: 'Background Location',
-      message: 'TailTracker needs background location access to monitor your pets even when the app is closed. This ensures you get alerts if your pet leaves their safe zone.',
-      buttonPositive: 'Allow All The Time',
-    };
-
-    const result = await androidPermissions.requestPermission(backgroundRequest);
-    return result.status === 'granted';
-  },
+  // Background location request removed - GPS tracking features removed
 
   /**
    * Request storage permissions
@@ -371,23 +331,17 @@ export const TailTrackerPermissions = {
    * Check if all required permissions are granted
    */
   async checkAllPermissions(): Promise<{
-    location: boolean;
-    backgroundLocation: boolean;
     camera: boolean;
     storage: boolean;
     notification: boolean;
   }> {
-    const [location, locationAlways, camera, storage, notification] = await Promise.all([
-      androidPermissions.checkPermission('location'),
-      androidPermissions.checkPermission('locationAlways'),
+    const [camera, storage, notification] = await Promise.all([
       androidPermissions.checkPermission('camera'),
       androidPermissions.checkPermission('storage'),
       androidPermissions.checkPermission('notification'),
     ]);
 
     return {
-      location: location.status === 'granted',
-      backgroundLocation: locationAlways.status === 'granted',
       camera: camera.status === 'granted',
       storage: storage.status === 'granted',
       notification: notification.status === 'granted',
@@ -400,20 +354,17 @@ export const TailTrackerPermissions = {
   async getPermissionsSummary(): Promise<{
     essential: boolean;
     optional: boolean;
-    backgroundLocation: boolean;
     allGranted: boolean;
   }> {
     const permissions = await this.checkAllPermissions();
     
-    const essential = permissions.location && permissions.camera && permissions.notification;
+    const essential = permissions.camera && permissions.notification;
     const optional = permissions.storage;
-    const backgroundLocation = permissions.backgroundLocation;
-    const allGranted = essential && optional && backgroundLocation;
+    const allGranted = essential && optional;
 
     return {
       essential,
       optional,
-      backgroundLocation,
       allGranted,
     };
   },
@@ -422,14 +373,10 @@ export const TailTrackerPermissions = {
 // React hooks for permissions
 export const usePermissions = () => {
   const [permissions, setPermissions] = React.useState<{
-    location: boolean;
-    backgroundLocation: boolean;
     camera: boolean;
     storage: boolean;
     notification: boolean;
   }>({
-    location: false,
-    backgroundLocation: false,
     camera: false,
     storage: false,
     notification: false,
@@ -467,19 +414,6 @@ export const usePermissions = () => {
     }
   };
 
-  const requestBackgroundLocation = async () => {
-    try {
-      setLoading(true);
-      const granted = await TailTrackerPermissions.requestBackgroundLocation();
-      await checkPermissions();
-      return granted;
-    } catch (error) {
-      console.error('Error requesting background location:', error);
-      return false;
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const requestStorage = async () => {
     try {
@@ -500,7 +434,6 @@ export const usePermissions = () => {
     loading,
     checkPermissions,
     requestEssential,
-    requestBackgroundLocation,
     requestStorage,
     openSettings: androidPermissions.openSettings.bind(androidPermissions),
   };

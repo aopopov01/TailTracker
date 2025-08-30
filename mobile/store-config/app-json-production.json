@@ -31,19 +31,16 @@
       "entitlements": {
         "com.apple.developer.applesignin": ["Default"],
         "com.apple.developer.in-app-payments": true,
-        "com.apple.developer.location.push": true,
         "com.apple.developer.usernotifications.time-sensitive": true,
         "aps-environment": "production"
       },
       "infoPlist": {
-        "NSLocationWhenInUseUsageDescription": "TailTracker helps you track your pets' locations and find them if they get lost. Location access is essential for pet safety features including safe zone monitoring and GPS tracking.",
-        "NSLocationAlwaysAndWhenInUseUsageDescription": "TailTracker monitors your pets' safe zones and sends instant alerts if they wander outside designated areas. This background location access ensures your pets' safety even when the app isn't actively open.",
-        "NSLocationAlwaysUsageDescription": "TailTracker provides continuous pet safety monitoring by tracking your pets' locations in designated safe zones. Background location access allows us to send immediate alerts if your pet leaves a safe area, helping prevent them from getting lost.",
         "NSCameraUsageDescription": "TailTracker needs camera access to take photos of your pets for identification purposes and to create their profiles. Photos help with pet identification and can be used for lost pet alerts.",
         "NSPhotoLibraryUsageDescription": "TailTracker needs access to your photo library to select existing photos of your pets for their profiles and identification purposes.",
         "NSPhotoLibraryAddUsageDescription": "TailTracker can save photos of your pets to your photo library for backup and sharing purposes.",
         "NSMicrophoneUsageDescription": "TailTracker may need microphone access for video recording features when creating pet profiles or documenting pet behavior.",
-        "NSFaceIDUsageDescription": "TailTracker uses Face ID to secure access to your pets' sensitive information and location data, ensuring only you can access your pet tracking data.",
+        "NSFaceIDUsageDescription": "TailTracker uses Face ID to secure access to your pets' sensitive information, ensuring only you can access your pet data.",
+        "NSLocationWhenInUseUsageDescription": "TailTracker needs location access to help you report lost pets and send alerts to nearby users in your community.",
         "NSAppTransportSecurity": {
           "NSAllowsArbitraryLoads": false,
           "NSExceptionDomains": {
@@ -59,21 +56,16 @@
         "NSSupportsLiveActivities": true,
         "NSSupportsLiveActivitiesFrequentUpdates": true,
         "BGTaskSchedulerPermittedIdentifiers": [
-          "$(PRODUCT_BUNDLE_IDENTIFIER).background-location",
           "$(PRODUCT_BUNDLE_IDENTIFIER).background-refresh"
         ],
         "UIBackgroundModes": [
-          "location",
           "background-processing",
           "background-fetch",
           "remote-notification"
         ],
         "LSApplicationQueriesSchemes": [
           "tel",
-          "mailto",
-          "maps",
-          "comgooglemaps",
-          "waze"
+          "mailto"
         ],
         "CFBundleURLTypes": [
           {
@@ -94,9 +86,6 @@
       "targetSdkVersion": 34,
       "minSdkVersion": 26,
       "permissions": [
-        "ACCESS_COARSE_LOCATION",
-        "ACCESS_FINE_LOCATION",
-        "ACCESS_BACKGROUND_LOCATION",
         "CAMERA",
         "READ_EXTERNAL_STORAGE",
         "WRITE_EXTERNAL_STORAGE",
@@ -106,14 +95,10 @@
         "WAKE_LOCK",
         "INTERNET",
         "ACCESS_NETWORK_STATE",
-        "FOREGROUND_SERVICE",
-        "FOREGROUND_SERVICE_LOCATION"
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "FOREGROUND_SERVICE"
       ],
-      "config": {
-        "googleMaps": {
-          "apiKey": "${GOOGLE_MAPS_API_KEY}"
-        }
-      },
       "googleServicesFile": "./google-services.json"
     },
     "web": {
@@ -137,16 +122,6 @@
           "ios": {
             "deploymentTarget": "14.0"
           }
-        }
-      ],
-      [
-        "expo-location",
-        {
-          "locationAlwaysAndWhenInUsePermission": "TailTracker monitors your pets' safe zones and sends instant alerts if they wander outside designated areas. This background location access ensures your pets' safety even when the app isn't actively open.",
-          "locationAlwaysPermission": "TailTracker provides continuous pet safety monitoring by tracking your pets' locations in designated safe zones. Background location access allows us to send immediate alerts if your pet leaves a safe area.",
-          "locationWhenInUsePermission": "TailTracker helps you track your pets' locations and find them if they get lost. Location access is essential for pet safety features.",
-          "isAndroidBackgroundLocationEnabled": true,
-          "isAndroidForegroundServiceEnabled": true
         }
       ],
       [
