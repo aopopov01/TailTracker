@@ -29,6 +29,7 @@
         "com.apple.developer.applesignin": ["Default"],
         "com.apple.developer.in-app-payments": true,
         "com.apple.developer.usernotifications.time-sensitive": true,
+        "com.apple.developer.usernotifications.critical-alerts": true,
         "aps-environment": "production"
       },
       "infoPlist": {
@@ -37,6 +38,8 @@
         "NSPhotoLibraryAddUsageDescription": "TailTracker needs permission to save photos of your pets to your photo library.",
         "NSMicrophoneUsageDescription": "TailTracker may need microphone access for video recording features.",
         "NSFaceIDUsageDescription": "TailTracker uses Face ID for secure authentication and to protect your pet's sensitive information.",
+        "NSLocationWhenInUseUsageDescription": "TailTracker needs location access to help find lost pets and send location-based alerts to nearby users.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "TailTracker needs location access to help find lost pets and send location-based alerts to nearby users.",
         "NSAppTransportSecurity": {
           "NSAllowsArbitraryLoads": false
         },
@@ -44,7 +47,8 @@
         "NSSupportsLiveActivities": true,
         "NSSupportsLiveActivitiesFrequentUpdates": true,
         "BGTaskSchedulerPermittedIdentifiers": [
-          "$(PRODUCT_BUNDLE_IDENTIFIER).background-refresh"
+          "$(PRODUCT_BUNDLE_IDENTIFIER).background-refresh",
+          "$(PRODUCT_BUNDLE_IDENTIFIER).background-notification-sync"
         ],
         "UIBackgroundModes": [
           "background-processing",
@@ -82,7 +86,12 @@
         "RECEIVE_BOOT_COMPLETED",
         "WAKE_LOCK",
         "INTERNET",
-        "ACCESS_NETWORK_STATE"
+        "ACCESS_NETWORK_STATE",
+        "POST_NOTIFICATIONS",
+        "SCHEDULE_EXACT_ALARM",
+        "USE_EXACT_ALARM",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION"
       ],
       "blockedPermissions": [
         "USE_BIOMETRIC",
@@ -132,14 +141,31 @@
           "icon": "./assets/images/notification-icon.png",
           "color": "#ffffff",
           "sounds": [
-            "./assets/sounds/notification.wav"
-          ]
+            "./assets/sounds/notification.wav",
+            "./assets/sounds/pet_alert.wav",
+            "./assets/sounds/health_reminder.wav",
+            "./assets/sounds/activity_update.wav",
+            "./assets/sounds/social_notification.wav",
+            "./assets/sounds/emergency_alert.wav"
+          ],
+          "androidMode": "default",
+          "androidCollapsedTitle": "TailTracker Notifications",
+          "iosDisplayInForeground": true
         }
       ],
       [
         "expo-dev-client",
         {
           "addGeneratedScheme": false
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "TailTracker needs location access to help find lost pets and send location-based alerts to nearby users.",
+          "locationWhenInUsePermission": "TailTracker needs location access to help find lost pets and send location-based alerts to nearby users.",
+          "isIosBackgroundLocationEnabled": false,
+          "isAndroidBackgroundLocationEnabled": false
         }
       ]
     ],

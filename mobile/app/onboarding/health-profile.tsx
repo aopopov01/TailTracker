@@ -458,7 +458,7 @@ export default function HealthProfileScreen() {
             <View style={styles.infoTextContainer}>
               <Text style={styles.infoTitle}>Medical Privacy</Text>
               <Text style={styles.infoText}>
-                Health information is kept private and secure. This helps veterinarians provide better care during emergencies.
+                Health information is kept private and secure. This helps emergency responders provide better care during emergencies.
               </Text>
             </View>
           </LinearGradient>

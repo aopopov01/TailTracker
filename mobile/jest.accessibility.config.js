@@ -2,30 +2,25 @@ module.exports = {
   preset: 'jest-expo',
   displayName: 'Accessibility Tests',
   testMatch: [
-    '**/src/**/*.accessibility.(test|spec).(ts|tsx|js)',
-    '**/accessibility/**/*.(test|spec).(ts|tsx|js)'
+    '**/__tests__/**/*accessibility.(test|spec).(ts|tsx|js)',
+    '**/*accessibility.(test|spec).(ts|tsx|js)',
+    '**/__tests__/**/*a11y.(test|spec).(ts|tsx|js)',
+    '**/*a11y.(test|spec).(ts|tsx|js)'
   ],
   setupFilesAfterEnv: [
-    '@testing-library/jest-native/extend-expect',
-    '<rootDir>/src/test/setup.ts',
-    '<rootDir>/src/test/accessibility-setup.ts'
+    '@testing-library/jest-native/extend-expect'
   ],
-  testTimeout: 30000,
-  collectCoverageFrom: [
-    'src/components/**/*.{ts,tsx}',
-    'src/screens/**/*.{ts,tsx}',
-    '!src/**/*.d.ts',
-    '!src/test/**/*'
-  ],
-  coverageDirectory: 'coverage/accessibility',
+  testTimeout: 20000,
+  coverageDirectory: '<rootDir>/coverage/accessibility',
   transformIgnorePatterns: [
-    'node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg)'
+    "node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg|@supabase|zustand|react-hook-form)"
   ],
-  reporters: [
-    'default',
-    ['jest-html-reporters', {
-      publicPath: './coverage/accessibility',
-      filename: 'accessibility-report.html'
-    }]
-  ]
+  moduleNameMapper: {
+    "^@/(.*)$": "<rootDir>/src/$1",
+    "^@components/(.*)$": "<rootDir>/src/components/$1",
+    "^@services/(.*)$": "<rootDir>/src/services/$1",
+    "^@hooks/(.*)$": "<rootDir>/src/hooks/$1",
+    "^@utils/(.*)$": "<rootDir>/src/utils/$1",
+    "^@types/(.*)$": "<rootDir>/src/types/$1"
+  }
 };

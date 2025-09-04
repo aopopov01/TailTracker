@@ -1,0 +1,660 @@
+name: TailTracker Mobile Test Automation
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'mobile/**'
+      - '.github/workflows/test-automation.yml'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'mobile/**'
+      - '.github/workflows/test-automation.yml'
+  schedule:
+    # Run nightly tests at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      test_type:
+        description: 'Type of tests to run'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+        - all
+        - unit
+        - integration
+        - e2e
+        - performance
+        - accessibility
+      platform:
+        description: 'Platform to test'
+        required: true
+        default: 'both'
+        type: choice
+        options:
+        - both
+        - ios
+        - android
+
+env:
+  NODE_VERSION: '18.x'
+  JAVA_VERSION: '11'
+  EXPO_CLI_VERSION: 'latest'
+  DETOX_VERSION: '20.20.2'
+
+jobs:
+  # Setup and dependency installation
+  setup:
+    name: Setup Dependencies
+    runs-on: ubuntu-latest
+    outputs:
+      cache-key: ${{ steps.cache-keys.outputs.cache-key }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: mobile/package-lock.json
+
+      - name: Generate cache keys
+        id: cache-keys
+        run: |
+          echo "cache-key=node-modules-${{ hashFiles('mobile/package-lock.json') }}" >> $GITHUB_OUTPUT
+
+      - name: Cache node modules
+        id: cache-npm
+        uses: actions/cache@v3
+        with:
+          path: mobile/node_modules
+          key: ${{ steps.cache-keys.outputs.cache-key }}
+          restore-keys: |
+            node-modules-
+
+      - name: Install dependencies
+        if: steps.cache-npm.outputs.cache-hit != 'true'
+        working-directory: mobile
+        run: |
+          npm ci --silent
+          npm ls --depth=0 || true
+
+      - name: Validate package integrity
+        working-directory: mobile
+        run: |
+          npm audit --audit-level=high --production
+          npx license-checker --summary
+
+  # Static code analysis and linting
+  lint-and-typecheck:
+    name: Lint and Type Check
+    runs-on: ubuntu-latest
+    needs: setup
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Restore node modules cache
+        uses: actions/cache@v3
+        with:
+          path: mobile/node_modules
+          key: ${{ needs.setup.outputs.cache-key }}
+
+      - name: Run ESLint
+        working-directory: mobile
+        run: |
+          npm run lint -- --format=json --output-file=eslint-report.json || true
+          npm run lint
+
+      - name: Run TypeScript type checking
+        working-directory: mobile
+        run: npm run type-check
+
+      - name: Upload lint results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: lint-results
+          path: mobile/eslint-report.json
+          retention-days: 7
+
+  # Unit tests
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    needs: setup
+    if: ${{ github.event.inputs.test_type == 'unit' || github.event.inputs.test_type == 'all' || github.event.inputs.test_type == '' }}
+    strategy:
+      matrix:
+        node-version: ['18.x', '20.x']
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Restore node modules cache
+        uses: actions/cache@v3
+        with:
+          path: mobile/node_modules
+          key: ${{ needs.setup.outputs.cache-key }}
+
+      - name: Run unit tests with coverage
+        working-directory: mobile
+        run: |
+          npm run test:coverage -- --watchAll=false --passWithNoTests
+        env:
+          CI: true
+
+      - name: Upload coverage reports to Codecov
+        if: matrix.node-version == '18.x'
+        uses: codecov/codecov-action@v3
+        with:
+          file: mobile/coverage/lcov.info
+          directory: mobile/coverage/
+          flags: unittests
+          name: unit-tests
+          fail_ci_if_error: false
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: unit-test-results-${{ matrix.node-version }}
+          path: |
+            mobile/coverage/
+            mobile/jest-report.xml
+          retention-days: 7
+
+      - name: Comment coverage on PR
+        if: github.event_name == 'pull_request' && matrix.node-version == '18.x'
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          recreate: true
+          path: mobile/coverage/coverage-summary.md
+
+  # Integration tests
+  integration-tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    needs: setup
+    if: ${{ github.event.inputs.test_type == 'integration' || github.event.inputs.test_type == 'all' || github.event.inputs.test_type == '' }}
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: tailtracker_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Restore node modules cache
+        uses: actions/cache@v3
+        with:
+          path: mobile/node_modules
+          key: ${{ needs.setup.outputs.cache-key }}
+
+      - name: Setup test database
+        run: |
+          PGPASSWORD=postgres psql -h localhost -U postgres -d tailtracker_test -c "
+            CREATE EXTENSION IF NOT EXISTS postgis;
+            CREATE EXTENSION IF NOT EXISTS uuid-ossp;
+          "
+
+      - name: Run integration tests
+        working-directory: mobile
+        run: npm run test:integration -- --watchAll=false --passWithNoTests
+        env:
+          CI: true
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/tailtracker_test
+          SUPABASE_URL: http://localhost:54321
+          SUPABASE_ANON_KEY: test_key
+
+      - name: Upload integration test results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: integration-test-results
+          path: mobile/coverage/integration/
+          retention-days: 7
+
+  # Performance tests
+  performance-tests:
+    name: Performance Tests
+    runs-on: ubuntu-latest
+    needs: setup
+    if: ${{ github.event.inputs.test_type == 'performance' || github.event.inputs.test_type == 'all' || github.event.inputs.test_type == '' }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Restore node modules cache
+        uses: actions/cache@v3
+        with:
+          path: mobile/node_modules
+          key: ${{ needs.setup.outputs.cache-key }}
+
+      - name: Run performance tests
+        working-directory: mobile
+        run: npm run test:performance -- --watchAll=false --passWithNoTests
+        env:
+          CI: true
+
+      - name: Upload performance test results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: performance-test-results
+          path: mobile/coverage/performance/
+          retention-days: 7
+
+  # Accessibility tests
+  accessibility-tests:
+    name: Accessibility Tests
+    runs-on: ubuntu-latest
+    needs: setup
+    if: ${{ github.event.inputs.test_type == 'accessibility' || github.event.inputs.test_type == 'all' || github.event.inputs.test_type == '' }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Restore node modules cache
+        uses: actions/cache@v3
+        with:
+          path: mobile/node_modules
+          key: ${{ needs.setup.outputs.cache-key }}
+
+      - name: Run accessibility tests
+        working-directory: mobile
+        run: npm run test:accessibility -- --watchAll=false --passWithNoTests
+        env:
+          CI: true
+
+      - name: Upload accessibility test results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: accessibility-test-results
+          path: mobile/coverage/accessibility/
+          retention-days: 7
+
+  # Android E2E tests
+  android-e2e-tests:
+    name: Android E2E Tests
+    runs-on: macos-latest
+    needs: setup
+    if: ${{ (github.event.inputs.test_type == 'e2e' || github.event.inputs.test_type == 'all' || github.event.inputs.test_type == '') && (github.event.inputs.platform == 'android' || github.event.inputs.platform == 'both' || github.event.inputs.platform == '') }}
+    timeout-minutes: 60
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: ${{ env.JAVA_VERSION }}
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v2
+
+      - name: Restore node modules cache
+        uses: actions/cache@v3
+        with:
+          path: mobile/node_modules
+          key: ${{ needs.setup.outputs.cache-key }}
+
+      - name: Install Detox CLI
+        run: npm install -g detox-cli@${{ env.DETOX_VERSION }}
+
+      - name: Cache AVD
+        uses: actions/cache@v3
+        id: avd-cache
+        with:
+          path: |
+            ~/.android/avd/*
+            ~/.android/adb*
+          key: avd-29
+
+      - name: Create AVD and generate snapshot for caching
+        if: steps.avd-cache.outputs.cache-hit != 'true'
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 29
+          target: google_apis
+          arch: x86
+          profile: Nexus 6
+          force-avd-creation: false
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          disable-animations: false
+          script: echo "Generated AVD snapshot for caching."
+
+      - name: Build Android app for testing
+        working-directory: mobile
+        run: |
+          npx expo prebuild --platform android --clear
+          npm run build:detox:android
+
+      - name: Run Android E2E tests
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 29
+          target: google_apis
+          arch: x86
+          profile: Nexus 6
+          force-avd-creation: false
+          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          disable-animations: true
+          script: |
+            cd mobile
+            npm run test:android -- --headless --loglevel error
+
+      - name: Upload Android E2E test results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: android-e2e-test-results
+          path: |
+            mobile/e2e/artifacts/
+            mobile/e2e/screenshots/
+          retention-days: 7
+
+  # iOS E2E tests
+  ios-e2e-tests:
+    name: iOS E2E Tests
+    runs-on: macos-latest
+    needs: setup
+    if: ${{ (github.event.inputs.test_type == 'e2e' || github.event.inputs.test_type == 'all' || github.event.inputs.test_type == '') && (github.event.inputs.platform == 'ios' || github.event.inputs.platform == 'both' || github.event.inputs.platform == '') }}
+    timeout-minutes: 60
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: 'latest-stable'
+
+      - name: Restore node modules cache
+        uses: actions/cache@v3
+        with:
+          path: mobile/node_modules
+          key: ${{ needs.setup.outputs.cache-key }}
+
+      - name: Install Detox CLI
+        run: npm install -g detox-cli@${{ env.DETOX_VERSION }}
+
+      - name: Cache Pods
+        uses: actions/cache@v3
+        with:
+          path: mobile/ios/Pods
+          key: pods-${{ hashFiles('mobile/ios/Podfile.lock') }}
+          restore-keys: |
+            pods-
+
+      - name: Build iOS app for testing
+        working-directory: mobile
+        run: |
+          npx expo prebuild --platform ios --clear
+          cd ios && pod install && cd ..
+          npm run build:detox:ios
+
+      - name: Run iOS E2E tests
+        working-directory: mobile
+        run: npm run test:ios -- --headless --loglevel error
+
+      - name: Upload iOS E2E test results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: ios-e2e-test-results
+          path: |
+            mobile/e2e/artifacts/
+            mobile/e2e/screenshots/
+          retention-days: 7
+
+  # Security and vulnerability scanning
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    needs: setup
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Restore node modules cache
+        uses: actions/cache@v3
+        with:
+          path: mobile/node_modules
+          key: ${{ needs.setup.outputs.cache-key }}
+
+      - name: Run npm audit
+        working-directory: mobile
+        run: |
+          npm audit --audit-level=moderate --json > audit-results.json || true
+          npm audit --audit-level=moderate
+
+      - name: Run CodeQL Analysis
+        uses: github/codeql-action/init@v2
+        with:
+          languages: typescript, javascript
+
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v2
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v2
+
+      - name: Upload security scan results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: security-scan-results
+          path: mobile/audit-results.json
+          retention-days: 7
+
+  # Test results aggregation and reporting
+  test-report:
+    name: Test Report
+    runs-on: ubuntu-latest
+    needs: [lint-and-typecheck, unit-tests, integration-tests, performance-tests, accessibility-tests, android-e2e-tests, ios-e2e-tests, security-scan]
+    if: always()
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download all test artifacts
+        uses: actions/download-artifact@v3
+        with:
+          path: test-results
+
+      - name: Generate test report
+        run: |
+          echo "# TailTracker Test Report" > test-report.md
+          echo "Generated on: $(date)" >> test-report.md
+          echo "" >> test-report.md
+          
+          echo "## Test Results Summary" >> test-report.md
+          
+          if [ "${{ needs.lint-and-typecheck.result }}" = "success" ]; then
+            echo "✅ Linting and Type Check: PASSED" >> test-report.md
+          else
+            echo "❌ Linting and Type Check: FAILED" >> test-report.md
+          fi
+          
+          if [ "${{ needs.unit-tests.result }}" = "success" ]; then
+            echo "✅ Unit Tests: PASSED" >> test-report.md
+          else
+            echo "❌ Unit Tests: FAILED" >> test-report.md
+          fi
+          
+          if [ "${{ needs.integration-tests.result }}" = "success" ]; then
+            echo "✅ Integration Tests: PASSED" >> test-report.md
+          else
+            echo "❌ Integration Tests: FAILED" >> test-report.md
+          fi
+          
+          if [ "${{ needs.performance-tests.result }}" = "success" ]; then
+            echo "✅ Performance Tests: PASSED" >> test-report.md
+          else
+            echo "❌ Performance Tests: FAILED" >> test-report.md
+          fi
+          
+          if [ "${{ needs.accessibility-tests.result }}" = "success" ]; then
+            echo "✅ Accessibility Tests: PASSED" >> test-report.md
+          else
+            echo "❌ Accessibility Tests: FAILED" >> test-report.md
+          fi
+          
+          if [ "${{ needs.android-e2e-tests.result }}" = "success" ]; then
+            echo "✅ Android E2E Tests: PASSED" >> test-report.md
+          else
+            echo "❌ Android E2E Tests: FAILED" >> test-report.md
+          fi
+          
+          if [ "${{ needs.ios-e2e-tests.result }}" = "success" ]; then
+            echo "✅ iOS E2E Tests: PASSED" >> test-report.md
+          else
+            echo "❌ iOS E2E Tests: FAILED" >> test-report.md
+          fi
+          
+          if [ "${{ needs.security-scan.result }}" = "success" ]; then
+            echo "✅ Security Scan: PASSED" >> test-report.md
+          else
+            echo "❌ Security Scan: FAILED" >> test-report.md
+          fi
+          
+          echo "" >> test-report.md
+          echo "For detailed results, check the individual job outputs and artifacts." >> test-report.md
+
+      - name: Upload test report
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-report
+          path: test-report.md
+          retention-days: 30
+
+      - name: Comment test report on PR
+        if: github.event_name == 'pull_request'
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          recreate: true
+          path: test-report.md
+
+  # Deployment to staging for successful tests
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: [test-report]
+    if: |
+      github.ref == 'refs/heads/develop' && 
+      needs.unit-tests.result == 'success' && 
+      needs.integration-tests.result == 'success' &&
+      (needs.android-e2e-tests.result == 'success' || needs.android-e2e-tests.result == 'skipped') &&
+      (needs.ios-e2e-tests.result == 'success' || needs.ios-e2e-tests.result == 'skipped')
+    environment: staging
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Setup Expo CLI
+        run: npm install -g @expo/cli@${{ env.EXPO_CLI_VERSION }}
+
+      - name: Build and deploy to Expo
+        working-directory: mobile
+        run: |
+          npx expo install --fix
+          npx expo build:web
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Notify deployment success
+        run: echo "✅ Successfully deployed to staging environment"
+
+  # Notification job for test failures
+  notify-failure:
+    name: Notify Test Failures
+    runs-on: ubuntu-latest
+    needs: [test-report]
+    if: |
+      failure() &&
+      (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
+    steps:
+      - name: Send Slack notification
+        if: env.SLACK_WEBHOOK_URL != ''
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+          curl -X POST -H 'Content-type: application/json' \
+            --data '{"text":"🚨 TailTracker test failure on '"${{ github.ref }}"' branch. Check the workflow run for details."}' \
+            $SLACK_WEBHOOK_URL
+
+      - name: Create issue for test failure
+        if: github.ref == 'refs/heads/main'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: 'Test Failure on Main Branch',
+              body: '🚨 Automated tests failed on the main branch. Please investigate and fix.\n\nWorkflow run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}',
+              labels: ['bug', 'testing', 'high-priority']
+            });

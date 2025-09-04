@@ -1,12 +1,17 @@
+// DISABLED: Advanced automatic notifications system removed to simplify push notifications
+// Push notifications are now based only on manual user-created events and lost pet alerts
+// This service provides basic push notification functionality only
+
 import { Platform, Alert } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 import { supabase } from './supabase';
 
 export interface PushNotificationData {
-  type: 'lost_pet_alert' | 'pet_found' | 'general';
+  type: 'lost_pet_alert' | 'pet_found' | 'user_event_reminder' | 'general';
   petId?: string;
   lostPetId?: string;
+  eventType?: string; // For user-created events: 'vaccination', 'vet_visit', 'medication', 'reminder'
   location?: {
     lat: number;
     lng: number;
@@ -50,6 +55,15 @@ class NotificationService {
             shouldPlaySound: true,
             shouldSetBadge: true,
             priority: Notifications.AndroidNotificationPriority.HIGH,
+          };
+        }
+
+        if (data.type === 'user_event_reminder') {
+          return {
+            shouldShowAlert: true,
+            shouldPlaySound: true,
+            shouldSetBadge: true,
+            priority: Notifications.AndroidNotificationPriority.DEFAULT,
           };
         }
 
@@ -165,6 +179,41 @@ class NotificationService {
   }
 
   /**
+   * Schedule a local notification for manual user events only
+   * This replaces automatic scheduling with user-controlled reminders
+   */
+  async scheduleUserEventReminder(
+    eventTitle: string,
+    eventDescription: string,
+    reminderDate: Date,
+    petId: string,
+    eventType: string
+  ) {
+    try {
+      const notificationId = await Notifications.scheduleNotificationAsync({
+        content: {
+          title: eventTitle,
+          body: eventDescription,
+          data: {
+            type: 'user_event_reminder',
+            petId,
+            eventType,
+          },
+          sound: 'default',
+        },
+        trigger: {
+          date: reminderDate,
+        },
+      });
+
+      return notificationId;
+    } catch (error) {
+      console.error('Error scheduling user event reminder:', error);
+      return null;
+    }
+  }
+
+  /**
    * Schedule a local notification (for testing)
    */
   async scheduleLocalNotification(notification: LostPetNotification, delaySeconds: number = 0) {
@@ -200,6 +249,19 @@ class NotificationService {
           { 
             text: 'View Details', 
             onPress: () => this.navigateToLostPetDetails(data)
+          },
+        ]
+      );
+    } else if (data.type === 'user_event_reminder') {
+      // Show in-app alert for user event reminders
+      Alert.alert(
+        notification.request.content.title || 'Pet Event Reminder',
+        notification.request.content.body || 'You have a pet event scheduled',
+        [
+          { text: 'Dismiss', style: 'cancel' },
+          { 
+            text: 'View Pet', 
+            onPress: () => this.navigateToPetProfile(data.petId!)
           },
         ]
       );

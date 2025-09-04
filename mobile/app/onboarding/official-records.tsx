@@ -97,104 +97,6 @@ const InputField: React.FC<InputFieldProps> = ({
   );
 };
 
-interface VetInfoSectionProps {
-  vetName: string;
-  setVetName: (text: string) => void;
-  clinicName: string;
-  setClinicName: (text: string) => void;
-  vetPhone: string;
-  setVetPhone: (text: string) => void;
-  vetEmail: string;
-  setVetEmail: (text: string) => void;
-  vetAddress: string;
-  setVetAddress: (text: string) => void;
-}
-
-const VetInfoSection: React.FC<VetInfoSectionProps> = ({
-  vetName,
-  setVetName,
-  clinicName,
-  setClinicName,
-  vetPhone,
-  setVetPhone,
-  vetEmail,
-  setVetEmail,
-  vetAddress,
-  setVetAddress,
-}) => {
-  return (
-    <Animated.View
-      entering={SlideInDown.delay(600).springify()}
-      style={styles.sectionContainer}
-    >
-      <View style={styles.sectionHeader}>
-        <LinearGradient
-          colors={[COLORS.lightCyan, COLORS.midCyan]}
-          style={styles.sectionIconGradient}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-        >
-          <Ionicons name="medical" size={20} color={COLORS.white} />
-        </LinearGradient>
-        <Text style={styles.sectionTitle}>Veterinarian Information</Text>
-      </View>
-      <Text style={styles.sectionSubtitle}>
-        Add your vet's details for easy access to medical records
-      </Text>
-      
-      <View style={styles.sectionContent}>
-        <InputField
-          label="Clinic Name"
-          value={clinicName}
-          onChangeText={setClinicName}
-          placeholder="e.g. Happy Paws Veterinary Clinic"
-          delay={700}
-          optional
-          icon="business-outline"
-        />
-        <InputField
-          label="Veterinarian Name"
-          value={vetName}
-          onChangeText={setVetName}
-          placeholder="e.g. Dr. Sarah Johnson"
-          delay={750}
-          optional
-          icon="person-outline"
-        />
-        <InputField
-          label="Phone Number"
-          value={vetPhone}
-          onChangeText={setVetPhone}
-          placeholder="+1 (555) 123-4567"
-          keyboardType="phone-pad"
-          delay={800}
-          optional
-          icon="call-outline"
-        />
-        <InputField
-          label="Email"
-          value={vetEmail}
-          onChangeText={setVetEmail}
-          placeholder="info@happypawsvet.com"
-          keyboardType="email-address"
-          delay={850}
-          optional
-          icon="mail-outline"
-        />
-        <InputField
-          label="Address"
-          value={vetAddress}
-          onChangeText={setVetAddress}
-          placeholder="123 Main Street, City, State 12345"
-          multiline
-          delay={900}
-          optional
-          icon="location-outline"
-        />
-      </View>
-    </Animated.View>
-  );
-};
 
 export default function OfficialRecordsScreen() {
   const router = useRouter();
@@ -205,13 +107,7 @@ export default function OfficialRecordsScreen() {
   const params = useLocalSearchParams<{ species?: string }>();
   const species = params.species || 'dog';
 
-  const [microchipNumber, setMicrochipNumber] = useState('');
   const [registrationNumber, setRegistrationNumber] = useState('');
-  const [vetName, setVetName] = useState('');
-  const [clinicName, setClinicName] = useState('');
-  const [vetPhone, setVetPhone] = useState('');
-  const [vetEmail, setVetEmail] = useState('');
-  const [vetAddress, setVetAddress] = useState('');
 
   useEffect(() => {
     // Animate progress bar to show step 4 of 7
@@ -325,39 +221,17 @@ export default function OfficialRecordsScreen() {
           
           <View style={styles.sectionContent}>
             <InputField
-              label="Microchip Number"
-              value={microchipNumber}
-              onChangeText={setMicrochipNumber}
-              placeholder="e.g. 123456789012345"
-              delay={500}
-              optional
-              icon="radio-outline"
-            />
-            <InputField
               label="Registration Number"
               value={registrationNumber}
               onChangeText={setRegistrationNumber}
               placeholder="e.g. KC Registration or License Number"
-              delay={550}
+              delay={500}
               optional
               icon="bookmark-outline"
             />
           </View>
         </Animated.View>
 
-        {/* Veterinarian Section */}
-        <VetInfoSection
-          vetName={vetName}
-          setVetName={setVetName}
-          clinicName={clinicName}
-          setClinicName={setClinicName}
-          vetPhone={vetPhone}
-          setVetPhone={setVetPhone}
-          vetEmail={vetEmail}
-          setVetEmail={setVetEmail}
-          vetAddress={vetAddress}
-          setVetAddress={setVetAddress}
-        />
 
         {/* Info Box */}
         <Animated.View

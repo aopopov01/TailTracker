@@ -27,18 +27,18 @@
 ### Risk-Based Testing Framework
 
 **Critical Risk Areas (Priority 1)**:
-1. **Payment Processing Security** - Revenue impact, PCI compliance
-2. **Lost Pet Alert System** - Core value proposition, emergency functionality
+1. **Payment Processing Security** - Revenue impact, subscription management
+2. **Lost Pet Community System** - Core value proposition, community alerts
 3. **GDPR Data Handling** - Legal compliance, €20M penalty risk
-4. **Cross-Platform Compatibility** - 95% code sharing requires rigorous validation
-5. **Premium Feature Access Control** - Revenue protection, subscription integrity
+4. **Cross-Platform Compatibility** - React Native requires thorough validation
+5. **Family Member Access Control** - Subscription tier enforcement
 
 **High Risk Areas (Priority 2)**:
-- Vaccination tracking accuracy and notifications
+- Basic health record storage and retrieval
 - Photo storage and cloud synchronization
 - Family sharing permissions and access control
-- Location services and geofencing reliability
-- Push notification delivery across devices
+- Location services for lost pet alerts
+- Push notification delivery for community alerts
 
 **Medium Risk Areas (Priority 3)**:
 - UI/UX consistency across platforms

@@ -3,8 +3,28 @@
 
 export { AppleMapsService, type Coordinates, type MapLocation, type AppleMapsOptions } from './AppleMapsService';
 export { iOSNotificationService, type iOSNotificationOptions, type NotificationAction, type NotificationCategory } from './iOSNotificationService';
+export { 
+  unifiedNotificationService, 
+  TailTrackerNotifications,
+  type UnifiedNotification,
+  type NotificationPreferences,
+  type NotificationAnalytics,
+  type NotificationType,
+  type NotificationPriority,
+  type DeliveryChannel,
+  type PermissionState,
+} from './UnifiedNotificationService';
+export { 
+  notificationPermissionManager,
+  type PermissionReason,
+  type PermissionFlowState,
+  type PermissionResult,
+} from './NotificationPermissionManager';
+export { androidNotificationService, type NotificationChannelId } from './AndroidNotificationService';
 export { AppStoreBillingService, type SubscriptionProduct, type PurchaseResult, type RestoreResult } from './AppStoreBillingService';
-export { iOSBiometricsService, type BiometricAuthResult, type KeychainOptions } from './iOSBiometricsService';
+export { iOSBiometricsService } from './iOSBiometricsService';
+export { AndroidBiometricsService } from './AndroidBiometricsService';
+export { BiometricAuthService, biometricAuthService, type BiometricAuthResult, type KeychainOptions } from './BiometricAuthService';
 export { StripePaymentService, type SubscriptionPlan, type PaymentMethodInfo, type SubscriptionStatus, type PurchaseResult as StripePurchaseResult, type PaymentError } from './StripePaymentService';
 export { PaymentInitializationService, type PaymentInitializationResult } from './PaymentInitializationService';
 
@@ -38,10 +58,21 @@ export { PaymentInitializationService, type PaymentInitializationResult } from '
 //    - Provides health checks and error recovery
 //    - Manages user authentication updates across services
 //
-// 4. iOSBiometricsService:
-//    - Face ID and Touch ID authentication
-//    - Secure keychain storage
-//    - Biometric-protected sensitive data
+// 4. BiometricAuthService (Recommended - Cross-platform):
+//    - Unified biometric authentication (iOS & Android)
+//    - Face ID, Touch ID, Fingerprint, Face Recognition
+//    - Cross-platform secure storage
+//    - Automatic platform detection and fallback
+//
+// 5. iOSBiometricsService:
+//    - iOS-specific Face ID and Touch ID authentication
+//    - Keychain-based secure storage
+//    - Use BiometricAuthService instead for new implementations
+//
+// 6. AndroidBiometricsService:
+//    - Android-specific fingerprint and face recognition
+//    - SecureStore-based storage
+//    - Use BiometricAuthService instead for new implementations
 //
 // Platform Compatibility:
 // All services include platform checks and graceful fallbacks

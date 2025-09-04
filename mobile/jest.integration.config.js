@@ -1,9 +1,11 @@
+const baseConfig = require('./package.json').jest;
+
 module.exports = {
-  preset: 'jest-expo',
+  ...baseConfig,
   displayName: 'Integration Tests',
   testMatch: [
-    '**/src/**/*.integration.(test|spec).(ts|tsx|js)',
-    '**/integration/**/*.(test|spec).(ts|tsx|js)'
+    '**/__tests__/**/*integration.(test|spec).(ts|tsx|js)',
+    '**/*integration.(test|spec).(ts|tsx|js)'
   ],
   setupFilesAfterEnv: [
     '@testing-library/jest-native/extend-expect',
@@ -11,15 +13,7 @@ module.exports = {
     '<rootDir>/src/test/integration-setup.ts'
   ],
   testTimeout: 30000,
-  collectCoverageFrom: [
-    'src/services/**/*.{ts,tsx}',
-    'src/api/**/*.{ts,tsx}',
-    '!src/**/*.d.ts',
-    '!src/test/**/*'
-  ],
-  coverageDirectory: 'coverage/integration',
-  transformIgnorePatterns: [
-    'node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg)'
-  ],
-  testEnvironment: 'node'
+  coverageDirectory: '<rootDir>/coverage/integration',
+  globalSetup: '<rootDir>/src/test/global-setup.js',
+  globalTeardown: '<rootDir>/src/test/global-teardown.js',
 };

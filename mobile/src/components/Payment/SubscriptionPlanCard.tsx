@@ -48,7 +48,6 @@ export const SubscriptionPlanCard: React.FC<SubscriptionPlanCardProps> = ({
       medication_tracking: 'Medication tracking',
       advanced_health_tracking: 'Advanced health tracking',
       family_sharing_unlimited: 'Family sharing (up to 10 members)',
-      priority_support: 'Priority customer support',
       basic_profiles: 'Basic pet profiles',
       basic_vaccination_tracking: 'Basic vaccination tracking',
     };

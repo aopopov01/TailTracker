@@ -14,56 +14,46 @@
 ## 🎯 Executive Summary
 
 ### Vision Statement
-**"Every pet deserves comprehensive wellness and family-coordinated care, and every family deserves harmonious pet management with optimal health outcomes."**
+**"Every pet deserves a complete digital passport and every owner deserves simple, reliable pet management."**
 
-TailTracker is not just another pet app—it's the world's first comprehensive Pet Wellness & Family Care Platform that transforms the chaotic landscape of pet care into a seamless, health-focused family experience. By combining intelligent health monitoring, predictive wellness AI, and coordinated family care management, we're creating the essential platform that no pet family can live without.
+TailTracker is a straightforward pet management app that focuses on the essentials: keeping track of your pet's information, health records, and family coordination. No AI, no complex features - just a reliable digital companion for responsible pet ownership.
 
 ### Strategic Positioning
-**"The Only Pet Wellness Platform Your Family Needs"**
+**"Simple, Reliable Pet Management"**
 
-While competitors focus on single features, TailTracker provides the complete wellness ecosystem:
-- **Wellness-First Design**: Comprehensive health monitoring and preventive care
-- **Family Coordination Hub**: Real-time multi-user care management
-- **Predictive Health Intelligence**: 2-4 week early intervention capability
-- **Professional Network**: Direct veterinary marketplace integration
-- **Community Wellness Network**: Local pet parent care coordination and support
+TailTracker focuses on core pet management features:
+- **Digital Pet Passport**: Complete pet profiles with photos and information
+- **Health Records**: Basic health tracking - medications, allergies, vaccinations, and vet visits
+- **Family Access**: Share pet information with family members (read-only access)
+- **Lost Pet Feature**: Quick sharing and alert system when pets go missing
+- **Community Features**: Connect with other pet owners in your neighborhood
 
-### Business Impact Projections
-- **Year 1 Revenue**: €2.4M ARR (150,000 users at 15% conversion)
-- **Market Opportunity**: €42M serviceable addressable market
-- **Competitive Advantage**: First-mover in comprehensive family wellness coordination
-- **ROI**: 5.7:1 marketing return, 28:1 LTV:CAC ratio
-- **International Expansion**: 4 primary European markets
+### Business Goals
+- **Year 1 Target**: €120K ARR (50,000 users with simple monetization)
+- **Primary Market**: European pet owners seeking simple pet management
+- **Competitive Advantage**: Simplicity and family coordination over complex features
+- **Growth Strategy**: Word-of-mouth and essential functionality
 
 ---
 
 ## 🔍 Problem Statement & Market Opportunity
 
-### The Critical Problems We Solve
+### The Problems We Solve
 
-**1. Health Management Fragmentation (87% of pet parents affected)**
-- Current solutions scatter health data across multiple platforms and providers
-- No integrated communication system between family members for care coordination
-- Limited professional veterinary integration for comprehensive health monitoring
-- No centralized health dashboard with real-time family access and updates
+**1. Scattered Pet Information**
+- Pet owners keep important information in multiple places (vet records, photos, notes)
+- Difficulty accessing pet information when needed (travel, vet visits)
+- Lost paperwork and forgotten vaccination dates
 
-**2. Family Care Coordination Chaos (73% report management difficulties)**  
-- Multiple apps needed for different pet care functions
-- No shared family calendar for pet appointments and care routines
-- Miscommunication leads to missed medications and appointments
-- Duplicate or contradictory care instructions between family members
+**2. Basic Health Tracking Needs**
+- Need simple way to track vaccinations and basic health info
+- Want to record vet visits and medications
+- Family members need access to pet health information
 
-**3. Preventive Wellness Failures (65% miss critical health indicators)**
-- Reactive rather than proactive health management
-- No early warning systems for health issues and behavioral changes
-- Limited integration with professional veterinary care and wellness programs
-- Scattered health records across multiple systems and providers
-
-**4. Wellness Tracking Inadequacy (78% lack comprehensive monitoring)**
-- Traditional methods (manual logs, separate apps) create incomplete health pictures
-- No integrated wellness dashboard for family-wide health coordination
-- No professional wellness guidance or preventive care optimization
-- Family stress and poor decision-making during health concerns
+**3. Lost Pet Panic**
+- When pets go missing, owners struggle to quickly share information
+- No easy way to distribute pet information to help with recovery
+- Time-sensitive situations require immediate action
 
 ### Market Opportunity Analysis
 
@@ -78,64 +68,50 @@ While competitors focus on single features, TailTracker provides the complete we
 3. **Post-Pandemic Pet Boom**: +25% new pet adoptions
 4. **Rising Healthcare Costs**: Driving preventive management adoption
 
-**Competitive Landscape Gap:**
-- **11pets**: 2M users but limited family coordination and wellness analytics
-- **Wag!/Rover**: Service-focused, no comprehensive health management
-- **PetDesk**: B2B only, poor consumer experience and family integration
-- **Market Opportunity**: No comprehensive wellness-first family platform exists
+**Competitive Landscape:**
+- **11pets**: 2M users but complex interface
+- **Wag!/Rover**: Service-focused, not record keeping
+- **PetDesk**: B2B focused, not consumer-friendly
+- **Market Opportunity**: Simple, reliable pet management apps are needed
 
 ---
 
 ## 🚀 Product Vision & Strategy
 
-### Revolutionary Vision
-**"Create the world's first comprehensive Pet Wellness & Family Care Platform that makes missing a health opportunity or care coordination failure virtually impossible."**
+### Simple Vision
+**"Create a reliable, easy-to-use pet management app that helps owners keep track of what matters most."**
 
-### Strategic Pillars
+### Core Principles
 
-**1. Wellness-First Architecture**
-- Every feature designed with health optimization and preventive care in mind
-- Real-time health monitoring and family-wide wellness alerts
-- Integration with professional veterinary and wellness services
-- Comprehensive care coordination and reliability
+**1. Simplicity First**
+- Easy to set up and use immediately
+- No complex features that overwhelm users
+- Focus on essential pet management tasks
 
-**2. Family-Centric Design**
-- Real-time collaboration between all family members for pet care
-- Shared responsibility tracking and wellness coordination
-- Age-appropriate interfaces for children and seniors  
-- Collaborative decision-making for health and care management
+**2. Reliability**
+- Works when you need it most (emergencies, travel)
+- Simple reminder system that actually works
+- Secure storage of important pet information
 
-**3. Predictive Wellness Intelligence**
-- AI-powered early health intervention (2-4 weeks advance warning)
-- Behavioral pattern recognition for wellness optimization
-- Personalized care recommendations based on pet profiles and health data
-- Integration with wearable devices and health monitoring sensors
+**3. Essential Features Only**
+- Pet profiles with photos and key information
+- Basic health records and vaccination tracking
+- Family coordination and sharing
+- Lost pet sharing functionality
 
-**4. Professional Network Integration**
-- Direct veterinarian access and consultation
-- Wellness professional coordination and telemedicine
-- Insurance integration and claim automation
-- Professional service marketplace and health recommendations
+### Simple Innovation Strategy
 
-**5. Community Wellness Network**
-- Local pet parent wellness knowledge sharing and support
-- Community-driven care coordination and resource sharing
-- Peer-to-peer wellness tips and experience exchange
-- Social features that enhance wellness through community connection
+**Traditional Pet Apps**: Complex features and overwhelming interfaces
+**TailTracker**: Simple, essential features that actually get used
 
-### "Think Different" Innovation Strategy
-
-**Traditional Pet Apps Think**: Single-function tools for individual use
-**TailTracker Thinks**: Comprehensive family wellness coordination platform
-
-**Traditional Apps Ask**: "How do we track pet activities?"
-**TailTracker Asks**: "How do we optimize pet wellness and ensure perfect family care coordination?"
+**Traditional Apps Ask**: "How many features can we add?"
+**TailTracker Asks**: "What do pet owners actually need most?"
 
 **The TailTracker Difference:**
-- **From Reactive to Predictive**: AI prevents health issues rather than just monitoring them
-- **From Individual to Family**: Every feature considers the entire family care ecosystem
-- **From Isolated to Connected**: Professional and community integration at every level
-- **From Complex to Intuitive**: Comprehensive wellness capability with consumer simplicity
+- **From Complex to Simple**: Focus on what matters most
+- **From Individual to Family**: Coordinate pet care with family members
+- **From Overwhelming to Intuitive**: Easy to learn and use immediately
+- **From Scattered to Organized**: Everything in one simple app
 
 ---
 
@@ -143,258 +119,183 @@ While competitors focus on single features, TailTracker provides the complete we
 
 ### Primary Personas
 
-**1. "Wellness Emma" - Modern Health-Conscious Pet Parent (45% of users)**
+**1. "Organized Emma" - Responsible Pet Parent (45% of users)**
 - **Demographics**: Age 32, Marketing Manager, Munich, €52K income
-- **Psychographics**: Tech-savvy, efficiency-focused, health and wellness oriented
-- **Pet**: Golden Retriever "Max" (3 years), active lifestyle focus
-- **Pain Points**: Health optimization, family care coordination, wellness tracking
+- **Psychographics**: Tech-savvy, efficiency-focused, organized
+- **Pet**: Golden Retriever "Max" (3 years)
+- **Pain Points**: Keeping track of vet appointments, vaccination schedules, medications
 - **Key Use Cases**:
-  - Daily wellness check-ins and health metric tracking
-  - Family coordination for pet care routines and appointments
-  - Preventive health monitoring and early intervention alerts
-  - Sharing wellness milestones and health achievements
-- **Success Metrics**: <30 seconds daily app engagement, 95% appointment adherence, improved pet wellness scores
+  - Maintaining complete pet health records
+  - Setting reminders for vaccinations and vet visits
+  - Tracking medications and allergies
+  - Having pet information ready for emergencies
+- **Success Metrics**: Quick access to pet information, never missing appointments
 
-**2. "Organized Oliver" - Multi-Pet Household Wellness Coordinator (25% of users)**
+**2. "Multi-Pet Oliver" - Multiple Pet Household Manager (25% of users)**
 - **Demographics**: Age 38, IT Director, Amsterdam suburbs, €75K income  
-- **Psychographics**: Family-focused, organization-driven, wellness optimization focused
-- **Pets**: 2 dogs, 1 cat, complex wellness coordination needs
-- **Pain Points**: Health schedule conflicts, family care miscommunication, wellness cost optimization
+- **Psychographics**: Family-focused, organization-driven
+- **Pets**: 2 dogs, 1 cat
+- **Pain Points**: Managing different schedules and requirements for multiple pets
 - **Key Use Cases**:
-  - Coordinating wellness routines across 3 pets and 4 family members
-  - Managing different dietary, exercise, and medication requirements
-  - Health monitoring with clear family responsibility assignment
-  - Budget tracking and wellness cost optimization across multiple pets
-- **Success Metrics**: Zero appointment conflicts, 90% family task completion, optimal wellness scores for all pets
+  - Separate profiles for each pet with individual schedules
+  - Tracking different dietary requirements and medications
+  - Managing multiple vaccination schedules
+  - Quick access to any pet's information
+- **Success Metrics**: Organized pet information, no scheduling conflicts
 
-**3. "Professional Paula" - Pet Wellness Business (15% of users)**
-- **Demographics**: Age 29, Professional Pet Wellness Coordinator, Freelance
-- **Psychographics**: Business-minded, wellness-service focused
-- **Pets**: Manages wellness programs for 15-20 client pets simultaneously
-- **Pain Points**: Client care coordination, wellness record keeping, health monitoring
+**3. "Traveler Paula" - Frequent Pet Traveler (15% of users)**
+- **Demographics**: Age 29, Consultant, Travels frequently
+- **Psychographics**: Mobile lifestyle, needs reliable access to information
+- **Pet**: French Bulldog "Bruno" with specific dietary needs
+- **Pain Points**: Accessing pet information while traveling, emergency situations
 - **Key Use Cases**:
-  - Managing multiple client pets with different wellness requirements
-  - Health monitoring with immediate client and veterinary coordination
-  - Professional wellness reporting and documentation for client confidence
-  - Business growth through referral and wellness outcome systems
-- **Success Metrics**: 100% client satisfaction, 50% business growth annually, measurable pet wellness improvements
+  - Having all pet information available when traveling
+  - Quick sharing of pet details with pet sitters or emergency vets
+  - Accessing vaccination records and health information anywhere
+  - QR code sharing for easy information transfer
+- **Success Metrics**: Quick information access, reliable emergency preparation
 
-**4. "Wellness-First Sarah" - Detail-Oriented Health Advocate (15% of users)**
+**4. "Detail-Oriented Sarah" - Meticulous Record Keeper (15% of users)**
 - **Demographics**: Age 42, Part-time Consultant, Rescue pet owner
-- **Psychographics**: Health-conscious, detail-oriented, proactive wellness planner
-- **Pet**: Rescue German Shepherd with special health and behavioral needs
-- **Pain Points**: Health optimization concerns, comprehensive monitoring, wellness preparedness
+- **Psychographics**: Detail-oriented, thorough, responsible
+- **Pet**: Rescue German Shepherd with special health needs
+- **Pain Points**: Keeping detailed health records, tracking medications and treatments
 - **Key Use Cases**:
-  - Continuous health monitoring with instant family wellness alerts
-  - Detailed behavioral tracking and wellness pattern recognition  
-  - Preventive health action plans with professional coordination
-  - Community wellness network engagement for health optimization strategies
-- **Success Metrics**: Optimal pet wellness scores, comprehensive health tracking, 24/7 wellness confidence
+  - Detailed medical record keeping for rescue pet with complex history
+  - Tracking multiple medications and dosages
+  - Weight and size monitoring for health trends
+  - Comprehensive vaccination and treatment history
+- **Success Metrics**: Complete health records, never missing treatments
 
 ### Core Use Cases by Priority
 
-**P0 - Critical Health Use Cases**
+**P0 - Essential Pet Management Use Cases**
 
-**UC001: Health Crisis Coordination**
-- **Trigger**: Critical health alert or emergency health situation identified
-- **Flow**: Symptom documentation → AI health assessment → Family notification → Veterinary consultation → Care coordination
-- **Outcome**: Professional care initiated within 15 minutes
-- **Success Criteria**: 100% family coordination, professional response <15 minutes
+**UC001: Access Pet Records**
+- **Trigger**: Need to reference pet health records (vet visit, travel, etc.)
+- **Flow**: Open pet profile → View vaccination/medical history → Check allergy/medication info
+- **Outcome**: Quick access to pet information when needed
+- **Success Criteria**: Information accessible within 30 seconds
 
-**UC002: Wellness Intervention Alert**  
-- **Trigger**: AI predicts health issue or significant behavioral change detected
-- **Flow**: Early warning alert → Family notification → Health assessment → Preventive action plan → Professional consultation
-- **Outcome**: Health issue prevented through early intervention
-- **Success Criteria**: 80% successful early intervention, 2-4 weeks advance warning
+**P2 - Premium Use Cases**
 
-**P1 - Daily Wellness Management Use Cases**
+**UC002: Lost Pet Information Sharing** (Premium/Pro Only)
+- **Trigger**: Pet goes missing, premium user needs to share pet information
+- **Flow**: Access pet profile → Share via QR code or link → Contact information available
+- **Outcome**: Pet information easily accessible for anyone who finds the pet
+- **Success Criteria**: Information shared quickly with clear contact details
 
-**UC003: Family Wellness Coordination**
-- **Trigger**: Daily pet wellness routines and care responsibilities across family members
-- **Flow**: Wellness task assignment → Progress tracking → Health communication → Routine completion verification
-- **Outcome**: Zero missed wellness appointments or health routines
-- **Success Criteria**: 95% wellness task completion rate, zero family care conflicts
+**P1 - Daily Management Use Cases**
 
-**UC004: Comprehensive Health Monitoring**
-- **Trigger**: Continuous wellness tracking and behavioral pattern recognition
-- **Flow**: Health data collection → AI wellness analysis → Optimization recommendations → Professional consultation
-- **Outcome**: Optimal wellness maintained through proactive health management
-- **Success Criteria**: 90% wellness goal achievement, improved health metrics over time
+**UC003: Family Access**
+- **Trigger**: Family member needs to access pet information
+- **Flow**: Main user grants access → Family member views pet info → Information accessed as needed
+- **Outcome**: Family members can view pet data when needed
+- **Success Criteria**: All authorized family members can view current pet information
 
-**P2 - Community & Growth Use Cases**
-
-**UC005: Professional Wellness Service Integration**
-- **Trigger**: Need for veterinary or pet wellness services
-- **Flow**: Wellness service request → Professional matching → Appointment scheduling → Service delivery → Health outcome tracking → Review
-- **Outcome**: High-quality professional wellness care with family integration
-- **Success Criteria**: 95% professional service satisfaction rate, measurable wellness improvements
+**UC004: Basic Health Record Keeping**
+- **Trigger**: Vet visit or health event needs to be recorded
+- **Flow**: Add new medical record → Upload documents/photos → Update basic health info
+- **Outcome**: Basic, up-to-date health records accessible to family
+- **Success Criteria**: All basic health events recorded and accessible to family
 
 ---
 
 ## 🛠️ Feature Requirements
 
-### Core Features (Free Tier)
+### Core Features
 
 **F001: Digital Pet Passport**
-- **Description**: Complete pet profile with medical records, photos, and identification
+- **Description**: Complete pet profile with essential information and photos
 - **Requirements**:
-  - Comprehensive pet information form (species, breed, age, medical history)
-  - Photo gallery with automatic organization and tagging
-  - Microchip integration and QR code generation for identification
-  - Basic health record tracking (vaccinations, medications)
-  - Emergency contact information and care instructions
-- **Success Criteria**: 100% profile completion rate within first week
+  - Basic pet information (name, species, breed, age, weight, size)
+  - Pet photos (Free: 1 photo, Premium/Pro: 12 photos per pet)
+  - Food preferences and dietary restrictions
+  - Known allergies and medical conditions
+  - Family member access and sharing
+  - QR code generation for easy sharing
+- **Success Criteria**: Complete pet profiles created easily and shared with family
 - **Technical Specifications**: 
-  - Cloud storage with local caching
-  - Offline access to critical emergency information
-  - GDPR-compliant data encryption
+  - Cloud storage with family access
+  - Image compression and optimization
+  - QR code generation and sharing
 
-**F002: Wellness Dashboard & Monitoring**
-- **Description**: Real-time pet health and wellness tracking with family sharing
+**F002: Basic Health Records**
+- **Description**: Simple health record keeping and vaccination tracking
 - **Requirements**:
-  - Real-time wellness metrics tracking (weight, activity, mood, appetite)
-  - Health history with timeline visualization  
-  - Basic routine zone alerts (feeding times, exercise periods, sleep schedules)
-  - Family wellness data sharing during care routines
-  - Behavioral pattern recognition for wellness optimization
-- **Success Criteria**: 90% wellness goal achievement, comprehensive health tracking
+  - Basic vaccination record with dates and types
+  - Simple medication list with dosages
+  - Basic vet visit history with notes
+  - Weight and size tracking over time
+  - Simple text-based medical notes
+- **Success Criteria**: Basic health records maintained easily
 - **Technical Specifications**:
-  - Integration with health monitoring devices and sensors
-  - Background wellness data processing optimization
-  - Offline health data caching and synchronization
+  - Simple data storage and retrieval
+  - Basic timeline view for health history
+  - Text-based record keeping
 
-**F003: Family Sharing & Communication**
-- **Description**: Multi-user access with role-based permissions
+**F003: Family Access Management**
+- **Description**: Family member invitation and data access system
 - **Requirements**:
-  - Family member invitation and role assignment
-  - Real-time chat and photo sharing about pets
-  - Shared calendar for appointments and care tasks
-  - Task assignment and completion tracking
-  - Emergency contact notification system
-- **Success Criteria**: 90% family member active engagement
+  - Family member invitation system
+  - Read-only access to pet profiles and health records for invited members
+  - Main user controls which pets each family member can access
+  - Simple permission system (owner can add/edit, members can only view)
+- **Success Criteria**: All authorized family members can view pet information
 - **Technical Specifications**:
-  - Real-time synchronization across all devices
-  - Role-based access control (Admin, Caregiver, Child)
-  - Push notification system for important updates
+  - Multi-user authentication with role-based permissions
+  - Data access control based on subscription tier limits
 
-**F004: Basic Health Tracking**
-- **Description**: Essential health monitoring and appointment reminders
+### Core Features (Free Tier)
+
+**F001: Digital Pet Passport** (as previously defined)
+
+**F002: Basic Health Records** (as previously defined)
+
+**F003: Simple Scheduling & Reminders** (as previously defined)
+
+### Optional Premium Features (Simple Add-ons)
+
+### Premium Features (€2.99/month)
+
+**F004: Lost Pet Information Sharing**
+- **Description**: QR code and link sharing system for when pets go missing
 - **Requirements**:
-  - Vaccination schedule tracking with automated reminders
-  - Medication administration logging and reminders  
-  - Weight tracking with visualization
-  - Vet appointment scheduling and reminders
-  - Basic symptom logging for health patterns
-- **Success Criteria**: 95% appointment adherence, zero missed medications
+  - QR code generation for pet profile
+  - Share link creation for pet information
+  - Contact details clearly displayed
+  - Photo sharing capability
+  - Basic pet information accessible via shared link
+- **Success Criteria**: Information easily shareable and accessible
 - **Technical Specifications**:
-  - Calendar integration with family sharing
-  - Smart reminder system based on user behavior
-  - Health data visualization and trend analysis
+  - QR code generation
+  - Shareable link creation
+  - Mobile-optimized shared profile view
 
-### Premium Features (€9.99/month)
-
-**F005: Advanced Health Crisis Management**
-- **Description**: Comprehensive health emergency coordination and response
+**F005: Enhanced Storage & Backup**
+- **Description**: Additional photo storage and backup features
 - **Requirements**:
-  - Instant family health alert system for critical wellness changes
-  - Automatic health emergency contact notification (vets, family, specialists)
-  - Real-time health data sharing with emergency contacts
-  - Health emergency action plan execution with guided steps
-  - Professional veterinary service coordination and telemedicine access
-- **Success Criteria**: <3-second health alert time, >90% health emergency coordination success
+  - Increased photo storage limit (up to 12 photos per pet)
+  - Automatic cloud backup of all data
+  - Data export in multiple formats
+  - **Note: Health records remain identical and basic across all tiers**
+- **Success Criteria**: Enhanced storage provides value
 - **Technical Specifications**:
-  - Redundant communication channels (SMS, push, email, voice)
-  - Integration with veterinary emergency services
-  - Medical-grade reliability and health data security requirements
+  - Additional photo storage allocation
+  - Automated backup scheduling
+  - Export functionality
 
-**F006: Intelligent Routine Zones & Care Reminders**
-- **Description**: AI-powered care routine optimization with predictive wellness capabilities
-- **Requirements**:
-  - Custom routine zone creation with time-based wellness rules (feeding areas, exercise zones, rest spaces)
-  - Intelligent care routine optimization based on behavior and health patterns
-  - Dynamic routine adjustments based on wellness data and seasonal changes
-  - Integration with family schedules and wellness tracking for coordinated care
-  - Advanced reminder customization by family member and pet needs
-- **Success Criteria**: 95% accurate routine optimization, improved wellness adherence
-- **Technical Specifications**:
-  - Machine learning algorithms for wellness routine prediction
-  - Real-time care coordination with complex rule support
-  - Family integration APIs for coordinated wellness management
+### Future Enhancements (Roadmap)
 
-**F007: Predictive Health AI**
-- **Description**: Early health intervention through pattern recognition
-- **Requirements**:
-  - Behavioral pattern recognition for early illness detection
-  - Integration with wearable devices and IoT sensors
-  - AI-powered health assessments and recommendations
-  - Early warning alerts 2-4 weeks before health crises
-  - Professional veterinary consultation scheduling automation
-- **Success Criteria**: 80% early intervention success, 2-4 week advance warning
-- **Technical Specifications**:
-  - Machine learning models for health prediction
-  - Integration with popular pet wearables and sensors
-  - HIPAA-compliant health data processing
+**F006: Multi-Pet Dashboard** (Future release)
+- Consolidated view for households with multiple pets
+- Bulk family coordination across multiple pets
+- Comparative basic health tracking across pets
 
-**F008: Professional Network Access**
-- **Description**: Direct integration with veterinary professionals and services
-- **Requirements**:
-  - Veterinary consultation scheduling and telemedicine
-  - Emergency professional dispatch and coordination  
-  - Integrated insurance claim processing and documentation
-  - Professional service marketplace with reviews and ratings
-  - Direct professional communication and file sharing
-- **Success Criteria**: <15-minute professional response time during emergencies
-- **Technical Specifications**:
-  - Integration with veterinary practice management systems
-  - Telemedicine platform with video consultation capabilities
-  - Insurance API integrations for automated claims
-
-### Pro Features (€19.99/month)
-
-**F009: Advanced Family & Business Tools**
-- **Description**: Professional-grade management for complex households and businesses
-- **Requirements**:
-  - Advanced family coordination with conflict resolution tools
-  - Business management features for pet care professionals
-  - Advanced reporting and analytics for health and behavior trends
-  - Custom integrations with other family management systems
-  - White-label solutions for pet care businesses
-- **Success Criteria**: 100% family harmony, 50% business productivity improvement
-- **Technical Specifications**:
-  - Advanced workflow management and automation
-  - Custom reporting and analytics dashboard
-  - API access for third-party integrations
-
-**F010: AI-Powered Community Wellness Network**
-- **Description**: Neighborhood-wide pet wellness coordination and knowledge sharing
-- **Requirements**:
-  - Local pet parent network with wellness support and coordination capability
-  - Community-wide health alert system for wellness trends and insights
-  - Neighborhood wellness coordination with real-time communication
-  - AI-powered community matching for wellness support, playdates and care sharing
-  - Local wellness resource sharing and veterinary recommendation system
-- **Success Criteria**: 5x improved wellness outcomes through community support and knowledge sharing
-- **Technical Specifications**:
-  - Interest-based community matching algorithms for wellness support
-  - Wellness insight sharing system with privacy protection
-  - Real-time community wellness communication platform
-
-### Future Features (Roadmap)
-
-**F011: Advanced IoT Wellness Hub** (Q2 2026)
-- Smart wellness device and wearable ecosystem integration
-- Home automation integration for wellness routines and care optimization
-- Environmental health monitoring and wellness alerts
-
-**F012: Advanced AI Wellness Insights** (Q3 2026)  
-- Behavioral wellness prediction and optimization recommendations
-- Personalized wellness plan generation with family coordination
-- Health outcome prediction and long-term wellness optimization
-
-**F013: Global Wellness Network** (Q4 2026)
-- International travel wellness coordination and veterinary network access
-- Global professional wellness network integration
-- Multi-language wellness support and care coordination capabilities
+**F007: Community Features** (Future release)
+- Connect with other pet owners in neighborhood
+- Share non-sensitive pet information with local community
+- Lost pet alert system with community notifications
 
 ---
 
@@ -435,10 +336,9 @@ While competitors focus on single features, TailTracker provides the complete we
 ├─────────────────────────────────────────────────────────────────┤
 │ Integration Layer                                              │
 │  ├── Stripe + RevenueCat (Payment Processing)                 │
-│  ├── Health Device APIs (Wellness Monitoring Services)        │
-│  ├── Expo Push Notifications (Real-time Health Alerts)       │
+│  ├── Expo Push Notifications (Family Notifications)          │
 │  ├── Sentry (Error Tracking and Performance)                  │
-│  └── Third-party APIs (Veterinary Services, Health Data)      │
+│  └── Cloud Storage APIs (Document and Photo Storage)          │
 ├─────────────────────────────────────────────────────────────────┤
 │ Infrastructure Layer                                           │
 │  ├── AWS/Google Cloud (Supabase Backend)                      │
@@ -455,10 +355,9 @@ While competitors focus on single features, TailTracker provides the complete we
 - **Language**: TypeScript 5.x with strict configuration
 - **UI Components**: NativeBase + React Native Paper for cross-platform consistency
 - **Navigation**: React Navigation 6 with deep linking and state persistence
-- **Health Monitoring**: React Native health device integrations and wellness tracking
 - **Camera**: expo-camera with image processing and QR code scanning
-- **Sensors**: expo-sensors with health and activity monitoring capabilities
-- **Notifications**: Expo Push Notifications with rich health alert support
+- **Location**: expo-location for lost pet features
+- **Notifications**: Expo Push Notifications for family coordination
 
 **State Management Architecture**
 ```typescript
@@ -471,7 +370,7 @@ const usePetProfiles = () => {
     gcTime: 30 * 60 * 1000,   // 30 minutes
     retry: 3,
     retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
-    networkMode: 'offlineFirst' // Offline-first architecture
+    networkMode: 'offlineFirst'
   });
 };
 
@@ -479,11 +378,9 @@ const usePetProfiles = () => {
 interface AppStore {
   currentPet: Pet | null;
   theme: 'light' | 'dark' | 'system';
-  emergencyMode: boolean;
   familyMembers: FamilyMember[];
   // Actions
   setCurrentPet: (pet: Pet) => void;
-  toggleEmergencyMode: () => void;
   updateFamilyMember: (member: FamilyMember) => void;
 }
 ```
@@ -541,24 +438,7 @@ CREATE TABLE family_members (
   joined_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Health alerts with real-time monitoring
-CREATE TABLE health_alerts (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  pet_id UUID REFERENCES pets(id) ON DELETE CASCADE,
-  family_id UUID REFERENCES families(id) ON DELETE CASCADE,
-  alert_type VARCHAR(50) NOT NULL,
-  severity VARCHAR(20) NOT NULL CHECK (severity IN ('low', 'medium', 'high', 'critical')),
-  health_metrics JSONB,
-  symptoms TEXT[],
-  description TEXT,
-  status VARCHAR(20) DEFAULT 'active' CHECK (status IN ('active', 'resolved', 'monitoring')),
-  created_by UUID REFERENCES auth.users(id),
-  resolved_by UUID REFERENCES auth.users(id),
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  resolved_at TIMESTAMP WITH TIME ZONE
-);
-
--- Health records with comprehensive tracking
+-- Basic health records
 CREATE TABLE health_records (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   pet_id UUID REFERENCES pets(id) ON DELETE CASCADE,
@@ -572,26 +452,24 @@ CREATE TABLE health_records (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Wellness metrics with continuous monitoring
-CREATE TABLE wellness_metrics (
+-- Basic pet measurements
+CREATE TABLE pet_measurements (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   pet_id UUID REFERENCES pets(id) ON DELETE CASCADE,
-  metric_type VARCHAR(50) NOT NULL,
-  metric_value DECIMAL(10,2),
-  metric_unit VARCHAR(20),
+  measurement_type VARCHAR(50) NOT NULL, -- 'weight', 'height', etc.
+  value DECIMAL(10,2),
+  unit VARCHAR(20),
   recorded_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   notes TEXT,
-  recorded_by UUID REFERENCES auth.users(id),
-  device_source VARCHAR(100)
+  recorded_by UUID REFERENCES auth.users(id)
 );
 
 -- Enable Row Level Security
 ALTER TABLE pets ENABLE ROW LEVEL SECURITY;
 ALTER TABLE families ENABLE ROW LEVEL SECURITY;
 ALTER TABLE family_members ENABLE ROW LEVEL SECURITY;
-ALTER TABLE health_alerts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE health_records ENABLE ROW LEVEL SECURITY;
-ALTER TABLE wellness_metrics ENABLE ROW LEVEL SECURITY;
+ALTER TABLE pet_measurements ENABLE ROW LEVEL SECURITY;
 
 -- RLS Policies
 CREATE POLICY "Family members can access pets" ON pets
@@ -659,37 +537,28 @@ CREATE POLICY "Family members can access pets" ON pets
 
 ### Primary Business Metrics
 
-**Revenue & Growth KPIs**
-- **Annual Recurring Revenue (ARR)**: Target €2.4M by end of Year 1
-- **Monthly Recurring Revenue (MRR)**: Target €201,750 by Month 12
-- **Customer Lifetime Value (LTV)**: €340 for Premium, €1,200 for Pro users
-- **Customer Acquisition Cost (CAC)**: <€12 blended average
-- **LTV:CAC Ratio**: >25:1 overall, >8:1 for paid channels
-- **Net Revenue Retention**: >110% annually
-
-**User Acquisition & Conversion Metrics**
-- **Total Registered Users**: 150,000 by end of Year 1
-- **Monthly Active Users (MAU)**: 125,000 by Month 12
-- **Free-to-Premium Conversion Rate**: 15% target (industry benchmark: 5-20%)
-- **Premium-to-Pro Conversion Rate**: 25% target
-- **User Growth Rate**: 15-20% month-over-month in first 6 months
-- **Organic vs Paid Mix**: 45% organic, 55% paid acquisition
+**Revenue & Growth Goals**
+- **Annual Revenue Target**: €120K by end of Year 1
+- **Monthly Revenue Target**: €10K by Month 12
+- **User Growth**: 50,000 registered users by end of Year 1
+- **Monthly Active Users**: 30,000 by Month 12
+- **Simple Conversion**: 5% of users purchase premium storage
+- **Organic Growth Focus**: 80% organic, 20% paid acquisition
 
 ### Product Usage & Engagement Metrics
 
-**Core Feature Adoption**
-- **Digital Pet Passport Completion**: >95% within first week
-- **Family Sharing Activation**: >80% of users add family members
-- **Health Alert System Setup**: >90% complete health monitoring setup
-- **Wellness Record Usage**: >70% log health and wellness information regularly
-- **Wellness Dashboard Activation**: >85% enable comprehensive health tracking
+**Core Feature Usage**
+- **Pet Profile Completion**: >90% complete basic profiles
+- **Photo Upload**: >80% add pet photos
+- **Family Sharing**: >60% invite at least one family member
+- **QR Code Generation**: >50% create shareable QR codes
 
-**User Engagement Metrics**
-- **Daily Active Users (DAU)**: 40% of MAU (50,000 daily users)
-- **Session Frequency**: 4.2 sessions per week per active user
-- **Average Session Duration**: 8.5 minutes per session
-- **Feature Usage Depth**: 6+ features used per month per active user
-- **Push Notification Engagement**: >60% open rate for important alerts
+**User Engagement Goals**
+- **Daily Active Users (DAU)**: 20% of MAU (6,000 daily users)
+- **Session Frequency**: 2-3 sessions per week per active user
+- **Average Session Duration**: 3-5 minutes per session
+- **Feature Usage**: Core features used regularly
+- **Family Access**: >70% of families actively use shared access features
 
 **Retention & Loyalty Metrics**
 - **Day 1 Retention**: >85% (industry benchmark: 70-80%)
@@ -714,21 +583,18 @@ CREATE POLICY "Family members can access pets" ON pets
 - **Self-Service Success Rate**: >80% of issues resolved through help content
 - **User Onboarding Completion**: >80% complete full onboarding flow
 
-### Mission-Critical Wellness & Health Metrics
+### Family Access Metrics
 
-**Health Coordination Effectiveness**
-- **Wellness Goal Achievement Rate**: >90% of pet wellness goals met within target timeframes
-- **Health Alert Response Time**: <3 seconds to all family members
-- **Community Wellness Engagement**: >50% of neighborhood users engage with wellness sharing
-- **Professional Health Coordination**: <15 minutes to veterinary consultation
-- **Family Care Coordination Success**: >95% successful health management coordination
+**Family Access Effectiveness**
+- **Family Member Participation**: >80% of invited family members actively use app
+- **Information Access Success**: >90% of authorized family members can view pet data
+- **Lost Pet Response**: <5 minutes average family notification time
+- **Family Data Sharing**: >85% of families successfully use shared access features
 
-**Wellness & Health Impact Metrics**
-- **Early Health Intervention Success**: >80% successful early interventions
-- **Preventive Care Adherence**: >95% appointment and medication compliance
-- **Health Issue Prevention**: 2-4 weeks early warning achievement through AI prediction
-- **Insurance Claim Success Rate**: >95% successful claim processing
-- **Veterinary Integration Satisfaction**: >90% professional satisfaction rate
+**Basic Health Tracking**
+- **Health Record Completion**: >75% of pets have basic health information
+- **Regular Updates**: >60% of families update pet information monthly
+- **Emergency Preparedness**: >80% have complete emergency contact information
 
 ### Marketing & Growth Metrics
 
@@ -828,27 +694,25 @@ CREATE POLICY "Family members can access pets" ON pets
 
 ### Pricing & Monetization Strategy
 
-**Freemium Model with Clear Value Ladder**
-- **Free Tier**: Basic pet passport, simple GPS tracking, family sharing
-- **Premium Tier** (€9.99/month): Advanced emergency response, intelligent safe zones, health AI
-- **Pro Tier** (€19.99/month): Business tools, advanced analytics, community features
+**Simple Monetization Model**
+- **Free Version**: Basic pet passport, health records, reminders (1 photo limit)
+- **Premium**: Lost pet QR sharing + additional storage up to 10 photos (€2.99/month)
 
-**Revenue Mix Targets**
-- **Subscriptions**: 85% of revenue (primary focus)
-- **Partnership Revenue**: 12% (veterinary commissions, insurance referrals)
-- **Transaction Revenue**: 3% (professional service facilitation)
+**Revenue Sources**
+- **Premium Subscriptions**: 80% of revenue (lost pet + storage features)
+- **One-time Purchases**: 20% (data export, customization)
 
 ### Competitive Differentiation
 
 **Unique Value Proposition**
-"TailTracker is the only pet platform that optimizes wellness rather than just tracking activities, with comprehensive family coordination and community-powered health support."
+"TailTracker is the simple pet management platform that focuses on family coordination and essential pet care without complex features."
 
 **Key Differentiators**
-- **Wellness-First Design**: Comprehensive health optimization vs competitors' basic activity tracking
-- **Family Integration**: Real-time wellness collaboration vs single-user focus
-- **Predictive Intelligence**: AI health intervention 2-4 weeks early vs reactive monitoring
-- **Community Wellness Network**: Neighborhood wellness support vs isolated individual use
-- **Professional Integration**: Direct veterinary access vs disconnected service referrals
+- **Simplicity-First Design**: Essential pet management vs competitors' complex feature overload
+- **Family Integration**: Real-time family coordination vs single-user focus
+- **Community Connection**: Neighborhood pet owner network vs isolated individual use
+- **Lost Pet Focus**: Effective lost pet alert system with community support
+- **Basic Health Tracking**: Simple, accessible health records vs complex monitoring
 
 ---
 
@@ -882,16 +746,15 @@ CREATE POLICY "Family members can access pets" ON pets
 **Phase 2: Growth & Expansion (Months 7-12)**
 
 **Month 7-9: Feature Enhancement & User Growth**
-- 📈 Advanced health coordination features
-- 📈 AI-powered wellness prediction system
-- 📈 Professional network integration
-- 📈 Community wellness network beta
+- 📈 Enhanced family coordination features
+- 📈 Community network integration
+- 📈 Advanced lost pet alert system
 - 📈 International expansion (UK, additional EU markets)
 
 **Month 10-12: Premium Features & Optimization**
-- ⭐ Pro tier launch with advanced features (F009-F010)
-- ⭐ Advanced analytics and reporting dashboard
-- ⭐ Enterprise solutions for pet businesses
+- ⭐ Pro tier launch with advanced family features
+- ⭐ Basic analytics and reporting dashboard
+- ⭐ Enhanced community features
 - ⭐ Prepare for Series A funding round
 - ⭐ Global expansion planning (US market research)
 
@@ -916,11 +779,11 @@ CREATE POLICY "Family members can access pets" ON pets
 - Sprint 8: Launch infrastructure, monitoring systems
 
 **Sprints 9-10 (Month 5): Premium Development**
-- Sprint 9: Advanced health features, intelligent routine zones
-- Sprint 10: AI wellness prediction system foundation
+- Sprint 9: Enhanced family coordination features
+- Sprint 10: Community network foundation
 
 **Sprints 11-12 (Month 6): Scale & Optimize**
-- Sprint 11: Community features beta, professional integrations
+- Sprint 11: Community features beta, lost pet enhancements
 - Sprint 12: Performance optimization for scale, international prep
 
 ### Parallel Development Strategy
@@ -938,9 +801,9 @@ CREATE POLICY "Family members can access pets" ON pets
 - Supabase Integration Specialist
 - DevOps & Infrastructure Engineer
 
-**Workstream 3: AI & Analytics (2 people)**
-- AI/ML Engineer (Health Prediction)
-- Data Scientist (Behavioral Analytics)
+**Workstream 3: Community & Analytics (2 people)**
+- Community Features Developer
+- Data Analyst (User Analytics)
 
 **Workstream 4: Quality & Security (2 people)**
 - QA Lead & Test Automation
@@ -1231,19 +1094,19 @@ CREATE POLICY "Family members can access pets" ON pets
 
 ### The TailTracker Revolution
 
-**We are not building just another pet app. We are creating the essential platform that fundamentally transforms how families optimize wellness and coordinate care for their most beloved companions.**
+**We are not building just another pet app. We are creating the essential platform that fundamentally transforms how families coordinate care for their most beloved companions.**
 
-**Traditional pet care is reactive, isolated, and fragmented. TailTracker makes it predictive, connected, and holistic.**
+**Traditional pet care is isolated and fragmented. TailTracker makes it connected and coordinated.**
 
-**Every feature, every decision, every line of code is designed with one purpose: ensure that every pet achieves optimal wellness, no health opportunity goes unnoticed, and no family ever struggles with care coordination alone.**
+**Every feature, every decision, every line of code is designed with one purpose: ensure that every family can easily coordinate pet care, no important information goes missing, and no family ever struggles with pet management alone.**
 
 ### "Think Different" Legacy
 
-**Here's to the pet parents who refuse to accept that suboptimal pet wellness is inevitable.**
+**Here's to the pet parents who refuse to accept that pet care coordination should be complicated.**
 **Here's to the families who believe technology should serve love, not complicate it.**  
-**Here's to the innovators who see wellness optimization as more important than reactive care.**
+**Here's to the innovators who see simple solutions as more important than complex features.**
 
-**TailTracker is built by and for the people who think they can revolutionize pet wellness forever.**
+**TailTracker is built by and for the people who think they can revolutionize pet care coordination forever.**
 
 **And they're right.**
 
@@ -1251,7 +1114,7 @@ CREATE POLICY "Family members can access pets" ON pets
 
 *"The people who are crazy enough to think they can change the world are the ones who do." - Steve Jobs*
 
-*TailTracker: Revolutionizing pet wellness and family care coordination, one family at a time.*
+*TailTracker: Revolutionizing pet care coordination and family management, one family at a time.*
 
 **Document Status**: ✅ Complete and Ready for Implementation
 **Team Authorization**: Ready for immediate development team deployment

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useReducer, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, useRef, ReactNode } from 'react';
 import { User, UserCredentials, UserRegistration, LoginResult, RegistrationResult } from '../types/User';
 import { AuthService } from '../services/authService';
 import { SessionService } from '../services/sessionService';
@@ -76,6 +76,14 @@ const initialState: AuthState = {
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [state, dispatch] = useReducer(authReducer, initialState);
+  const isMountedRef = useRef(true);
+  
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   // Initialize authentication state on app start
   useEffect(() => {
@@ -84,9 +92,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         dispatch({ type: 'SET_LOADING', payload: true });
         
         const currentUser = await AuthService.getCurrentUser();
+        if (!isMountedRef.current) return; // Prevent state update on unmounted component
+        
         if (currentUser) {
           // Refresh session to ensure it's still valid
           const isValid = await AuthService.refreshSession();
+          if (!isMountedRef.current) return; // Prevent state update on unmounted component
+          
           if (isValid) {
             dispatch({ type: 'LOGIN_SUCCESS', payload: currentUser });
           } else {
@@ -97,9 +109,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
       } catch (error) {
         console.error('Auth initialization error:', error);
-        dispatch({ type: 'LOGOUT' });
+        if (isMountedRef.current) {
+          dispatch({ type: 'LOGOUT' });
+        }
       } finally {
-        dispatch({ type: 'SET_LOADING', payload: false });
+        if (isMountedRef.current) {
+          dispatch({ type: 'SET_LOADING', payload: false });
+        }
       }
     };
 
@@ -112,17 +128,26 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     const refreshInterval = setInterval(async () => {
       try {
+        if (!isMountedRef.current) return; // Prevent operations on unmounted component
+        
         const refreshed = await AuthService.refreshSession();
+        if (!isMountedRef.current) return; // Prevent state update on unmounted component
+        
         if (!refreshed) {
           dispatch({ type: 'LOGOUT' });
         }
       } catch (error) {
         console.error('Session refresh error:', error);
-        dispatch({ type: 'LOGOUT' });
+        if (isMountedRef.current) {
+          dispatch({ type: 'LOGOUT' });
+        }
       }
     }, 15 * 60 * 1000); // Refresh every 15 minutes
 
-    return () => clearInterval(refreshInterval);
+    // Critical fix: Always clear interval on cleanup
+    return () => {
+      clearInterval(refreshInterval);
+    };
   }, [state.isAuthenticated]);
 
   const login = async (credentials: UserCredentials): Promise<LoginResult> => {
@@ -187,9 +212,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const refreshSession = async (): Promise<boolean> => {
     try {
       const refreshed = await AuthService.refreshSession();
+      if (!isMountedRef.current) return false; // Prevent state update on unmounted component
       
       if (refreshed) {
         const currentUser = await AuthService.getCurrentUser();
+        if (!isMountedRef.current) return false; // Prevent state update on unmounted component
+        
         if (currentUser) {
           dispatch({ type: 'UPDATE_USER', payload: currentUser });
         }
@@ -200,7 +228,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       return refreshed;
     } catch (error) {
       console.error('Session refresh error:', error);
-      dispatch({ type: 'LOGOUT' });
+      if (isMountedRef.current) {
+        dispatch({ type: 'LOGOUT' });
+      }
       return false;
     }
   };

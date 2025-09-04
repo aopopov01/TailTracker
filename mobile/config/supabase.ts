@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import Constants from 'expo-constants';
+import { createEnhancedSupabaseClient } from '../src/services/EnhancedSupabaseClient';
 
 // Supabase configuration - TailTracker Production Project
 const supabaseUrl = Constants.expoConfig?.extra?.supabaseUrl || process.env.EXPO_PUBLIC_SUPABASE_URL || 'https://tkcajpwdlsavqfqhdawy.supabase.co';
@@ -9,7 +10,10 @@ if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('Missing Supabase configuration. Please check your environment variables.');
 }
 
-// Create Supabase client with enhanced configuration for React Native
+// Create enhanced Supabase client with error recovery
+export const supabaseEnhanced = createEnhancedSupabaseClient(supabaseUrl, supabaseAnonKey);
+
+// Create standard Supabase client for backward compatibility
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     autoRefreshToken: true,

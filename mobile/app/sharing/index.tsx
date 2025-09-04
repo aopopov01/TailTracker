@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   SafeAreaView,
 } from 'react-native';
-import { MaterialIcons } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { TailTrackerModal } from '../../src/components/UI/TailTrackerModal';
 import QRCodeGenerator from '../../src/components/Sharing/QRCodeGenerator';
@@ -29,7 +29,7 @@ const SharingScreen: React.FC = () => {
       style?: 'default' | 'destructive' | 'primary';
       onPress: () => void;
     }>;
-    icon?: keyof typeof MaterialIcons.glyphMap;
+    icon?: keyof typeof Ionicons.glyphMap;
   }>({
     visible: false,
     title: '',
@@ -52,7 +52,7 @@ const SharingScreen: React.FC = () => {
         title: 'Authentication Required',
         message: 'Please log in to use sharing features.',
         type: 'warning',
-        icon: 'lock',
+        icon: 'lock-closed',
         actions: [{ text: 'Go Back', style: 'primary', onPress: () => { hideModal(); router.back(); } }]
       });
     }
@@ -68,7 +68,7 @@ const SharingScreen: React.FC = () => {
       title: 'Access Granted!',
       message: 'You now have access to shared pet information.',
       type: 'success',
-      icon: 'check-circle',
+      icon: 'checkmark-circle',
       actions: [
         {
           text: 'View Shared Pets',
@@ -146,7 +146,7 @@ const MainSharingScreen: React.FC<MainSharingScreenProps> = ({ onNavigate }) => 
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <MaterialIcons name="arrow-back" size={24} color="#007AFF" />
+          <Ionicons name="arrow-back" size={24} color="#007AFF" />
         </TouchableOpacity>
         <Text style={styles.title}>Pet Sharing</Text>
         <View style={styles.placeholder} />
@@ -155,7 +155,7 @@ const MainSharingScreen: React.FC<MainSharingScreenProps> = ({ onNavigate }) => 
       {/* Content */}
       <View style={styles.content}>
         <View style={styles.introContainer}>
-          <MaterialIcons name="pets" size={64} color="#007AFF" />
+          <Ionicons name="paw" size={64} color="#007AFF" />
           <Text style={styles.introTitle}>Share Your Pet Information</Text>
           <Text style={styles.introText}>
             Securely share your pet's information with family, friends, or veterinarians 
@@ -170,13 +170,13 @@ const MainSharingScreen: React.FC<MainSharingScreenProps> = ({ onNavigate }) => 
             onPress={() => onNavigate('generate')}
           >
             <View style={styles.actionIconContainer}>
-              <MaterialIcons name="qr-code" size={32} color="#007AFF" />
+              <Ionicons name="qr-code" size={32} color="#007AFF" />
             </View>
             <Text style={styles.actionTitle}>Generate QR Code</Text>
             <Text style={styles.actionDescription}>
               Create a secure QR code that others can scan to access your pet information
             </Text>
-            <MaterialIcons name="arrow-forward" size={20} color="#C7C7CC" />
+            <Ionicons name="arrow-forward" size={20} color="#C7C7CC" />
           </TouchableOpacity>
 
           <TouchableOpacity 
@@ -184,13 +184,13 @@ const MainSharingScreen: React.FC<MainSharingScreenProps> = ({ onNavigate }) => 
             onPress={() => onNavigate('scan')}
           >
             <View style={styles.actionIconContainer}>
-              <MaterialIcons name="qr-code-scanner" size={32} color="#34C759" />
+              <Ionicons name="scan" size={32} color="#34C759" />
             </View>
             <Text style={styles.actionTitle}>Scan QR Code</Text>
             <Text style={styles.actionDescription}>
               Scan someone else's QR code to access their pet information
             </Text>
-            <MaterialIcons name="arrow-forward" size={20} color="#C7C7CC" />
+            <Ionicons name="arrow-forward" size={20} color="#C7C7CC" />
           </TouchableOpacity>
 
           <TouchableOpacity 
@@ -198,13 +198,13 @@ const MainSharingScreen: React.FC<MainSharingScreenProps> = ({ onNavigate }) => 
             onPress={() => router.push('/sharing/shared-pets')}
           >
             <View style={styles.actionIconContainer}>
-              <MaterialIcons name="visibility" size={32} color="#FF9500" />
+              <Ionicons name="eye" size={32} color="#FF9500" />
             </View>
             <Text style={styles.actionTitle}>View Shared Pets</Text>
             <Text style={styles.actionDescription}>
               View pet information that has been shared with you
             </Text>
-            <MaterialIcons name="arrow-forward" size={20} color="#C7C7CC" />
+            <Ionicons name="arrow-forward" size={20} color="#C7C7CC" />
           </TouchableOpacity>
 
           <TouchableOpacity 
@@ -212,19 +212,19 @@ const MainSharingScreen: React.FC<MainSharingScreenProps> = ({ onNavigate }) => 
             onPress={() => onNavigate('manage')}
           >
             <View style={styles.actionIconContainer}>
-              <MaterialIcons name="settings" size={32} color="#8E8E93" />
+              <Ionicons name="settings" size={32} color="#8E8E93" />
             </View>
             <Text style={styles.actionTitle}>Manage Sharing</Text>
             <Text style={styles.actionDescription}>
               View and revoke active sharing codes and user access
             </Text>
-            <MaterialIcons name="arrow-forward" size={20} color="#C7C7CC" />
+            <Ionicons name="arrow-forward" size={20} color="#C7C7CC" />
           </TouchableOpacity>
         </View>
 
         {/* Security Notice */}
         <View style={styles.securityNotice}>
-          <MaterialIcons name="security" size={20} color="#FF9500" />
+          <Ionicons name="shield" size={20} color="#FF9500" />
           <View style={styles.securityTextContainer}>
             <Text style={styles.securityTitle}>Security & Privacy</Text>
             <Text style={styles.securityText}>

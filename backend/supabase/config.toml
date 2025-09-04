@@ -1,8 +1,8 @@
 # TailTracker Supabase Configuration
 # Production-ready setup for backend infrastructure
 
-project_id = "your-project-id"
-organization_id = "your-org-id"
+project_id = "tkcajpwdlsavqfqhdawy"
+organization_id = "miinfponrhhuqosqqlxq"
 
 [api]
 port = 54321
@@ -35,11 +35,11 @@ test_otp = "123456"
 
 [auth.external.google]
 enabled = true
-redirect_uri = "https://your-project-id.supabase.co/auth/v1/callback"
+redirect_uri = "https://tkcajpwdlsavqfqhdawy.supabase.co/auth/v1/callback"
 
 [auth.external.apple]
 enabled = true
-redirect_uri = "https://your-project-id.supabase.co/auth/v1/callback"
+redirect_uri = "https://tkcajpwdlsavqfqhdawy.supabase.co/auth/v1/callback"
 
 [auth.external.github]
 enabled = false

@@ -36,23 +36,23 @@ export const PremiumGate: React.FC<PremiumGateProps> = ({
   const defaultTitles: Record<string, string> = {
     unlimited_pets: 'Unlimited Pets',
     unlimited_photos: 'Unlimited Photos',
+    push_notifications: 'Push Notifications',
     lost_pet_alerts: 'Lost Pet Alerts',
     vaccination_reminders: 'Vaccination Reminders',
     medication_tracking: 'Medication Tracking',
     advanced_health_tracking: 'Advanced Health Tracking',
     family_sharing_unlimited: 'Family Sharing',
-    priority_support: 'Priority Support',
   };
 
   const defaultDescriptions: Record<string, string> = {
     unlimited_pets: 'Add as many pets as you want to your family.',
     unlimited_photos: 'Upload unlimited photos for each of your pets.',
-    lost_pet_alerts: 'Get instant alerts and GPS tracking when your pet goes missing.',
+    push_notifications: 'Receive instant push notifications for pet alerts, reminders, and emergencies.',
+    lost_pet_alerts: 'Report lost pets with location pins and contact info. Community alerts sent to all nearby users.',
     vaccination_reminders: 'Never miss a vaccination with smart reminders.',
     medication_tracking: 'Track medications and get dosage reminders.',
     advanced_health_tracking: 'Monitor your pet\'s health with detailed tracking.',
     family_sharing_unlimited: 'Share pet profiles with up to 10 family members.',
-    priority_support: 'Get priority customer support when you need help.',
   };
 
   const defaultBenefits: Record<string, string[]> = {
@@ -67,10 +67,10 @@ export const PremiumGate: React.FC<PremiumGateProps> = ({
       'Create beautiful pet albums',
     ],
     lost_pet_alerts: [
-      'GPS tracking and location alerts',
-      'Instant notifications to your network',
-      'Social media integration for wider reach',
-      'QR code tags for quick identification',
+      'Post lost pet alerts with last known location',
+      'Add contact phone number and custom message',
+      'Community receives push notifications to help',
+      'Pin location on map for all users to see',
     ],
     vaccination_reminders: [
       'Smart vaccination scheduling',
@@ -95,12 +95,6 @@ export const PremiumGate: React.FC<PremiumGateProps> = ({
       'Role-based access controls',
       'Real-time collaboration',
       'Family activity timeline',
-    ],
-    priority_support: [
-      '24/7 priority customer support',
-      'Faster response times',
-      'Direct access to pet care experts',
-      'Video consultation options',
     ],
   };
 

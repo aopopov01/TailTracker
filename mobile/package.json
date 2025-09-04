@@ -72,6 +72,7 @@
     "@react-native-masked-view/masked-view": "0.3.2",
     "@stripe/stripe-react-native": "0.45.0",
     "@supabase/supabase-js": "^2.45.4",
+    "date-fns": "^2.30.0",
     "expo": "53.0.22",
     "expo-application": "~6.1.5",
     "expo-auth-session": "~6.2.1",
@@ -94,6 +95,7 @@
     "expo-linear-gradient": "^14.1.5",
     "expo-linking": "~7.1.7",
     "expo-local-authentication": "^16.0.5",
+    "expo-location": "^18.1.6",
     "expo-media-library": "^17.1.7",
     "expo-notifications": "~0.31.4",
     "expo-router": "~5.1.5",
@@ -111,9 +113,12 @@
     "react-hook-form": "^7.52.2",
     "react-native": "0.79.5",
     "react-native-biometrics": "^3.0.1",
+    "react-native-calendars": "^1.1302.0",
+    "react-native-chart-kit": "^6.12.0",
     "react-native-gesture-handler": "~2.24.0",
     "react-native-haptic-feedback": "^2.3.3",
     "react-native-keychain": "^8.2.0",
+    "react-native-maps": "^1.26.1",
     "react-native-paper": "^5.12.3",
     "react-native-permissions": "^4.1.5",
     "react-native-purchases": "^7.28.1",
@@ -121,17 +126,13 @@
     "react-native-reanimated": "~3.17.4",
     "react-native-safe-area-context": "5.4.0",
     "react-native-screens": "~4.11.1",
+    "react-native-super-grid": "^5.0.0",
     "react-native-svg": "15.11.2",
     "react-native-swipe-row": "^1.0.3",
     "react-native-vector-icons": "^10.0.3",
     "react-query": "^3.39.3",
     "sharp": "^0.34.3",
-    "zustand": "^4.5.4",
-    "@react-native-community/datetimepicker": "^8.4.1",
-    "react-native-chart-kit": "^6.12.0",
-    "react-native-calendars": "^1.1302.0",
-    "date-fns": "^2.30.0",
-    "react-native-super-grid": "^5.0.0"
+    "zustand": "^4.5.4"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",
@@ -171,11 +172,53 @@
     "collectCoverageFrom": [
       "src/**/*.{ts,tsx}",
       "!src/**/*.d.ts",
-      "!src/test/**/*"
+      "!src/test/**/*",
+      "!src/**/*.stories.{ts,tsx}",
+      "!src/**/*.config.{ts,js}",
+      "!src/**/index.{ts,tsx}"
     ],
+    "coverageThreshold": {
+      "global": {
+        "branches": 90,
+        "functions": 90,
+        "lines": 90,
+        "statements": 90
+      },
+      "./src/hooks/": {
+        "branches": 95,
+        "functions": 95,
+        "lines": 95,
+        "statements": 95
+      },
+      "./src/services/": {
+        "branches": 95,
+        "functions": 95,
+        "lines": 95,
+        "statements": 95
+      }
+    },
+    "coverageReporters": [
+      "text",
+      "text-summary",
+      "lcov",
+      "html",
+      "json-summary"
+    ],
+    "testEnvironment": "jsdom",
+    "testTimeout": 10000,
+    "maxWorkers": "50%",
+    "verbose": true,
     "transformIgnorePatterns": [
-      "node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg)"
-    ]
+      "node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg|@supabase|zustand|react-hook-form)"
+    ],
+    "moduleNameMapper": {
+      "^@/(.*)$": "<rootDir>/src/$1",
+      "^@components/(.*)$": "<rootDir>/src/components/$1",
+      "^@services/(.*)$": "<rootDir>/src/services/$1",
+      "^@hooks/(.*)$": "<rootDir>/src/hooks/$1",
+      "^@utils/(.*)$": "<rootDir>/src/utils/$1",
+      "^@types/(.*)$": "<rootDir>/src/types/$1"
+    }
   },
   "private": true,
   "engines": {

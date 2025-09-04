@@ -11,13 +11,13 @@ import {
 import { LineChart } from 'react-native-chart-kit';
 import { format } from 'date-fns';
 import { wellnessService, WellnessHelpers } from '../../src/services/WellnessService';
-import { WellnessMetrics, CareTask, WellnessAlert } from '../../src/types/Wellness';
+import { CareTask, WellnessAlert } from '../../src/types/Wellness';
 
 const { width: screenWidth } = Dimensions.get('window');
 
 export default function WellnessDashboardScreen() {
   const [refreshing, setRefreshing] = useState(false);
-  const [selectedPetId, setSelectedPetId] = useState<string | null>(null);
+  const [selectedPetId] = useState<string | null>(null);
   const [todaysTasks, setTodaysTasks] = useState<CareTask[]>([]);
   const [recentAlerts, setRecentAlerts] = useState<WellnessAlert[]>([]);
   const [wellnessScore, setWellnessScore] = useState<number>(0);

@@ -1,12 +1,37 @@
 {
-  "testRunner": "jest",
-  "runnerConfig": "e2e/config.json",
-  "skipLegacyWorkersInjection": true,
+  "testRunner": {
+    "args": {
+      "config": "e2e/jest.config.js",
+      "maxWorkers": 1,
+      "globalSetup": "detox/runners/jest/globalSetup",
+      "globalTeardown": "detox/runners/jest/globalTeardown",
+      "setupFilesAfterEnv": ["<rootDir>/e2e/init.js"],
+      "testTimeout": 120000,
+      "reporters": ["detox/runners/jest/reporter"],
+      "verbose": true
+    },
+    "jest": {
+      "setupFilesAfterEnv": ["<rootDir>/e2e/init.js"]
+    }
+  },
   "apps": {
+    "ios.debug": {
+      "type": "ios.app",
+      "binaryPath": "ios/build/Build/Products/Debug-iphonesimulator/TailTracker.app",
+      "build": "cd ios && xcodebuild -workspace TailTracker.xcworkspace -scheme TailTracker -configuration Debug -sdk iphonesimulator -derivedDataPath ../ios/build -destination 'platform=iOS Simulator,name=iPhone 14'"
+    },
+    "ios.release": {
+      "type": "ios.app",
+      "binaryPath": "ios/build/Build/Products/Release-iphonesimulator/TailTracker.app",
+      "build": "cd ios && xcodebuild -workspace TailTracker.xcworkspace -scheme TailTracker -configuration Release -sdk iphonesimulator -derivedDataPath ../ios/build -destination 'platform=iOS Simulator,name=iPhone 14'"
+    },
     "android.debug": {
       "type": "android.apk",
       "binaryPath": "android/app/build/outputs/apk/debug/app-debug.apk",
-      "build": "cd android && ./gradlew assembleDebug assembleAndroidTest -DtestBuildType=debug"
+      "build": "cd android && ./gradlew assembleDebug assembleAndroidTest -DtestBuildType=debug",
+      "reversePorts": [
+        8081
+      ]
     },
     "android.release": {
       "type": "android.apk",
@@ -15,10 +40,10 @@
     }
   },
   "devices": {
-    "emulator": {
-      "type": "android.emulator",
+    "simulator": {
+      "type": "ios.simulator",
       "device": {
-        "avdName": "Pixel_4_API_30"
+        "type": "iPhone 14"
       }
     },
     "attached": {
@@ -27,19 +52,36 @@
         "adbName": ".*"
       }
     },
+    "emulator": {
+      "type": "android.emulator",
+      "device": {
+        "avdName": "Pixel_3a_API_30_x86"
+      },
+      "utilBinaryPaths": [
+        "/usr/local/bin/"
+      ]
+    },
     "genymotion": {
       "type": "android.genycloud",
       "device": {
-        "recipeUUID": "your-recipe-uuid-here"
+        "recipeName": "detox-test"
       }
     }
   },
   "configurations": {
-    "android.debug": {
+    "ios.sim.debug": {
+      "device": "simulator",
+      "app": "ios.debug"
+    },
+    "ios.sim.release": {
+      "device": "simulator",
+      "app": "ios.release"
+    },
+    "android.emu.debug": {
       "device": "emulator",
       "app": "android.debug"
     },
-    "android.release": {
+    "android.emu.release": {
       "device": "emulator",
       "app": "android.release"
     },
@@ -52,50 +94,21 @@
       "app": "android.release"
     }
   },
-  "logger": {
-    "level": "info",
-    "overrideConsole": false,
-    "options": {
-      "showLoggerName": true,
-      "showLevel": true,
-      "showTimestamp": true,
-      "showPid": false
-    }
-  },
-  "artifacts": {
-    "rootDir": "artifacts",
-    "pathBuilder": "./e2e/artifacts-path-builder.js",
-    "plugins": {
-      "screenshot": {
-        "enabled": true,
-        "shouldTakeAutomaticSnapshots": true,
-        "keepOnlyFailedTestsArtifacts": false,
-        "takeWhen": {
-          "testStart": false,
-          "testDone": true,
-          "testFailure": true
-        }
-      },
-      "video": {
-        "enabled": true,
-        "keepOnlyFailedTestsArtifacts": false,
-        "bitrate": 2000000
-      },
-      "instruments": {
-        "enabled": false
-      },
-      "log": {
-        "enabled": true,
-        "keepOnlyFailedTestsArtifacts": false
-      }
-    }
-  },
   "behavior": {
     "init": {
       "exposeGlobals": false
     },
     "cleanup": {
       "shutdownDevice": false
+    }
+  },
+  "logger": {
+    "level": "info",
+    "overrideConsole": true,
+    "options": {
+      "showLoggerName": true,
+      "showLevel": true,
+      "showMetadata": false
     }
   }
 }

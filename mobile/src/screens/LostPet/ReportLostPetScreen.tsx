@@ -5,6 +5,7 @@ import {
   Alert,
   ScrollView,
   Platform,
+  AccessibilityInfo,
 } from 'react-native';
 import {
   Text,
@@ -44,11 +45,22 @@ const ReportLostPetScreen: React.FC<ReportLostPetScreenProps> = ({ route }) => {
   const [urgencyLevel, setUrgencyLevel] = useState<'high' | 'medium' | 'low'>('high');
   const [lastSeenAddress, setLastSeenAddress] = useState('');
   const [selectedLocation, setSelectedLocation] = useState<{lat: number; lng: number} | null>(null);
+  const [isScreenReaderEnabled, setIsScreenReaderEnabled] = useState(false);
+  const [locationSelectionMode, setLocationSelectionMode] = useState<'current' | 'manual' | 'selected'>('current');
 
-  // Get current location on mount
+  // Check accessibility and get current location on mount
   useEffect(() => {
-    getCurrentLocation();
+    checkAccessibilityAndInit();
   }, []);
+
+  const checkAccessibilityAndInit = async () => {
+    // Check if screen reader is enabled
+    const screenReaderEnabled = await AccessibilityInfo.isScreenReaderEnabled();
+    setIsScreenReaderEnabled(screenReaderEnabled);
+    
+    // Get current location
+    getCurrentLocation();
+  };
 
   const getCurrentLocation = async () => {
     try {
@@ -76,16 +88,48 @@ const ReportLostPetScreen: React.FC<ReportLostPetScreenProps> = ({ route }) => {
   const handleMapPress = (event: any) => {
     const { latitude, longitude } = event.nativeEvent.coordinate;
     setSelectedLocation({ lat: latitude, lng: longitude });
+    setLocationSelectionMode('selected');
     
     // Get address for selected location
     Location.reverseGeocodeAsync({ latitude, longitude }).then((result) => {
       if (result.length > 0) {
         const address = result[0];
-        setLastSeenAddress(
-          `${address.name || ''} ${address.street || ''}, ${address.city || ''}, ${address.region || ''}`
-        );
+        const newAddress = `${address.name || ''} ${address.street || ''}, ${address.city || ''}, ${address.region || ''}`;
+        setLastSeenAddress(newAddress);
+        
+        // Announce location change to screen readers
+        if (isScreenReaderEnabled) {
+          AccessibilityInfo.announceForAccessibility(
+            `Location selected: ${newAddress}. Pet ${pet.name} was last seen here.`
+          );
+        }
       }
     });
+  };
+
+  const handleUseCurrentLocation = async () => {
+    try {
+      setLoading(true);
+      await getCurrentLocation();
+      setLocationSelectionMode('current');
+      
+      if (isScreenReaderEnabled) {
+        AccessibilityInfo.announceForAccessibility(
+          `Using your current location for ${pet.name}'s last seen location.`
+        );
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleManualAddressEntry = () => {
+    setLocationSelectionMode('manual');
+    if (isScreenReaderEnabled) {
+      AccessibilityInfo.announceForAccessibility(
+        'Switched to manual address entry mode. You can now type the address where your pet was last seen.'
+      );
+    }
   };
 
   const handleReportLostPet = async () => {
@@ -178,29 +222,84 @@ const ReportLostPetScreen: React.FC<ReportLostPetScreenProps> = ({ route }) => {
           </Card.Content>
           
           {location ? (
-            <MapView
-              style={styles.map}
-              provider={PROVIDER_GOOGLE}
-              region={{
-                latitude: location.lat,
-                longitude: location.lng,
-                latitudeDelta: 0.0922,
-                longitudeDelta: 0.0421,
-              }}
-              onPress={handleMapPress}
-            >
-              {selectedLocation && (
-                <Marker
-                  coordinate={{
-                    latitude: selectedLocation.lat,
-                    longitude: selectedLocation.lng,
-                  }}
-                  title={`${pet.name} last seen here`}
-                  description={lastSeenAddress}
-                  pinColor={getUrgencyColor(urgencyLevel)}
-                />
+            <View>
+              {/* Screen Reader Alternative */}
+              {isScreenReaderEnabled && (
+                <View style={styles.accessibleLocationContainer}>
+                  <Text style={styles.accessibleLocationTitle}>
+                    Location Selection (Accessible Mode)
+                  </Text>
+                  <Text style={styles.accessibleLocationDescription}>
+                    Since you're using a screen reader, we've provided accessible alternatives to the map.
+                  </Text>
+                  
+                  <View style={styles.accessibleButtonsContainer}>
+                    <Button
+                      mode="outlined"
+                      onPress={handleUseCurrentLocation}
+                      style={[styles.accessibleButton, locationSelectionMode === 'current' && styles.selectedButton]}
+                      contentStyle={{ paddingVertical: 8 }}
+                      disabled={loading}
+                      accessibilityLabel="Use my current location as where the pet was last seen"
+                      accessibilityHint="This will use your device's current location"
+                      accessibilityState={{ selected: locationSelectionMode === 'current' }}
+                    >
+                      Use Current Location
+                    </Button>
+                    
+                    <Button
+                      mode="outlined"
+                      onPress={handleManualAddressEntry}
+                      style={[styles.accessibleButton, locationSelectionMode === 'manual' && styles.selectedButton]}
+                      contentStyle={{ paddingVertical: 8 }}
+                      accessibilityLabel="Enter address manually"
+                      accessibilityHint="This will let you type the address where your pet was last seen"
+                      accessibilityState={{ selected: locationSelectionMode === 'manual' }}
+                    >
+                      Enter Address Manually
+                    </Button>
+                  </View>
+                  
+                  {selectedLocation && (
+                    <Text style={styles.selectedLocationText}
+                          accessibilityLabel={`Selected location: ${lastSeenAddress}`}>
+                      📍 Selected: {lastSeenAddress}
+                    </Text>
+                  )}
+                </View>
               )}
-            </MapView>
+              
+              {/* Visual Map (hidden from screen readers) */}
+              <MapView
+                style={[styles.map, isScreenReaderEnabled && styles.hiddenFromScreenReader]}
+                provider={PROVIDER_GOOGLE}
+                region={{
+                  latitude: location.lat,
+                  longitude: location.lng,
+                  latitudeDelta: 0.0922,
+                  longitudeDelta: 0.0421,
+                }}
+                onPress={handleMapPress}
+                accessible={!isScreenReaderEnabled}
+                accessibilityLabel={isScreenReaderEnabled ? undefined : `Interactive map showing ${pet.name}'s location area`}
+                accessibilityHint={isScreenReaderEnabled ? undefined : "Tap on the map to select where your pet was last seen"}
+                importantForAccessibility={isScreenReaderEnabled ? 'no-hide-descendants' : 'auto'}
+              >
+                {selectedLocation && (
+                  <Marker
+                    coordinate={{
+                      latitude: selectedLocation.lat,
+                      longitude: selectedLocation.lng,
+                    }}
+                    title={`${pet.name} last seen here`}
+                    description={lastSeenAddress}
+                    pinColor={getUrgencyColor(urgencyLevel)}
+                    accessible={!isScreenReaderEnabled}
+                    accessibilityLabel={`Map marker showing ${pet.name} was last seen at ${lastSeenAddress}`}
+                  />
+                )}
+              </MapView>
+            </View>
           ) : loading ? (
             <View style={styles.loadingContainer}>
               <ActivityIndicator size="large" />
@@ -221,12 +320,16 @@ const ReportLostPetScreen: React.FC<ReportLostPetScreenProps> = ({ route }) => {
             <Title>Alert Details</Title>
             
             <TextInput
-              label="Address (optional)"
+              label={locationSelectionMode === 'manual' ? "Address *" : "Address (optional)"}
               value={lastSeenAddress}
               onChangeText={setLastSeenAddress}
               style={styles.input}
               multiline
               numberOfLines={2}
+              placeholder={locationSelectionMode === 'manual' ? "Enter the full address where your pet was last seen" : "Address will be filled automatically from map selection"}
+              accessibilityLabel={locationSelectionMode === 'manual' ? "Required address field where your pet was last seen" : "Optional address field, automatically filled from map selection"}
+              accessibilityHint={locationSelectionMode === 'manual' ? "Type the complete address including street, city, and state" : "This field is automatically populated when you select a location on the map"}
+              editable={locationSelectionMode === 'manual' || !isScreenReaderEnabled}
             />
 
             <TextInput
@@ -237,6 +340,9 @@ const ReportLostPetScreen: React.FC<ReportLostPetScreenProps> = ({ route }) => {
               style={styles.input}
               multiline
               numberOfLines={4}
+              accessibilityLabel={`Required description field for ${pet.name}`}
+              accessibilityHint="Describe your pet's appearance, clothing, collar, or any distinctive features to help others identify them"
+              error={!description.trim() && description.length > 0}
             />
 
             <TextInput
@@ -246,6 +352,8 @@ const ReportLostPetScreen: React.FC<ReportLostPetScreenProps> = ({ route }) => {
               placeholder="Phone number for direct contact"
               keyboardType="phone-pad"
               style={styles.input}
+              accessibilityLabel="Optional phone number for direct contact"
+              accessibilityHint="Provide a phone number where people can call you directly if they find your pet"
             />
 
             <TextInput
@@ -256,32 +364,76 @@ const ReportLostPetScreen: React.FC<ReportLostPetScreenProps> = ({ route }) => {
               keyboardType="numeric"
               style={styles.input}
               left={<TextInput.Affix text="$" />}
+              accessibilityLabel="Optional reward amount in US dollars"
+              accessibilityHint="Enter the monetary reward you're offering to anyone who helps find your pet"
             />
 
-            <View style={styles.urgencyContainer}>
-              <Text style={styles.urgencyLabel}>Search Urgency</Text>
+            <View style={styles.urgencyContainer}
+                  accessible={true}
+                  accessibilityRole="radiogroup"
+                  accessibilityLabel="Search urgency level selection">
+              <Text style={styles.urgencyLabel}
+                    accessibilityRole="header">
+                Search Urgency
+              </Text>
+              <Text style={styles.urgencyDescription}>
+                Higher urgency sends alerts to more nearby users
+              </Text>
               <View style={styles.chipContainer}>
                 <Chip
                   selected={urgencyLevel === 'high'}
-                  onPress={() => setUrgencyLevel('high')}
-                  style={[styles.chip, urgencyLevel === 'high' && { backgroundColor: '#FF5722' }]}
+                  onPress={() => {
+                    setUrgencyLevel('high');
+                    if (isScreenReaderEnabled) {
+                      AccessibilityInfo.announceForAccessibility('High urgency selected. Will notify users within 5 kilometers.');
+                    }
+                  }}
+                  style={[styles.chip, urgencyLevel === 'high' && { backgroundColor: '#D32F2F' }]}
                   textStyle={{ color: urgencyLevel === 'high' ? 'white' : undefined }}
+                  accessible={true}
+                  accessibilityRole="radio"
+                  accessibilityLabel="High urgency, 5 kilometer radius"
+                  accessibilityHint="Sends alerts to users within 5 kilometers for immediate help"
+                  accessibilityState={{ selected: urgencyLevel === 'high', checked: urgencyLevel === 'high' }}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                 >
                   High (5km)
                 </Chip>
                 <Chip
                   selected={urgencyLevel === 'medium'}
-                  onPress={() => setUrgencyLevel('medium')}
-                  style={[styles.chip, urgencyLevel === 'medium' && { backgroundColor: '#FF9800' }]}
+                  onPress={() => {
+                    setUrgencyLevel('medium');
+                    if (isScreenReaderEnabled) {
+                      AccessibilityInfo.announceForAccessibility('Medium urgency selected. Will notify users within 10 kilometers.');
+                    }
+                  }}
+                  style={[styles.chip, urgencyLevel === 'medium' && { backgroundColor: '#F57C00' }]}
                   textStyle={{ color: urgencyLevel === 'medium' ? 'white' : undefined }}
+                  accessible={true}
+                  accessibilityRole="radio"
+                  accessibilityLabel="Medium urgency, 10 kilometer radius"
+                  accessibilityHint="Sends alerts to users within 10 kilometers for broader coverage"
+                  accessibilityState={{ selected: urgencyLevel === 'medium', checked: urgencyLevel === 'medium' }}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                 >
                   Medium (10km)
                 </Chip>
                 <Chip
                   selected={urgencyLevel === 'low'}
-                  onPress={() => setUrgencyLevel('low')}
-                  style={[styles.chip, urgencyLevel === 'low' && { backgroundColor: '#4CAF50' }]}
+                  onPress={() => {
+                    setUrgencyLevel('low');
+                    if (isScreenReaderEnabled) {
+                      AccessibilityInfo.announceForAccessibility('Low urgency selected. Will notify users within 15 kilometers.');
+                    }
+                  }}
+                  style={[styles.chip, urgencyLevel === 'low' && { backgroundColor: '#388E3C' }]}
                   textStyle={{ color: urgencyLevel === 'low' ? 'white' : undefined }}
+                  accessible={true}
+                  accessibilityRole="radio"
+                  accessibilityLabel="Low urgency, 15 kilometer radius"
+                  accessibilityHint="Sends alerts to users within 15 kilometers for wide area coverage"
+                  accessibilityState={{ selected: urgencyLevel === 'low', checked: urgencyLevel === 'low' }}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                 >
                   Low (15km)
                 </Chip>
@@ -295,15 +447,19 @@ const ReportLostPetScreen: React.FC<ReportLostPetScreenProps> = ({ route }) => {
             <Button
               mode="contained"
               onPress={handleReportLostPet}
-              disabled={loading || !selectedLocation || !description.trim()}
+              disabled={loading || (!selectedLocation && locationSelectionMode !== 'manual') || !description.trim() || (locationSelectionMode === 'manual' && !lastSeenAddress.trim())}
               loading={loading}
-              style={styles.reportButton}
-              contentStyle={{ paddingVertical: 8 }}
+              style={[styles.reportButton, { minHeight: 48 }]} // WCAG touch target minimum
+              contentStyle={{ paddingVertical: 12 }}
+              accessibilityLabel={`Send emergency alert for missing ${pet.name}`}
+              accessibilityHint={`This will immediately notify nearby TailTracker users within ${urgencyLevel === 'high' ? '5' : urgencyLevel === 'medium' ? '10' : '15'} kilometers to help find your pet`}
+              accessibilityState={{ disabled: loading || (!selectedLocation && locationSelectionMode !== 'manual') || !description.trim() }}
             >
-              Send Regional Alert
+              🚨 Send Regional Alert
             </Button>
-            <Text style={styles.disclaimer}>
-              This will notify nearby TailTracker users in your selected radius to help find {pet.name}.
+            <Text style={styles.disclaimer}
+                  accessibilityLabel={`Important: This emergency alert will immediately notify all TailTracker users within ${urgencyLevel === 'high' ? '5' : urgencyLevel === 'medium' ? '10' : '15'} kilometers of the selected location to help find ${pet.name}. The alert includes your pet's photo, description, and contact information if provided.`}>
+              ⚠️ This will notify nearby TailTracker users in your selected radius to help find {pet.name}.
             </Text>
           </Card.Content>
         </Card>
@@ -363,6 +519,12 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 8,
   },
+  urgencyDescription: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 12,
+    fontStyle: 'italic',
+  },
   chipContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -371,6 +533,11 @@ const styles = StyleSheet.create({
   chip: {
     marginRight: 8,
     marginBottom: 8,
+    minHeight: 48, // WCAG AA touch target requirement (48dp Android minimum)
+    minWidth: 88,
+    // Add padding to ensure touch area meets requirements
+    paddingVertical: 12,
+    paddingHorizontal: 16,
   },
   actionCard: {
     margin: 16,
@@ -386,6 +553,51 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 8,
     fontStyle: 'italic',
+  },
+  // Accessibility-specific styles
+  accessibleLocationContainer: {
+    backgroundColor: '#E3F2FD',
+    padding: 16,
+    borderRadius: 8,
+    marginBottom: 16,
+    borderLeftWidth: 4,
+    borderLeftColor: '#2196F3',
+  },
+  accessibleLocationTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#1976D2',
+    marginBottom: 8,
+  },
+  accessibleLocationDescription: {
+    fontSize: 14,
+    color: '#424242',
+    marginBottom: 16,
+    lineHeight: 20,
+  },
+  accessibleButtonsContainer: {
+    flexDirection: 'column',
+    gap: 12,
+    marginBottom: 16,
+  },
+  accessibleButton: {
+    minHeight: 48, // WCAG AA touch target requirement
+  },
+  selectedButton: {
+    backgroundColor: '#2196F3',
+    borderColor: '#1976D2',
+  },
+  selectedLocationText: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#2E7D32',
+    backgroundColor: '#E8F5E8',
+    padding: 12,
+    borderRadius: 4,
+    textAlign: 'center',
+  },
+  hiddenFromScreenReader: {
+    opacity: 0.3, // Visual indication that map is not accessible
   },
 });
 

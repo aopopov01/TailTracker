@@ -1,9 +1,11 @@
+const baseConfig = require('./package.json').jest;
+
 module.exports = {
-  preset: 'jest-expo',
+  ...baseConfig,
   displayName: 'Performance Tests',
   testMatch: [
-    '**/src/**/*.performance.(test|spec).(ts|tsx|js)',
-    '**/performance/**/*.(test|spec).(ts|tsx|js)'
+    '**/__tests__/**/*performance.(test|spec).(ts|tsx|js)',
+    '**/*performance.(test|spec).(ts|tsx|js)'
   ],
   setupFilesAfterEnv: [
     '@testing-library/jest-native/extend-expect',
@@ -11,22 +13,11 @@ module.exports = {
     '<rootDir>/src/test/performance-setup.ts'
   ],
   testTimeout: 60000,
-  collectCoverageFrom: [
-    'src/components/**/*.{ts,tsx}',
-    'src/screens/**/*.{ts,tsx}',
-    'src/hooks/**/*.{ts,tsx}',
-    '!src/**/*.d.ts',
-    '!src/test/**/*'
-  ],
-  coverageDirectory: 'coverage/performance',
-  transformIgnorePatterns: [
-    'node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg)'
-  ],
+  coverageDirectory: '<rootDir>/coverage/performance',
+  collectCoverage: false, // Performance tests don't need coverage
+  verbose: true,
   reporters: [
     'default',
-    ['jest-html-reporters', {
-      publicPath: './coverage/performance',
-      filename: 'performance-report.html'
-    }]
+    ['<rootDir>/src/test/reporters/performance-reporter.js', {}]
   ]
 };

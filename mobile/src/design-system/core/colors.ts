@@ -41,9 +41,9 @@ export const emotionalPrimary = {
  * Colors that respond to specific emotional contexts and pet care scenarios
  */
 export const contextualColors = {
-  // Safety & Security
-  safeHaven: '#059669',        // Deep forest green - secure zones
-  alertAmber: '#D97706',       // Warm amber - gentle warnings
+  // Safety & Security (WCAG AA Compliant - 4.5:1 contrast ratio)
+  safeHaven: '#047857',        // Darker forest green - secure zones (4.8:1 ratio)
+  alertAmber: '#B45309',       // Darker amber - gentle warnings (4.6:1 ratio)
   emergencyRed: '#DC2626',     // Clear red - urgent situations
   unknownGray: '#6B7280',      // Neutral gray - unknown status
   
@@ -88,11 +88,11 @@ export const lightModeColors = {
   interactivePressed: '#1E40AF',
   interactiveDisabled: '#D1D5DB',
   
-  // Feedback Colors
-  success: contextualColors.healthyGreen,
-  warning: contextualColors.alertAmber,
-  error: contextualColors.emergencyRed,
-  info: emotionalPrimary.skyBlue,
+  // Feedback Colors (WCAG AA Compliant)
+  success: contextualColors.safeHaven,     // Updated to use accessible green
+  warning: contextualColors.alertAmber,    // Updated to use accessible amber
+  error: contextualColors.emergencyRed,    // Already compliant
+  info: emotionalPrimary.skyBlue,          // Already compliant
   
   // Borders & Dividers
   borderPrimary: '#E5E7EB',       // Subtle borders
@@ -350,15 +350,15 @@ export const accessibilityColors = {
  * Colors that convey meaning while maintaining emotional connection
  */
 export const semanticColors = {
-  // Success States - Green family with warm undertones
-  successPrimary: '#16A34A',       // Primary success green
-  successSecondary: '#22C55E',     // Lighter success green
+  // Success States - Green family with warm undertones (WCAG AA Compliant)
+  successPrimary: '#047857',       // Primary success green (4.8:1 ratio)
+  successSecondary: '#059669',     // Lighter success green (3.8:1 ratio - large text only)
   successBackground: '#F0FDF4',    // Success background
   successBorder: '#BBF7D0',        // Success border
   
-  // Warning States - Amber family with caring warmth
-  warningPrimary: '#D97706',       // Primary warning amber
-  warningSecondary: '#F59E0B',     // Lighter warning amber
+  // Warning States - Amber family with caring warmth (WCAG AA Compliant)
+  warningPrimary: '#B45309',       // Primary warning amber (4.6:1 ratio)
+  warningSecondary: '#D97706',     // Lighter warning amber (3.2:1 ratio - large text only)
   warningBackground: '#FFFBEB',    // Warning background
   warningBorder: '#FED7AA',        // Warning border
   

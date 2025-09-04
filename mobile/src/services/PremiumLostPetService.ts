@@ -1,7 +1,11 @@
 import { Platform, Alert } from 'react-native';
 import { androidPermissions } from './AndroidPermissions';
 import * as Location from 'expo-location';
-import { supabase } from './supabase';
+import { supabaseEnhanced } from '../../config/supabase';
+import { TailTrackerAPI } from './ApiClient';
+import { errorRecoveryService } from './ErrorRecoveryService';
+import { offlineQueueManager } from './OfflineQueueManager';
+import { premiumNotificationService } from './PremiumNotificationService';
 
 export interface LostPetReport {
   pet_id: string;
@@ -117,104 +121,184 @@ class PremiumLostPetService {
   }
 
   /**
-   * Report a pet as lost (Premium feature only)
+   * Report a pet as lost (Premium feature only) - Enhanced with error recovery
    */
   async reportLostPet(reportData: LostPetReport): Promise<{
     success: boolean;
     lost_pet_id?: string;
     alerts_sent?: number;
     error?: string;
+    queued?: boolean;
+    requiresPremium?: boolean;
   }> {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
+      // Check authentication with enhanced client
+      const session = await supabaseEnhanced.getSession();
+      if (!session.data.session) {
         throw new Error('User not authenticated');
       }
 
-      const response = await fetch(this.functionUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
-        },
-        body: JSON.stringify({
-          action: 'report_lost_pet',
-          data: {
-            ...reportData,
-            user_id: user.id,
-            last_seen_date: reportData.last_seen_date.toISOString(),
-          },
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to report lost pet');
+      // PREMIUM CHECK: Reporting lost pets requires premium subscription
+      const hasPremium = await this.checkPremiumAccess();
+      if (!hasPremium) {
+        return {
+          success: false,
+          requiresPremium: true,
+          error: 'Premium subscription required to report lost pets',
+        };
       }
 
-      const result = await response.json();
-      return result;
+      const reportPayload = {
+        ...reportData,
+        user_id: session.data.session.user.id,
+        last_seen_date: reportData.last_seen_date.toISOString(),
+      };
+
+      // Use enhanced API client with error recovery
+      const response = await TailTrackerAPI.lostPets.report(reportPayload);
+
+      if (response.error) {
+        // Check if request was queued for offline retry
+        if (response.fromQueue) {
+          return {
+            success: true,
+            queued: true,
+            error: 'Lost pet report queued. Will be sent when connection is restored.',
+          };
+        }
+        
+        throw new Error(response.error);
+      }
+
+      // Send community notifications to all nearby users
+      if (response.data && response.data.lost_pet_id) {
+        try {
+          await this.sendCommunityLostPetNotification({
+            petName: reportData.pet_id, // Will need pet name from database
+            location: reportData.last_seen_location,
+            contactPhone: reportData.contact_phone,
+            message: reportData.description,
+          });
+        } catch (notificationError) {
+          console.warn('Failed to send community notifications:', notificationError);
+          // Don't fail the main operation if notifications fail
+        }
+      }
+
+      return {
+        success: true,
+        ...response.data,
+      };
     } catch (error) {
       console.error('Error reporting lost pet:', error);
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error occurred',
-      };
+
+      // Try to queue the operation for offline retry (only for premium users)
+      try {
+        await offlineQueueManager.enqueueAction(
+          'LOST_PET_REPORT',
+          {
+            ...reportData,
+            last_seen_date: reportData.last_seen_date.toISOString(),
+          },
+          {
+            priority: 'critical',
+            requiresAuthentication: true,
+          }
+        );
+
+        return {
+          success: true,
+          queued: true,
+          error: 'Lost pet report queued for when you\'re back online. This is a critical feature so we\'ll make sure it gets reported.',
+        };
+      } catch (queueError) {
+        console.error('Failed to queue lost pet report:', queueError);
+        
+        return {
+          success: false,
+          error: error instanceof Error ? error.message : 'Unknown error occurred. Please try again.',
+        };
+      }
     }
   }
 
   /**
-   * Mark a lost pet as found
+   * Mark a lost pet as found - Enhanced with error recovery
    */
   async markPetFound(lostPetId: string, foundBy?: string): Promise<{
     success: boolean;
     error?: string;
+    queued?: boolean;
   }> {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
+      // Check authentication with enhanced client
+      const session = await supabaseEnhanced.getSession();
+      if (!session.data.session) {
         throw new Error('User not authenticated');
       }
 
-      const response = await fetch(this.functionUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
-        },
-        body: JSON.stringify({
-          action: 'mark_found',
-          data: {
-            lost_pet_id: lostPetId,
-            user_id: user.id,
-            found_by: foundBy,
-          },
-        }),
-      });
+      // Use enhanced API client with error recovery
+      const response = await TailTrackerAPI.lostPets.markFound(lostPetId, foundBy);
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to mark pet as found');
+      if (response.error) {
+        // Check if request was queued for offline retry
+        if (response.fromQueue) {
+          return {
+            success: true,
+            queued: true,
+            error: 'Pet found notification queued. Will be sent when connection is restored.',
+          };
+        }
+        
+        throw new Error(response.error);
       }
 
-      return await response.json();
+      return {
+        success: true,
+        ...response.data,
+      };
     } catch (error) {
       console.error('Error marking pet as found:', error);
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error occurred',
-      };
+
+      // Try to queue the operation for offline retry
+      try {
+        await offlineQueueManager.enqueueAction(
+          'LOST_PET_FOUND',
+          {
+            lostPetId,
+            foundBy,
+          },
+          {
+            priority: 'critical',
+            requiresAuthentication: true,
+          }
+        );
+
+        return {
+          success: true,
+          queued: true,
+          error: 'Pet found notification queued. This great news will be shared when you\'re back online!',
+        };
+      } catch (queueError) {
+        console.error('Failed to queue pet found notification:', queueError);
+        
+        return {
+          success: false,
+          error: error instanceof Error ? error.message : 'Unknown error occurred. Please try again.',
+        };
+      }
     }
   }
 
   /**
-   * Get nearby lost pet alerts
+   * Get nearby lost pet alerts - Enhanced with error recovery
    */
   async getNearbyAlerts(radiusKm: number = 25): Promise<{
     success: boolean;
     alerts?: LostPetAlert[];
     count?: number;
     error?: string;
+    cached?: boolean;
   }> {
     try {
       const userLocation = await this.getCurrentLocation();
@@ -222,27 +306,14 @@ class PremiumLostPetService {
         throw new Error('Unable to get user location');
       }
 
-      const response = await fetch(this.functionUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
-        },
-        body: JSON.stringify({
-          action: 'get_nearby_alerts',
-          data: {
-            user_location: userLocation,
-            radius_km: radiusKm,
-          },
-        }),
-      });
+      // Use enhanced API client with caching for nearby alerts
+      const response = await TailTrackerAPI.lostPets.getNearby(userLocation, radiusKm);
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to get nearby alerts');
+      if (response.error) {
+        throw new Error(response.error);
       }
 
-      const result = await response.json();
+      const result = response.data;
       
       // Convert date strings back to Date objects
       if (result.alerts) {
@@ -253,36 +324,52 @@ class PremiumLostPetService {
         }));
       }
 
-      return result;
+      return {
+        success: true,
+        cached: response.cached,
+        ...result,
+      };
     } catch (error) {
       console.error('Error getting nearby alerts:', error);
+      
+      // For read operations, we don't queue but can return cached data
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error occurred',
+        error: error instanceof Error ? error.message : 'Unable to fetch nearby alerts. Please check your connection.',
       };
     }
   }
 
   /**
-   * Check if user has premium subscription for lost pet features
+   * Check if user has premium subscription for lost pet features - Enhanced with error recovery
    */
   async checkPremiumAccess(): Promise<boolean> {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return false;
-
-      const { data, error } = await supabase
-        .from('users')
-        .select('subscription_status')
-        .eq('auth_user_id', user.id)
-        .single();
-
-      if (error) {
-        console.error('Error checking premium access:', error);
+      const session = await supabaseEnhanced.getSession();
+      if (!session.data.session) {
         return false;
       }
 
-      return data?.subscription_status === 'premium' || data?.subscription_status === 'family';
+      const user = session.data.session.user;
+
+      // Use enhanced Supabase client with caching for subscription status
+      const result = await supabaseEnhanced.select(
+        'users',
+        'subscription_status',
+        {
+          cache: { enabled: true, ttl: 300000 }, // Cache for 5 minutes
+          deduplicate: true,
+          circuitBreaker: 'user_subscription_check',
+        }
+      );
+
+      if (result.error) {
+        console.error('Error checking premium access:', result.error);
+        return false;
+      }
+
+      const userData = result.data?.[0];
+      return userData?.subscription_status === 'premium' || userData?.subscription_status === 'family';
     } catch (error) {
       console.error('Error checking premium access:', error);
       return false;
@@ -294,17 +381,17 @@ class PremiumLostPetService {
    */
   showPremiumPrompt(): void {
     Alert.alert(
-      'Premium Feature',
-      'Lost pet alerts are available with TailTracker Premium. Upgrade now to report lost pets and receive regional alerts from the community.',
+      'Premium Feature - Lost Pet Alerts',
+      'Report lost pets and pin their last known location on the map. Premium users can post alerts with photos, contact info, and reward offers. All community members will receive notifications to help find your pet.',
       [
         {
           text: 'Maybe Later',
           style: 'cancel',
         },
         {
-          text: 'Upgrade to Premium',
+          text: 'Learn More',
           onPress: () => {
-            // Navigate to subscription screen
+            // Navigate to subscription screen with lost_pet_alerts feature highlighted
             // This would be handled by the calling component
           },
         },
@@ -349,6 +436,55 @@ class PremiumLostPetService {
       location.lng >= -180 && 
       location.lng <= 180
     );
+  }
+
+  /**
+   * Send community lost pet notifications to all nearby users
+   * Premium users post alerts, ALL users receive notifications
+   */
+  private async sendCommunityLostPetNotification(data: {
+    petName: string;
+    location: { lat: number; lng: number };
+    contactPhone?: string;
+    message?: string;
+  }): Promise<void> {
+    try {
+      // Create lost pet alert notification data
+      const notificationData = {
+        petName: data.petName,
+        lastSeenLocation: data.location,
+        contactPhone: data.contactPhone,
+        message: data.message || 'Help find this lost pet!',
+      };
+
+      // Send notification to community (all users regardless of premium status)
+      // This uses the system notification type which is free for all users
+      const result = await premiumNotificationService.sendNotification({
+        id: 'lost-pet-community-' + Date.now(),
+        type: 'system_update', // Free notification type for community alerts
+        title: `Lost Pet Alert: ${data.petName}`,
+        body: `A pet named ${data.petName} is missing in your area. Tap to help find them.`,
+        priority: 'high',
+        channels: ['push', 'sound', 'badge'],
+        data: {
+          petName: data.petName,
+          location: data.location,
+          contactPhone: data.contactPhone,
+          message: data.message,
+          deepLinkRoute: '/lost-pet-alerts',
+          notificationType: 'community_lost_pet',
+        },
+      });
+
+      if (result.success) {
+        console.log('Community lost pet notification sent successfully');
+      } else {
+        console.warn('Failed to send community notification:', result.error);
+      }
+    } catch (error) {
+      console.error('Error sending community lost pet notification:', error);
+      throw error;
+    }
   }
 }
 

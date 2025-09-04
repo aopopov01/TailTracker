@@ -96,7 +96,7 @@ export const EmailInput: React.FC<MaterialTextInputProps> = (props) => (
     keyboardType="email-address"
     autoCapitalize="none"
     autoCorrect={false}
-    left={<TextInput.Icon icon="email" />}
+    left={<TextInput.Icon icon="mail" />}
     {...props}
   />
 );

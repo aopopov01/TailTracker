@@ -31,12 +31,12 @@ This comprehensive backend architecture is designed to support **150K+ users** w
 
 **Key Tables:**
 - `users` - User profiles with subscription management
-- `families` - Sharing groups with role-based access
-- `pets` - Pet profiles with comprehensive health data
-- `vaccinations` - Vaccination tracking with reminders
-- `medical_records` - Complete medical history
+- `families` - Family groups with role-based access
+- `pets` - Pet profiles with basic health data
+- `health_records` - Basic health and vaccination tracking
+- `pet_measurements` - Weight and size tracking
 - `lost_pets` - Geospatial lost pet reporting
-- `notifications` - Multi-channel notification system
+- `notifications` - Family coordination notifications
 
 ### Row-Level Security (`/backend/database/rls_policies.sql`)
 - **Automatic data isolation** between families
@@ -80,8 +80,8 @@ This comprehensive backend architecture is designed to support **150K+ users** w
 - **Cache warming** and invalidation strategies
 
 ### Caching Layers:
-1. **Application Cache**: User profiles, pet data (15-30min TTL)
-2. **API Response Cache**: Search results, listings (5-10min TTL)  
+1. **Application Cache**: User profiles, pet data, family coordination (15-30min TTL)
+2. **API Response Cache**: Pet listings, family member data (5-10min TTL)  
 3. **Session Cache**: User sessions, temp data (24hr TTL)
 4. **Geospatial Cache**: Lost pet area searches (5min TTL)
 
@@ -134,11 +134,11 @@ This comprehensive backend architecture is designed to support **150K+ users** w
 - **PCI compliance** through payment processors
 
 ### Notification System (`/backend/integrations/notification_system.js`)
-- **Multi-channel delivery**: Push, Email, SMS, WebSocket
+- **Multi-channel delivery**: Push, Email, WebSocket
 - **Template-based messaging** with personalization
-- **Geospatial notifications** for lost pet alerts
+- **Family coordination notifications**
+- **Lost pet alert system** with geospatial notifications
 - **Preference management** and opt-out handling
-- **Delivery tracking** and analytics
 
 ## 7. Performance Optimizations
 
@@ -201,6 +201,7 @@ This comprehensive backend architecture is designed to support **150K+ users** w
 - **Response times**: 95th percentile <1 second
 - **Error rates**: <0.5% error rate target
 - **Uptime**: 99.9% availability SLA
+- **Family coordination**: Response times for family notifications
 - **Database performance**: Query execution times
 - **Cache performance**: Hit ratios and memory usage
 
@@ -208,6 +209,7 @@ This comprehensive backend architecture is designed to support **150K+ users** w
 - **Critical alerts**: Service down, high error rates
 - **Warning alerts**: Performance degradation, resource usage
 - **Business alerts**: Low registrations, subscription issues
+- **Family coordination alerts**: Failed family notifications
 - **Security alerts**: Failed logins, suspicious activity
 
 ## 11. Deployment Strategy
@@ -303,8 +305,8 @@ Cache Hit Ratio: 96.4%
 - **Service mesh**: Istio integration roadmap
 - **Serverless**: Function-as-a-Service migration path
 - **Edge computing**: CDN-edge processing
-- **AI/ML**: Predictive analytics and recommendations
-- **Blockchain**: Decentralized pet registry (future consideration)
+- **Enhanced community features**: Neighborhood pet owner connections
+- **Advanced family coordination**: Enhanced sharing and collaboration tools
 
 ---
 

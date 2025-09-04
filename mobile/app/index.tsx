@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect } from 'react';
 import {
   View,
   Text,
@@ -17,7 +17,6 @@ import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withTiming,
-  withDelay,
   withRepeat,
   withSequence,
   Easing,
@@ -76,7 +75,7 @@ const FeatureCard: React.FC<FeatureCardProps> = ({ icon, title, description, del
 
 export default function PremiumLandingPage() {
   const router = useRouter();
-  const { user, isAuthenticated } = useAuth();
+  const { isAuthenticated } = useAuth();
   const logoScale = useSharedValue(0.8);
   const logoOpacity = useSharedValue(0);
   const floatY = useSharedValue(0);

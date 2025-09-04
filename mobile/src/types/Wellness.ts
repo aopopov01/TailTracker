@@ -158,43 +158,6 @@ export interface InsuranceClaim {
 
 export type ClaimStatus = 'pending' | 'processing' | 'approved' | 'denied' | 'paid';
 
-export interface WellnessGoal {
-  id: string;
-  petId: string;
-  type: GoalType;
-  title: string;
-  description: string;
-  targetValue: number;
-  currentValue: number;
-  unit: string;
-  startDate: string;
-  targetDate: string;
-  status: GoalStatus;
-  milestones: Milestone[];
-  createdAt: string;
-  updatedAt: string;
-}
-
-export type GoalType = 
-  | 'weight_loss'
-  | 'weight_gain'
-  | 'exercise'
-  | 'training'
-  | 'medication_compliance'
-  | 'dental_health'
-  | 'socialization'
-  | 'other';
-
-export type GoalStatus = 'active' | 'completed' | 'paused' | 'cancelled';
-
-export interface Milestone {
-  id: string;
-  title: string;
-  description: string;
-  targetValue: number;
-  achievedDate?: string;
-  reward?: string;
-}
 
 export interface FamilyMember {
   id: string;
@@ -287,42 +250,6 @@ export type AlertTrigger =
   | 'family_member'
   | 'system';
 
-export interface WellnessInsight {
-  id: string;
-  petId: string;
-  type: InsightType;
-  title: string;
-  description: string;
-  data: InsightData;
-  generatedAt: string;
-  isActionable: boolean;
-  suggestedActions?: string[];
-  confidence: number; // 0-1 scale
-}
-
-export type InsightType = 
-  | 'trend_analysis'
-  | 'pattern_detection'
-  | 'health_prediction'
-  | 'care_optimization'
-  | 'behavioral_insight'
-  | 'nutrition_recommendation';
-
-export interface InsightData {
-  metric: string;
-  currentValue: number;
-  trend: 'increasing' | 'decreasing' | 'stable';
-  changePercent: number;
-  timeframe: string;
-  comparedTo: 'previous_period' | 'baseline' | 'breed_average';
-  dataPoints: DataPoint[];
-}
-
-export interface DataPoint {
-  date: string;
-  value: number;
-  label?: string;
-}
 
 // Analytics and Reporting Types
 export interface WellnessReport {

@@ -19,6 +19,9 @@ import {
   LostPetHelpers,
   premiumLostPetService 
 } from '../../services/PremiumLostPetService';
+import { 
+  premiumNotificationService 
+} from '../../services/PremiumNotificationService';
 
 interface LostPetCardProps {
   alert: LostPetAlert;

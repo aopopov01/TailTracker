@@ -54,6 +54,54 @@ export interface SharedPetAccess {
   breed?: string;
 }
 
+export interface VaccinationRecord {
+  id?: number;
+  pet_id: string;
+  vaccine_name: string;
+  date_administered: string;
+  next_due_date?: string;
+  batch_number?: string;
+  notes?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface MedicalRecord {
+  id?: number;
+  pet_id: string;
+  record_type: 'checkup' | 'surgery' | 'emergency' | 'dental' | 'diagnostic' | 'other';
+  title: string;
+  date: string;
+  diagnosis?: string;
+  treatment?: string;
+  medications?: string;
+  follow_up_date?: string;
+  cost?: number;
+  notes?: string;
+  attachments?: string[];
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface LostPetAlert {
+  id?: number;
+  pet_id: string;
+  is_active: boolean;
+  lost_date: string;
+  lost_location: string;
+  last_seen_location?: string;
+  description: string;
+  reward_amount?: number;
+  emergency_contacts: string[];
+  special_instructions?: string;
+  location_coordinates?: {
+    latitude: number;
+    longitude: number;
+  };
+  created_at?: string;
+  updated_at?: string;
+}
+
 class DatabaseService {
   private initialized = false;
 
@@ -94,14 +142,12 @@ class DatabaseService {
           weightUnit TEXT,
           height TEXT,
           heightUnit TEXT,
-          microchipId TEXT,
           registrationNumber TEXT,
           insuranceProvider TEXT,
           insurancePolicyNumber TEXT,
           medicalConditions TEXT,
           medications TEXT,
           allergies TEXT,
-          veterinarian TEXT,
           emergencyContact TEXT,
           personalityTraits TEXT,
           favoriteToys TEXT,
@@ -145,6 +191,60 @@ class DatabaseService {
         );
       `);
 
+      // Create vaccination records table
+      db.execSync(`
+        CREATE TABLE IF NOT EXISTS vaccination_records (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          pet_id TEXT NOT NULL,
+          vaccine_name TEXT NOT NULL,
+          date_administered TEXT NOT NULL,
+          next_due_date TEXT,
+          batch_number TEXT,
+          notes TEXT,
+          created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+          updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+        );
+      `);
+
+      // Create medical records table
+      db.execSync(`
+        CREATE TABLE IF NOT EXISTS medical_records (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          pet_id TEXT NOT NULL,
+          record_type TEXT NOT NULL,
+          title TEXT NOT NULL,
+          date TEXT NOT NULL,
+          diagnosis TEXT,
+          treatment TEXT,
+          medications TEXT,
+          follow_up_date TEXT,
+          cost REAL,
+          notes TEXT,
+          attachments TEXT,
+          created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+          updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+        );
+      `);
+
+      // Create lost pet alerts table
+      db.execSync(`
+        CREATE TABLE IF NOT EXISTS lost_pet_alerts (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          pet_id TEXT NOT NULL,
+          is_active INTEGER DEFAULT 1,
+          lost_date TEXT NOT NULL,
+          lost_location TEXT NOT NULL,
+          last_seen_location TEXT,
+          description TEXT NOT NULL,
+          reward_amount REAL,
+          emergency_contacts TEXT NOT NULL,
+          special_instructions TEXT,
+          location_coordinates TEXT,
+          created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+          updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+        );
+      `);
+
       // Create indexes for performance
       db.execSync(`
         CREATE INDEX IF NOT EXISTS idx_pets_userId ON pets (userId);
@@ -152,6 +252,10 @@ class DatabaseService {
         CREATE INDEX IF NOT EXISTS idx_sharing_tokens_token ON sharing_tokens (token);
         CREATE INDEX IF NOT EXISTS idx_shared_access_guestUserId ON shared_access (guestUserId);
         CREATE INDEX IF NOT EXISTS idx_shared_access_ownerUserId ON shared_access (ownerUserId);
+        CREATE INDEX IF NOT EXISTS idx_vaccination_records_pet_id ON vaccination_records (pet_id);
+        CREATE INDEX IF NOT EXISTS idx_medical_records_pet_id ON medical_records (pet_id);
+        CREATE INDEX IF NOT EXISTS idx_lost_pet_alerts_pet_id ON lost_pet_alerts (pet_id);
+        CREATE INDEX IF NOT EXISTS idx_lost_pet_alerts_active ON lost_pet_alerts (is_active);
       `);
 
       this.initialized = true;
@@ -288,8 +392,8 @@ class DatabaseService {
       const {
         name, species, photos, breed, dateOfBirth, approximateAge, useApproximateAge,
         gender, colorMarkings, weight, weightUnit, height, heightUnit,
-        microchipId, registrationNumber, insuranceProvider, insurancePolicyNumber,
-        medicalConditions, medications, allergies, veterinarian, emergencyContact,
+        registrationNumber, insuranceProvider, insurancePolicyNumber,
+        medicalConditions, medications, allergies, emergencyContact,
         personalityTraits, favoriteToys, favoriteActivities, exerciseNeeds,
         feedingSchedule, specialNotes
       } = profile;
@@ -298,11 +402,11 @@ class DatabaseService {
         `INSERT INTO pets (
           userId, name, species, photos, breed, dateOfBirth, approximateAge, useApproximateAge,
           gender, colorMarkings, weight, weightUnit, height, heightUnit,
-          microchipId, registrationNumber, insuranceProvider, insurancePolicyNumber,
-          medicalConditions, medications, allergies, veterinarian, emergencyContact,
+          registrationNumber, insuranceProvider, insurancePolicyNumber,
+          medicalConditions, medications, allergies, emergencyContact,
           personalityTraits, favoriteToys, favoriteActivities, exerciseNeeds,
           feedingSchedule, specialNotes, updatedAt
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           userId,
           name || null,
@@ -318,14 +422,12 @@ class DatabaseService {
           weightUnit || null,
           height || null,
           heightUnit || null,
-          microchipId || null,
           registrationNumber || null,
           insuranceProvider || null,
           insurancePolicyNumber || null,
           medicalConditions ? JSON.stringify(medicalConditions) : null,
           medications ? JSON.stringify(medications) : null,
           allergies ? JSON.stringify(allergies) : null,
-          veterinarian ? JSON.stringify(veterinarian) : null,
           emergencyContact ? JSON.stringify(emergencyContact) : null,
           personalityTraits ? JSON.stringify(personalityTraits) : null,
           favoriteToys ? JSON.stringify(favoriteToys) : null,
@@ -675,6 +777,357 @@ class DatabaseService {
     }
   }
 
+  // Vaccination Records Methods
+  async createVaccinationRecord(record: Omit<VaccinationRecord, 'id' | 'created_at' | 'updated_at'>): Promise<number> {
+    await this.initialize();
+    
+    try {
+      const now = new Date().toISOString();
+      const result = db.runSync(
+        `INSERT INTO vaccination_records (
+          pet_id, vaccine_name, date_administered, next_due_date,
+          batch_number, notes, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        [
+          record.pet_id,
+          record.vaccine_name,
+          record.date_administered,
+          record.next_due_date || null,
+          record.batch_number || null,
+          record.notes || null,
+          now
+        ]
+      );
+      return result.lastInsertRowId;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getVaccinationRecords(petId: string): Promise<VaccinationRecord[]> {
+    await this.initialize();
+    
+    try {
+      const results = db.getAllSync(
+        'SELECT * FROM vaccination_records WHERE pet_id = ? ORDER BY date_administered DESC',
+        [petId]
+      ) as any[];
+      
+      return results.map(row => ({
+        id: row.id,
+        pet_id: row.pet_id,
+        vaccine_name: row.vaccine_name,
+        date_administered: row.date_administered,
+        next_due_date: row.next_due_date,
+        batch_number: row.batch_number,
+        notes: row.notes,
+        created_at: row.created_at,
+        updated_at: row.updated_at
+      }));
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async updateVaccinationRecord(id: number, updates: Partial<VaccinationRecord>): Promise<void> {
+    await this.initialize();
+    
+    try {
+      const now = new Date().toISOString();
+      const fields = Object.keys(updates).filter(key => key !== 'id');
+      const values = fields.map(field => updates[field as keyof VaccinationRecord]);
+      const setClause = fields.map(field => `${field} = ?`).join(', ');
+      
+      db.runSync(
+        `UPDATE vaccination_records SET ${setClause}, updated_at = ? WHERE id = ?`,
+        [...values, now, id]
+      );
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async deleteVaccinationRecord(id: number): Promise<void> {
+    await this.initialize();
+    
+    try {
+      db.runSync('DELETE FROM vaccination_records WHERE id = ?', [id]);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // Medical Records Methods
+  async createMedicalRecord(record: Omit<MedicalRecord, 'id' | 'created_at' | 'updated_at'>): Promise<number> {
+    await this.initialize();
+    
+    try {
+      const now = new Date().toISOString();
+      const result = db.runSync(
+        `INSERT INTO medical_records (
+          pet_id, record_type, title, date,
+          diagnosis, treatment, medications, follow_up_date, cost, notes, attachments, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          record.pet_id,
+          record.record_type,
+          record.title,
+          record.date,
+          record.diagnosis || null,
+          record.treatment || null,
+          record.medications || null,
+          record.follow_up_date || null,
+          record.cost || null,
+          record.notes || null,
+          record.attachments ? JSON.stringify(record.attachments) : null,
+          now
+        ]
+      );
+      return result.lastInsertRowId;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getMedicalRecords(petId: string, recordType?: string): Promise<MedicalRecord[]> {
+    await this.initialize();
+    
+    try {
+      let query = 'SELECT * FROM medical_records WHERE pet_id = ?';
+      let params: any[] = [petId];
+      
+      if (recordType) {
+        query += ' AND record_type = ?';
+        params.push(recordType);
+      }
+      
+      query += ' ORDER BY date DESC';
+      
+      const results = db.getAllSync(query, params) as any[];
+      
+      return results.map(row => ({
+        id: row.id,
+        pet_id: row.pet_id,
+        record_type: row.record_type,
+        title: row.title,
+        date: row.date,
+        diagnosis: row.diagnosis,
+        treatment: row.treatment,
+        medications: row.medications,
+        follow_up_date: row.follow_up_date,
+        cost: row.cost,
+        notes: row.notes,
+        attachments: row.attachments ? JSON.parse(row.attachments) : [],
+        created_at: row.created_at,
+        updated_at: row.updated_at
+      }));
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async updateMedicalRecord(id: number, updates: Partial<MedicalRecord>): Promise<void> {
+    await this.initialize();
+    
+    try {
+      const now = new Date().toISOString();
+      const fields = Object.keys(updates).filter(key => key !== 'id');
+      const values = fields.map(field => {
+        const value = updates[field as keyof MedicalRecord];
+        return field === 'attachments' && Array.isArray(value) ? JSON.stringify(value) : value;
+      });
+      const setClause = fields.map(field => `${field} = ?`).join(', ');
+      
+      db.runSync(
+        `UPDATE medical_records SET ${setClause}, updated_at = ? WHERE id = ?`,
+        [...values, now, id]
+      );
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async deleteMedicalRecord(id: number): Promise<void> {
+    await this.initialize();
+    
+    try {
+      db.runSync('DELETE FROM medical_records WHERE id = ?', [id]);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // Lost Pet Alert Methods
+  async createLostPetAlert(alert: Omit<LostPetAlert, 'id' | 'created_at' | 'updated_at'>): Promise<LostPetAlert> {
+    await this.initialize();
+    
+    try {
+      const now = new Date().toISOString();
+      const result = db.runSync(
+        `INSERT INTO lost_pet_alerts (
+          pet_id, is_active, lost_date, lost_location, last_seen_location,
+          description, reward_amount, emergency_contacts, special_instructions,
+          location_coordinates, updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          alert.pet_id,
+          alert.is_active ? 1 : 0,
+          alert.lost_date,
+          alert.lost_location,
+          alert.last_seen_location || null,
+          alert.description,
+          alert.reward_amount || null,
+          JSON.stringify(alert.emergency_contacts),
+          alert.special_instructions || null,
+          alert.location_coordinates ? JSON.stringify(alert.location_coordinates) : null,
+          now
+        ]
+      );
+      
+      const createdAlert = db.getFirstSync(
+        'SELECT * FROM lost_pet_alerts WHERE id = ?',
+        [result.lastInsertRowId]
+      ) as any;
+      
+      return this.mapRowToLostPetAlert(createdAlert);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getActiveLostPetAlert(petId: string): Promise<LostPetAlert | null> {
+    await this.initialize();
+    
+    try {
+      const result = db.getFirstSync(
+        'SELECT * FROM lost_pet_alerts WHERE pet_id = ? AND is_active = 1 ORDER BY created_at DESC LIMIT 1',
+        [petId]
+      ) as any;
+      
+      return result ? this.mapRowToLostPetAlert(result) : null;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getLostPetAlert(id: string): Promise<LostPetAlert | null> {
+    await this.initialize();
+    
+    try {
+      const result = db.getFirstSync(
+        'SELECT * FROM lost_pet_alerts WHERE id = ?',
+        [parseInt(id)]
+      ) as any;
+      
+      return result ? this.mapRowToLostPetAlert(result) : null;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async updateLostPetAlert(id: string, updates: Partial<LostPetAlert>): Promise<LostPetAlert> {
+    await this.initialize();
+    
+    try {
+      const now = new Date().toISOString();
+      const fields = Object.keys(updates).filter(key => key !== 'id');
+      const values = fields.map(field => {
+        const value = updates[field as keyof LostPetAlert];
+        if (field === 'emergency_contacts' && Array.isArray(value)) {
+          return JSON.stringify(value);
+        }
+        if (field === 'location_coordinates' && value) {
+          return JSON.stringify(value);
+        }
+        if (field === 'is_active' && typeof value === 'boolean') {
+          return value ? 1 : 0;
+        }
+        return value;
+      });
+      const setClause = fields.map(field => `${field} = ?`).join(', ');
+      
+      db.runSync(
+        `UPDATE lost_pet_alerts SET ${setClause}, updated_at = ? WHERE id = ?`,
+        [...values, now, parseInt(id)]
+      );
+      
+      const updatedAlert = db.getFirstSync(
+        'SELECT * FROM lost_pet_alerts WHERE id = ?',
+        [parseInt(id)]
+      ) as any;
+      
+      return this.mapRowToLostPetAlert(updatedAlert);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getAllActiveLostPetAlerts(): Promise<LostPetAlert[]> {
+    await this.initialize();
+    
+    try {
+      const results = db.getAllSync(
+        'SELECT * FROM lost_pet_alerts WHERE is_active = 1 ORDER BY created_at DESC'
+      ) as any[];
+      
+      return results.map(row => this.mapRowToLostPetAlert(row));
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // Helper Methods
+  async getPet(petId: string): Promise<any> {
+    await this.initialize();
+    
+    try {
+      const result = db.getFirstSync(
+        'SELECT * FROM pets WHERE id = ?',
+        [parseInt(petId)]
+      ) as any;
+      
+      return result ? this.mapRowToPetProfile(result) : null;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getCurrentUser(): Promise<any> {
+    await this.initialize();
+    
+    try {
+      // This would typically get the current user from auth state
+      // For now, return a mock user - this should be implemented based on your auth system
+      return {
+        id: 1,
+        email: 'user@example.com',
+        display_name: 'User Name',
+        phone: '+1234567890',
+        emergency_contact: '+0987654321'
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  private mapRowToLostPetAlert(row: any): LostPetAlert {
+    return {
+      id: row.id,
+      pet_id: row.pet_id,
+      is_active: row.is_active === 1,
+      lost_date: row.lost_date,
+      lost_location: row.lost_location,
+      last_seen_location: row.last_seen_location,
+      description: row.description,
+      reward_amount: row.reward_amount,
+      emergency_contacts: row.emergency_contacts ? JSON.parse(row.emergency_contacts) : [],
+      special_instructions: row.special_instructions,
+      location_coordinates: row.location_coordinates ? JSON.parse(row.location_coordinates) : undefined,
+      created_at: row.created_at,
+      updated_at: row.updated_at
+    };
+  }
+
   private mapRowToPetProfile(row: any): StoredPetProfile {
     return {
       id: row.id,
@@ -692,14 +1145,12 @@ class DatabaseService {
       weightUnit: row.weightUnit,
       height: row.height,
       heightUnit: row.heightUnit,
-      microchipId: row.microchipId,
       registrationNumber: row.registrationNumber,
       insuranceProvider: row.insuranceProvider,
       insurancePolicyNumber: row.insurancePolicyNumber,
       medicalConditions: row.medicalConditions ? JSON.parse(row.medicalConditions) : [],
       medications: row.medications ? JSON.parse(row.medications) : [],
       allergies: row.allergies ? JSON.parse(row.allergies) : [],
-      veterinarian: row.veterinarian ? JSON.parse(row.veterinarian) : undefined,
       emergencyContact: row.emergencyContact ? JSON.parse(row.emergencyContact) : undefined,
       personalityTraits: row.personalityTraits ? JSON.parse(row.personalityTraits) : [],
       favoriteToys: row.favoriteToys ? JSON.parse(row.favoriteToys) : [],

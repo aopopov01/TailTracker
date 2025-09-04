@@ -4,14 +4,11 @@ import {
   WellnessMetrics,
   CareTask,
   HealthRecord,
-  WellnessGoal,
   CareRoutine,
   WellnessAlert,
-  WellnessInsight,
   FamilyMember,
   TaskPriority,
   AlertSeverity,
-  GoalStatus,
   CareTaskType,
 } from '../types/Wellness';
 import { Pet } from '../types/Pet';
@@ -20,7 +17,6 @@ class WellnessService {
   private wellnessData: Map<string, WellnessMetrics[]> = new Map();
   private careTasks: Map<string, CareTask[]> = new Map();
   private healthRecords: Map<string, HealthRecord[]> = new Map();
-  private wellnessGoals: Map<string, WellnessGoal[]> = new Map();
   private careRoutines: Map<string, CareRoutine[]> = new Map();
   private wellnessAlerts: WellnessAlert[] = [];
   private familyMembers: FamilyMember[] = [];
@@ -29,7 +25,6 @@ class WellnessService {
   private readonly WELLNESS_STORAGE_KEY = 'tailtracker_wellness_data';
   private readonly CARE_TASKS_STORAGE_KEY = 'tailtracker_care_tasks';
   private readonly HEALTH_RECORDS_STORAGE_KEY = 'tailtracker_health_records';
-  private readonly GOALS_STORAGE_KEY = 'tailtracker_wellness_goals';
   private readonly ROUTINES_STORAGE_KEY = 'tailtracker_care_routines';
   private readonly ALERTS_STORAGE_KEY = 'tailtracker_wellness_alerts';
   private readonly FAMILY_STORAGE_KEY = 'tailtracker_family_members';
@@ -45,11 +40,10 @@ class WellnessService {
 
   private async loadStoredData(): Promise<void> {
     try {
-      const [wellness, tasks, health, goals, routines, alerts, family] = await Promise.all([
+      const [wellness, tasks, health, routines, alerts, family] = await Promise.all([
         AsyncStorage.getItem(this.WELLNESS_STORAGE_KEY),
         AsyncStorage.getItem(this.CARE_TASKS_STORAGE_KEY),
         AsyncStorage.getItem(this.HEALTH_RECORDS_STORAGE_KEY),
-        AsyncStorage.getItem(this.GOALS_STORAGE_KEY),
         AsyncStorage.getItem(this.ROUTINES_STORAGE_KEY),
         AsyncStorage.getItem(this.ALERTS_STORAGE_KEY),
         AsyncStorage.getItem(this.FAMILY_STORAGE_KEY),
@@ -70,14 +64,9 @@ class WellnessService {
         this.healthRecords = new Map(Object.entries(parsed));
       }
 
-      if (goals) {
-        const parsed = JSON.parse(goals);
-        this.wellnessGoals = new Map(Object.entries(parsed));
-      }
-
       if (routines) {
         const parsed = JSON.parse(routines);
-        this.careRoutines = new Map(Object.entries(routines));
+        this.careRoutines = new Map(Object.entries(parsed));
       }
 
       if (alerts) {
@@ -99,7 +88,6 @@ class WellnessService {
         wellness: Object.fromEntries(this.wellnessData),
         tasks: Object.fromEntries(this.careTasks),
         health: Object.fromEntries(this.healthRecords),
-        goals: Object.fromEntries(this.wellnessGoals),
         routines: Object.fromEntries(this.careRoutines),
         alerts: this.wellnessAlerts,
         family: this.familyMembers,
@@ -109,7 +97,6 @@ class WellnessService {
         AsyncStorage.setItem(this.WELLNESS_STORAGE_KEY, JSON.stringify(data.wellness)),
         AsyncStorage.setItem(this.CARE_TASKS_STORAGE_KEY, JSON.stringify(data.tasks)),
         AsyncStorage.setItem(this.HEALTH_RECORDS_STORAGE_KEY, JSON.stringify(data.health)),
-        AsyncStorage.setItem(this.GOALS_STORAGE_KEY, JSON.stringify(data.goals)),
         AsyncStorage.setItem(this.ROUTINES_STORAGE_KEY, JSON.stringify(data.routines)),
         AsyncStorage.setItem(this.ALERTS_STORAGE_KEY, JSON.stringify(data.alerts)),
         AsyncStorage.setItem(this.FAMILY_STORAGE_KEY, JSON.stringify(data.family)),
@@ -157,7 +144,6 @@ class WellnessService {
     this.wellnessData.set(petId, petMetrics);
 
     await this.saveData();
-    await this.analyzeWellnessTrends(petId);
     
     return newMetrics;
   }
@@ -304,165 +290,8 @@ class WellnessService {
     return petRecords.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }
 
-  // Wellness Goals Methods
-  async addWellnessGoal(goal: Omit<WellnessGoal, 'id' | 'createdAt' | 'updatedAt'>): Promise<WellnessGoal> {
-    const now = new Date().toISOString();
-    const newGoal: WellnessGoal = {
-      ...goal,
-      id: `goal_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      createdAt: now,
-      updatedAt: now,
-    };
 
-    const petGoals = this.wellnessGoals.get(goal.petId) || [];
-    petGoals.push(newGoal);
-    this.wellnessGoals.set(goal.petId, petGoals);
 
-    await this.saveData();
-    return newGoal;
-  }
-
-  async updateWellnessGoal(goalId: string, updates: Partial<WellnessGoal>): Promise<WellnessGoal | null> {
-    for (const [petId, goals] of this.wellnessGoals) {
-      const goalIndex = goals.findIndex(goal => goal.id === goalId);
-      if (goalIndex !== -1) {
-        const updatedGoal = {
-          ...goals[goalIndex],
-          ...updates,
-          updatedAt: new Date().toISOString(),
-        };
-        
-        goals[goalIndex] = updatedGoal;
-        this.wellnessGoals.set(petId, goals);
-        
-        await this.saveData();
-        return updatedGoal;
-      }
-    }
-    return null;
-  }
-
-  getWellnessGoals(petId: string): WellnessGoal[] {
-    return this.wellnessGoals.get(petId) || [];
-  }
-
-  getActiveGoals(petId: string): WellnessGoal[] {
-    return this.getWellnessGoals(petId).filter(goal => goal.status === 'active');
-  }
-
-  // Analytics and Insights Methods
-  private async analyzeWellnessTrends(petId: string): Promise<void> {
-    const metrics = this.getWellnessMetrics(petId, 30);
-    if (metrics.length < 7) return; // Need at least a week of data
-
-    // Analyze weight trends
-    const weightTrend = this.analyzeTrend(metrics.map(m => ({ date: m.date, value: m.weight })));
-    if (Math.abs(weightTrend.changePercent) > 5) {
-      await this.createWeightAlert(petId, weightTrend);
-    }
-
-    // Analyze activity trends
-    const activityScores = metrics.map(m => ({ 
-      date: m.date, 
-      value: this.activityLevelToScore(m.activityLevel) 
-    }));
-    const activityTrend = this.analyzeTrend(activityScores);
-    if (activityTrend.changePercent < -20) {
-      await this.createActivityAlert(petId, activityTrend);
-    }
-
-    // Generate insights
-    await this.generateWellnessInsights(petId, metrics);
-  }
-
-  private analyzeTrend(data: { date: string; value: number }[]): {
-    trend: 'increasing' | 'decreasing' | 'stable';
-    changePercent: number;
-    currentValue: number;
-    previousValue: number;
-  } {
-    if (data.length < 2) {
-      return { trend: 'stable', changePercent: 0, currentValue: data[0]?.value || 0, previousValue: data[0]?.value || 0 };
-    }
-
-    const sortedData = data.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-    const currentValue = sortedData[sortedData.length - 1].value;
-    const previousValue = sortedData[0].value;
-    
-    const changePercent = previousValue === 0 ? 0 : ((currentValue - previousValue) / previousValue) * 100;
-    
-    let trend: 'increasing' | 'decreasing' | 'stable' = 'stable';
-    if (Math.abs(changePercent) > 2) {
-      trend = changePercent > 0 ? 'increasing' : 'decreasing';
-    }
-
-    return { trend, changePercent, currentValue, previousValue };
-  }
-
-  private activityLevelToScore(level: string): number {
-    const scores = { very_low: 1, low: 2, moderate: 3, high: 4, very_high: 5 };
-    return scores[level as keyof typeof scores] || 3;
-  }
-
-  // Alert Management
-  private async createWeightAlert(petId: string, trend: any): Promise<void> {
-    const alert: WellnessAlert = {
-      id: `alert_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      petId,
-      type: 'health_concern',
-      severity: Math.abs(trend.changePercent) > 10 ? 'warning' : 'info',
-      title: 'Weight Change Detected',
-      message: `Your pet's weight has ${trend.trend === 'increasing' ? 'increased' : 'decreased'} by ${Math.abs(trend.changePercent).toFixed(1)}% over the past month.`,
-      triggeredBy: 'pattern_detection',
-      createdAt: new Date().toISOString(),
-      actionRequired: Math.abs(trend.changePercent) > 10,
-      suggestedActions: this.getWeightChangeActions(trend),
-    };
-
-    this.wellnessAlerts.push(alert);
-    await this.saveData();
-  }
-
-  private async createActivityAlert(petId: string, trend: any): Promise<void> {
-    const alert: WellnessAlert = {
-      id: `alert_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      petId,
-      type: 'behavioral_change',
-      severity: 'warning',
-      title: 'Activity Level Decrease',
-      message: `Your pet's activity level has decreased significantly over the past month.`,
-      triggeredBy: 'pattern_detection',
-      createdAt: new Date().toISOString(),
-      actionRequired: true,
-      suggestedActions: [
-        'Schedule a veterinary checkup to rule out health issues',
-        'Increase exercise activities and playtime',
-        'Monitor for other symptoms or behavioral changes',
-        'Consider environmental factors that might affect activity'
-      ],
-    };
-
-    this.wellnessAlerts.push(alert);
-    await this.saveData();
-  }
-
-  private getWeightChangeActions(trend: any): string[] {
-    if (trend.trend === 'increasing') {
-      return [
-        'Review feeding portions and schedule',
-        'Increase exercise activities',
-        'Consult with veterinarian about diet plan',
-        'Monitor treats and table scraps'
-      ];
-    } else {
-      return [
-        'Schedule veterinary examination',
-        'Review appetite and eating habits',
-        'Check for underlying health conditions',
-        'Consider nutritional supplements if recommended by vet'
-      ];
-    }
-  }
 
   // Utility Methods
   private async scheduleTaskReminder(task: CareTask): Promise<void> {
@@ -579,32 +408,7 @@ class WellnessService {
     console.log('Checking routine alerts...');
   }
 
-  private async generateDailyInsights(): Promise<void> {
-    // Implementation for daily insight generation
-    console.log('Generating daily insights...');
-  }
-
-  private async generateWellnessInsights(petId: string, metrics: WellnessMetrics[]): Promise<void> {
-    // Implementation for wellness insights generation
-    console.log(`Generating wellness insights for pet ${petId}...`);
-  }
-
   // Public utility methods
-  getWellnessScore(petId: string): number {
-    const recentMetrics = this.getWellnessMetrics(petId, 7);
-    if (recentMetrics.length === 0) return 0;
-
-    const latestMetrics = recentMetrics[0];
-    const scores = [
-      latestMetrics.moodScore,
-      latestMetrics.appetiteScore,
-      latestMetrics.energyLevel,
-      this.activityLevelToScore(latestMetrics.activityLevel) * 2, // Scale to 10
-      latestMetrics.hydrationLevel,
-    ];
-
-    return Math.round(scores.reduce((sum, score) => sum + score, 0) / scores.length);
-  }
 
   getComplianceRate(petId: string, days: number = 30): number {
     const cutoffDate = new Date();

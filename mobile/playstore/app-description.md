@@ -1,53 +1,48 @@
-# TailTracker - Pet Location & Health Management
+# TailTracker - Simple Pet Family Management
 
 ## Short Description (80 characters max)
-Keep your pets safe with GPS tracking, health records, and smart alerts.
+Family pet coordination, health records, and community lost pet support.
 
 ## Full Description (4000 characters max)
 
-**Keep Your Beloved Pets Safe and Healthy with TailTracker**
+**Simple Pet Management for Modern Families**
 
-TailTracker is the ultimate pet management app that combines advanced GPS tracking with comprehensive health monitoring to ensure your furry friends are always safe and well-cared for.
+TailTracker is a family-friendly pet management app that helps families coordinate pet care, track basic health information, and connect with the pet community for lost pet support.
 
-🏠 **Smart Safe Zones**
-Create custom safe zones around your home, park, or any location. Get instant notifications if your pet wanders outside their designated area, giving you peace of mind whether you're at work or sleeping.
+👨‍👩‍👧‍👦 **Family Coordination**
+Share pet care responsibilities with family members. Free tier supports main user + 1 additional family member (2 total), Premium (€2.99/month) supports main user + 2 additional members (3 total), or Pro (€4.99/month) supports unlimited family members.
 
-📍 **Real-Time GPS Tracking**
-Track your pet's location in real-time with precise GPS technology. View their current position, location history, and movement patterns on an interactive map powered by Google Maps.
+🏠 **Community Lost Pet Support**
+Receive community alerts when pets go missing in your area (10km radius). Pro tier users can also report their own lost pets with photos and location to alert the community.
 
-🚨 **Intelligent Alerts**
-Receive instant push notifications for:
-- Safe zone exits and entries
-- Low device battery warnings
-- Unusual activity patterns
-- Health appointment reminders
-- Emergency situations
+📋 **Simple Health Records**
+Track basic health information for your pets:
+- Manual health record entries with photos
+- Basic vaccination and medical notes
+- Weight and measurement tracking
+- Vet contact information storage
+- Photo documentation of health information
 
-📋 **Complete Health Records**
-Maintain detailed health records for each pet:
-- Vaccination schedules and reminders
-- Medication tracking and dosing alerts
-- Vet appointment history
-- Weight and growth monitoring
-- Medical notes and documents
+🚨 **Community Notifications**
+Receive helpful notifications for:
+- Lost pet alerts in your area (5km radius)
+- Family updates about shared pets
+- Basic family coordination messages
 
 👥 **Multi-Pet Management**
-Perfect for families with multiple pets. Manage dogs, cats, birds, and other pets all in one app. Each pet gets their own profile with customized settings.
+Perfect for families with multiple pets. Create pet profiles for dogs, cats, and other pets. Each pet gets their own simple profile with basic information and photos (Free: 1 photo per pet, Premium/Pro: 12 photos per pet).
 
-🔋 **Long-Lasting Battery**
-Advanced power management ensures your pet's tracking device lasts longer. Get low battery alerts before it's too late.
+📱 **Family Access**
+Share pet information with family members. Main user grants read-only access to pet profiles and health records based on subscription tier.
 
-📊 **Activity Insights**
-Monitor your pet's daily activity levels, exercise patterns, and movement statistics to ensure they're getting enough exercise and maintaining good health.
-
-🌙 **Works 24/7**
-Background monitoring means TailTracker works even when your phone is locked or the app is closed. Your pet's safety never sleeps.
+🏠 **Community Features**
+Connect with local pet owners for lost pet support. Receive alerts about lost pets in your area (10km radius). Pro users can report their own lost pets to alert the community.
 
 **Premium Features:**
-- Unlimited pets (free version supports up to 2 pets)
-- Extended location history (30 days vs 7 days)
-- Advanced health analytics
-- Priority customer support
+- Premium (€2.99/month): 3 family members total (main + 2 additional), 2 pet profiles, unlimited health records
+- Pro (€4.99/month): unlimited family members, unlimited pet profiles, enhanced family coordination
+- Enhanced family coordination features
+- Export health records to PDF
 - No advertisements
 
 **Why Choose TailTracker?**

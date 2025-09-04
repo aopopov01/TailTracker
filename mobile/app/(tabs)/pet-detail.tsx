@@ -90,10 +90,11 @@ const calculateAge = (dateOfBirth?: Date, approximateAge?: string, useApproximat
   return age === 1 ? '1 year' : `${age} years`;
 };
 
-const getPetPhotos = (photosString?: string): string[] => {
-  if (!photosString) return [];
+const getPetPhotos = (photos?: string | string[]): string[] => {
+  if (!photos) return [];
+  if (Array.isArray(photos)) return photos;
   try {
-    return JSON.parse(photosString);
+    return JSON.parse(photos);
   } catch {
     return [];
   }
@@ -272,69 +273,22 @@ export default function PetDetailScreen() {
         )}
 
         {/* Official Records */}
-        {(pet.microchipId || pet.registrationNumber) && (
+        {pet.registrationNumber && (
           <Animated.View
             entering={SlideInDown.delay(900).springify()}
             style={styles.section}
           >
             <Text style={styles.sectionTitle}>Official Records</Text>
             
-            {pet.microchipId && (
-              <InfoRow
-                icon="radio-outline"
-                label="Microchip"
-                value={pet.microchipId}
-                delay={950}
-              />
-            )}
-            
-            {pet.registrationNumber && (
-              <InfoRow
-                icon="bookmark-outline"
-                label="Registration"
-                value={pet.registrationNumber}
-                delay={1000}
-              />
-            )}
+            <InfoRow
+              icon="bookmark-outline"
+              label="Registration"
+              value={pet.registrationNumber}
+              delay={950}
+            />
           </Animated.View>
         )}
 
-        {/* Veterinarian Information */}
-        {(pet.vetName || pet.clinicName) && (
-          <Animated.View
-            entering={SlideInDown.delay(1050).springify()}
-            style={styles.section}
-          >
-            <Text style={styles.sectionTitle}>Veterinarian</Text>
-            
-            {pet.clinicName && (
-              <InfoRow
-                icon="business-outline"
-                label="Clinic"
-                value={pet.clinicName}
-                delay={1100}
-              />
-            )}
-            
-            {pet.vetName && (
-              <InfoRow
-                icon="person-outline"
-                label="Veterinarian"
-                value={pet.vetName}
-                delay={1150}
-              />
-            )}
-            
-            {pet.vetPhone && (
-              <InfoRow
-                icon="call-outline"
-                label="Phone"
-                value={pet.vetPhone}
-                delay={1200}
-              />
-            )}
-          </Animated.View>
-        )}
 
         {/* Quick Actions */}
         <Animated.View

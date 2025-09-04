@@ -23,15 +23,7 @@ export interface Pet {
   };
   
   // Official Records (Screen 5)
-  microchipNumber?: string;
   registrationNumber?: string;
-  veterinarian?: {
-    clinicName: string;
-    vetName?: string;
-    phone?: string;
-    email?: string;
-    address?: string;
-  };
   
   // Health Profile (Screen 6)
   medicalConditions?: string[];

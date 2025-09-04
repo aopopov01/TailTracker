@@ -21,7 +21,6 @@ export interface PetProfile {
   heightUnit?: 'cm' | 'ft';
   
   // Official Records
-  microchipId?: string;
   registrationNumber?: string;
   insuranceProvider?: string;
   insurancePolicyNumber?: string;
@@ -30,11 +29,6 @@ export interface PetProfile {
   medicalConditions?: string[];
   medications?: string[];
   allergies?: string[];
-  veterinarian?: {
-    name?: string;
-    phone?: string;
-    address?: string;
-  };
   emergencyContact?: {
     name?: string;
     phone?: string;

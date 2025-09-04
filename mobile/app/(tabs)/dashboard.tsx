@@ -20,8 +20,6 @@ import { useAuth } from '../../src/contexts/AuthContext';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
-  withDelay,
-  withTiming,
   FadeIn,
   SlideInDown,
   useAnimatedGestureHandler,
@@ -159,10 +157,11 @@ const getPetIcon = (species: string, size: number = 80) => {
   }
 };
 
-const getPetPhotos = (photosString?: string): string[] => {
-  if (!photosString) return [];
+const getPetPhotos = (photos?: string | string[]): string[] => {
+  if (!photos) return [];
+  if (Array.isArray(photos)) return photos;
   try {
-    return JSON.parse(photosString);
+    return JSON.parse(photos);
   } catch {
     return [];
   }
@@ -196,13 +195,15 @@ interface SwipeablePetCardProps {
   onDelete: (petId: number, petName: string) => void;
   onEdit?: (petId: number) => void;
   isNewlyCreated: boolean;
+  onPress?: () => void;
 }
 
 const SwipeablePetCard: React.FC<SwipeablePetCardProps> = ({ 
   pet, 
   onDelete, 
   onEdit, 
-  isNewlyCreated 
+  isNewlyCreated,
+  onPress 
 }) => {
   const translateX = useSharedValue(0);
   const opacity = useSharedValue(1);
@@ -273,7 +274,7 @@ const SwipeablePetCard: React.FC<SwipeablePetCardProps> = ({
               isNewlyCreated && styles.petCardHighlighted
             ]}
             activeOpacity={0.8}
-            onPress={() => router.push(`/(tabs)/pet-detail?petId=${pet.id}`)}
+            onPress={onPress}
           >
             <View style={styles.petCardContent}>
               <View style={styles.petIconContainer}>
@@ -593,6 +594,7 @@ function DashboardScreen() {
                 pet={pet}
                 onDelete={handleDeletePet}
                 isNewlyCreated={isNewlyCreated(pet)}
+                onPress={() => router.push(`/(tabs)/pet-detail?petId=${pet.id}`)}
               />
             </Animated.View>
           ))}
@@ -849,9 +851,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: COLORS.deepNavy,
   },
-  footerValueWarning: {
-    color: COLORS.warning,
-  },
   quickActionsSection: {
     marginBottom: 20,
   },
@@ -953,10 +952,6 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: 'bold',
     color: COLORS.white,
-  },
-  footerValueHighlighted: {
-    color: COLORS.lightCyan,
-    fontWeight: 'bold',
   },
   // Swipe-to-delete styles
   swipeContainer: {

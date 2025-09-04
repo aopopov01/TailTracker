@@ -6,7 +6,7 @@
 -- - Subscription tracking with billing periods
 -- - Payment history with Stripe payment intents
 -- - Webhook event logging for reliable payment processing
--- - Premium tier at €7.99/month with enhanced features
+-- - Premium tier at €5.99/month with enhanced features
 
 -- Enable required extensions
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
@@ -15,9 +15,10 @@ CREATE EXTENSION IF NOT EXISTS "btree_gin";
 
 -- Create custom types for Stripe payment integration
 CREATE TYPE user_role AS ENUM ('owner', 'member', 'viewer');
-CREATE TYPE subscription_status AS ENUM ('free', 'premium', 'family', 'cancelled', 'expired', 'past_due', 'unpaid');
+CREATE TYPE access_level AS ENUM ('read', 'read_write');
+CREATE TYPE subscription_status AS ENUM ('free', 'premium', 'pro', 'cancelled', 'expired', 'past_due', 'unpaid');
 CREATE TYPE pet_status AS ENUM ('active', 'deceased', 'lost', 'found');
-CREATE TYPE notification_type AS ENUM ('vaccination_due', 'medication_due', 'appointment', 'lost_pet_alert', 'family_invite', 'payment_failed', 'subscription_renewed');
+CREATE TYPE notification_type AS ENUM ('lost_pet_alert', 'family_invite', 'payment_failed', 'subscription_renewed');
 CREATE TYPE payment_status AS ENUM ('pending', 'completed', 'failed', 'refunded', 'canceled');
 CREATE TYPE webhook_status AS ENUM ('pending', 'processed', 'failed', 'ignored');
 CREATE TYPE audit_action AS ENUM ('create', 'update', 'delete', 'view', 'export');
@@ -52,20 +53,33 @@ CREATE TABLE families (
     description TEXT,
     owner_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     invite_code VARCHAR(12) UNIQUE NOT NULL,
-    max_members INTEGER DEFAULT 1, -- Free: 1, Premium: 6 members
+    max_members INTEGER DEFAULT 1, -- Free: 1, Premium: 2, Pro: 4+ members
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Family members junction table
+-- Family members junction table with QR code access control
 CREATE TABLE family_members (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     family_id UUID NOT NULL REFERENCES families(id) ON DELETE CASCADE,
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     role user_role DEFAULT 'member',
+    access_level access_level DEFAULT 'read',
     invited_by UUID REFERENCES users(id),
+    invite_token VARCHAR(255) UNIQUE, -- QR code token for secure invitation
+    invite_expires_at TIMESTAMP WITH TIME ZONE,
     joined_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     UNIQUE(family_id, user_id)
+);
+
+-- Pending family invites table for QR code confirmations
+CREATE TABLE family_invites_pending (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    family_id UUID NOT NULL REFERENCES families(id) ON DELETE CASCADE,
+    potential_member_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    invite_token VARCHAR(255) UNIQUE NOT NULL,
+    expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
 -- Pets table with premium features (unlimited pets and photos for premium)
@@ -80,21 +94,60 @@ CREATE TABLE pets (
     date_of_birth DATE,
     weight_kg DECIMAL(5,2),
     microchip_number VARCHAR(50),
-    insurance_provider VARCHAR(255),
-    insurance_policy_number VARCHAR(100),
     status pet_status DEFAULT 'active',
-    profile_photo_url TEXT, -- Free: 1 photo, Premium: unlimited
+    
+    -- Basic information (all tiers)
+    personality_traits TEXT,
+    behavioral_notes TEXT,
+    
+    -- Emergency contacts (Free: basic, Premium/Pro: multiple)
     emergency_contact_name VARCHAR(255),
     emergency_contact_phone VARCHAR(20),
+    emergency_contact_email VARCHAR(255),
+    emergency_contact_2_name VARCHAR(255), -- Premium/Pro only
+    emergency_contact_2_phone VARCHAR(20), -- Premium/Pro only
+    emergency_contact_2_email VARCHAR(255), -- Premium/Pro only
+    
+    -- Pet insurance (Premium/Pro only)
+    insurance_provider VARCHAR(255), -- Premium/Pro only
+    insurance_policy_number VARCHAR(100), -- Premium/Pro only
+    insurance_contact_phone VARCHAR(20), -- Premium/Pro only
+    insurance_coverage_details TEXT, -- Premium/Pro only
+    
+    -- Breeding information (Pro only)
+    breeding_status VARCHAR(50), -- Pro only: 'not_applicable', 'intact', 'neutered', 'breeding'
+    breeding_notes TEXT, -- Pro only
+    sire_name VARCHAR(255), -- Pro only
+    dam_name VARCHAR(255), -- Pro only
+    registration_number VARCHAR(100), -- Pro only
+    registration_organization VARCHAR(100), -- Pro only
+    
+    -- Health and special needs (all tiers)
     special_needs TEXT,
     allergies TEXT,
+    medical_conditions TEXT[],
+    
+    -- Dietary information as simple notes (all tiers)
+    dietary_notes TEXT, -- Combined food allergies and dietary preferences as simple text
+    
     created_by UUID NOT NULL REFERENCES users(id),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     deleted_at TIMESTAMP WITH TIME ZONE
 );
 
--- Veterinarians table
+-- Pet photos table (with subscription limits)
+CREATE TABLE pet_photos (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    pet_id UUID REFERENCES pets(id) ON DELETE CASCADE,
+    photo_url TEXT NOT NULL,
+    caption TEXT,
+    file_size_bytes BIGINT,
+    is_profile_photo BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Simplified veterinarian info (no complex integration)
 CREATE TABLE veterinarians (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     name VARCHAR(255) NOT NULL,
@@ -102,82 +155,38 @@ CREATE TABLE veterinarians (
     phone VARCHAR(20),
     email VARCHAR(255),
     address TEXT,
-    city VARCHAR(100),
-    state VARCHAR(100),
-    postal_code VARCHAR(20),
-    country VARCHAR(2),
-    specialization VARCHAR(255),
-    license_number VARCHAR(100),
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Pet veterinarians junction table
-CREATE TABLE pet_veterinarians (
+-- Basic health records (simplified, no complex scheduling)
+CREATE TABLE health_records (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     pet_id UUID NOT NULL REFERENCES pets(id) ON DELETE CASCADE,
-    veterinarian_id UUID NOT NULL REFERENCES veterinarians(id) ON DELETE CASCADE,
-    is_primary BOOLEAN DEFAULT false,
-    assigned_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    UNIQUE(pet_id, veterinarian_id)
-);
-
--- Vaccinations table (basic tracking only in free tier)
-CREATE TABLE vaccinations (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    pet_id UUID NOT NULL REFERENCES pets(id) ON DELETE CASCADE,
-    vaccine_name VARCHAR(255) NOT NULL,
-    batch_number VARCHAR(100),
-    administered_date DATE NOT NULL,
-    next_due_date DATE,
-    veterinarian_id UUID REFERENCES veterinarians(id),
-    notes TEXT,
-    certificate_url TEXT,
-    created_by UUID NOT NULL REFERENCES users(id),
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-
--- Medications table (basic tracking only)
-CREATE TABLE medications (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    pet_id UUID NOT NULL REFERENCES pets(id) ON DELETE CASCADE,
-    medication_name VARCHAR(255) NOT NULL,
-    dosage VARCHAR(100),
-    frequency VARCHAR(100),
-    start_date DATE NOT NULL,
-    end_date DATE,
-    prescribed_by UUID REFERENCES veterinarians(id),
-    instructions TEXT,
-    side_effects TEXT,
-    active BOOLEAN DEFAULT true,
-    created_by UUID NOT NULL REFERENCES users(id),
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-
--- Medical records table
-CREATE TABLE medical_records (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    pet_id UUID NOT NULL REFERENCES pets(id) ON DELETE CASCADE,
-    record_type VARCHAR(100) NOT NULL,
+    record_type VARCHAR(100) NOT NULL, -- 'vaccination', 'medication', 'vet_visit', 'general'
     title VARCHAR(255) NOT NULL,
     description TEXT,
-    date_of_record DATE NOT NULL,
-    veterinarian_id UUID REFERENCES veterinarians(id),
-    cost DECIMAL(10,2),
-    currency VARCHAR(3) DEFAULT 'EUR',
-    diagnosis TEXT,
-    treatment TEXT,
-    follow_up_required BOOLEAN DEFAULT false,
-    follow_up_date DATE,
+    date_recorded DATE NOT NULL,
+    veterinarian_name VARCHAR(255), -- Simple text field instead of FK
+    clinic_name VARCHAR(255),
     document_urls TEXT[],
     created_by UUID NOT NULL REFERENCES users(id),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Lost pets table (PREMIUM FEATURE)
+-- Basic pet measurements (weight, size tracking)
+CREATE TABLE pet_measurements (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    pet_id UUID NOT NULL REFERENCES pets(id) ON DELETE CASCADE,
+    measurement_type VARCHAR(50) NOT NULL, -- 'weight', 'height', 'length'
+    value DECIMAL(10,2) NOT NULL,
+    unit VARCHAR(20) NOT NULL, -- 'kg', 'cm', 'lbs', 'in'
+    notes TEXT,
+    recorded_by UUID NOT NULL REFERENCES users(id),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Lost pets table (community feature)
 CREATE TABLE lost_pets (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     pet_id UUID NOT NULL REFERENCES pets(id) ON DELETE CASCADE,
@@ -187,20 +196,17 @@ CREATE TABLE lost_pets (
     last_seen_address TEXT,
     last_seen_date TIMESTAMP WITH TIME ZONE,
     description TEXT,
-    reward_amount DECIMAL(10,2),
-    reward_currency VARCHAR(3) DEFAULT 'EUR',
     contact_phone VARCHAR(20),
     contact_email VARCHAR(255),
     photo_urls TEXT[],
     search_radius_km INTEGER DEFAULT 10,
     found_date TIMESTAMP WITH TIME ZONE,
     found_by UUID REFERENCES users(id),
-    is_premium_feature BOOLEAN DEFAULT true, -- Marks this as premium-only
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Notifications table with premium features
+-- Notifications table (basic system notifications only)
 CREATE TABLE notifications (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -209,13 +215,11 @@ CREATE TABLE notifications (
     message TEXT NOT NULL,
     pet_id UUID REFERENCES pets(id),
     related_id UUID, -- Generic reference to related records
-    scheduled_for TIMESTAMP WITH TIME ZONE,
     sent_at TIMESTAMP WITH TIME ZONE,
     read_at TIMESTAMP WITH TIME ZONE,
     action_url TEXT,
     push_sent BOOLEAN DEFAULT false,
     email_sent BOOLEAN DEFAULT false,
-    is_premium_feature BOOLEAN DEFAULT false, -- Vaccination reminders are premium
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
@@ -268,7 +272,7 @@ CREATE TABLE subscriptions (
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     stripe_subscription_id VARCHAR(255) UNIQUE NOT NULL, -- Stripe subscription ID
     stripe_customer_id VARCHAR(255) NOT NULL, -- Should match users.stripe_customer_id
-    plan_name VARCHAR(100) NOT NULL, -- 'premium_monthly', 'family_monthly'
+    plan_name VARCHAR(100) NOT NULL, -- 'premium_monthly', 'pro_monthly'
     status subscription_status NOT NULL DEFAULT 'free',
     current_period_start TIMESTAMP WITH TIME ZONE,
     current_period_end TIMESTAMP WITH TIME ZONE,
@@ -360,14 +364,13 @@ CREATE INDEX idx_pets_family_id ON pets(family_id);
 CREATE INDEX idx_pets_status ON pets(status);
 CREATE INDEX idx_pets_created_by ON pets(created_by);
 
-CREATE INDEX idx_vaccinations_pet_id ON vaccinations(pet_id);
-CREATE INDEX idx_vaccinations_next_due_date ON vaccinations(next_due_date) WHERE next_due_date IS NOT NULL;
+CREATE INDEX idx_health_records_pet_id ON health_records(pet_id);
+CREATE INDEX idx_health_records_date ON health_records(date_recorded);
+CREATE INDEX idx_health_records_type ON health_records(record_type);
 
-CREATE INDEX idx_medications_pet_id ON medications(pet_id);
-CREATE INDEX idx_medications_active ON medications(active) WHERE active = true;
-
-CREATE INDEX idx_medical_records_pet_id ON medical_records(pet_id);
-CREATE INDEX idx_medical_records_date ON medical_records(date_of_record);
+CREATE INDEX idx_pet_measurements_pet_id ON pet_measurements(pet_id);
+CREATE INDEX idx_pet_measurements_type ON pet_measurements(measurement_type);
+CREATE INDEX idx_pet_measurements_date ON pet_measurements(created_at);
 
 CREATE INDEX idx_lost_pets_pet_id ON lost_pets(pet_id);
 CREATE INDEX idx_lost_pets_status ON lost_pets(status);
@@ -375,7 +378,7 @@ CREATE INDEX idx_lost_pets_location ON lost_pets USING GIST(last_seen_location);
 
 CREATE INDEX idx_notifications_user_id ON notifications(user_id);
 CREATE INDEX idx_notifications_type ON notifications(type);
-CREATE INDEX idx_notifications_scheduled_for ON notifications(scheduled_for) WHERE scheduled_for IS NOT NULL;
+-- Removed scheduled_for index as scheduling features are not included
 CREATE INDEX idx_notifications_unread ON notifications(user_id, read_at) WHERE read_at IS NULL;
 
 CREATE INDEX idx_files_user_id ON files(user_id);
@@ -420,9 +423,8 @@ ALTER TABLE users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE families ENABLE ROW LEVEL SECURITY;
 ALTER TABLE family_members ENABLE ROW LEVEL SECURITY;
 ALTER TABLE pets ENABLE ROW LEVEL SECURITY;
-ALTER TABLE vaccinations ENABLE ROW LEVEL SECURITY;
-ALTER TABLE medications ENABLE ROW LEVEL SECURITY;
-ALTER TABLE medical_records ENABLE ROW LEVEL SECURITY;
+ALTER TABLE health_records ENABLE ROW LEVEL SECURITY;
+ALTER TABLE pet_measurements ENABLE ROW LEVEL SECURITY;
 ALTER TABLE lost_pets ENABLE ROW LEVEL SECURITY;
 ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE subscriptions ENABLE ROW LEVEL SECURITY;
@@ -489,27 +491,24 @@ BEGIN
     FROM users u
     WHERE u.auth_user_id = user_auth_id;
     
-    -- Check if user has active premium subscription
-    RETURN status IN ('premium', 'family') AND (expires_at IS NULL OR expires_at > NOW());
+    -- Check if user has active premium or pro subscription
+    RETURN status IN ('premium', 'pro') AND (expires_at IS NULL OR expires_at > NOW());
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER STABLE;
 
--- Enhanced pet limit function with premium support
+-- Enhanced pet limit function with tiered subscription support
 CREATE OR REPLACE FUNCTION check_pet_limit()
 RETURNS TRIGGER AS $$
 DECLARE
     current_count INTEGER;
     owner_auth_id UUID;
-    is_premium BOOLEAN;
+    user_subscription_status subscription_status;
 BEGIN
-    -- Get family owner's auth ID
-    SELECT u.auth_user_id INTO owner_auth_id
+    -- Get family owner's auth ID and subscription status
+    SELECT u.auth_user_id, u.subscription_status INTO owner_auth_id, user_subscription_status
     FROM families f
     JOIN users u ON f.owner_id = u.id
     WHERE f.id = NEW.family_id;
-    
-    -- Check if owner has premium access
-    is_premium := has_premium_access(owner_auth_id);
     
     -- Count current pets in family
     SELECT COUNT(*) INTO current_count
@@ -517,9 +516,12 @@ BEGIN
     WHERE p.family_id = NEW.family_id
     AND p.deleted_at IS NULL;
     
-    -- Apply limits based on subscription
-    IF NOT is_premium AND current_count >= 1 THEN
-        RAISE EXCEPTION 'Free tier allows only 1 pet. Upgrade to premium for unlimited pets.';
+    -- Apply limits based on subscription tier
+    IF user_subscription_status = 'free' AND current_count >= 1 THEN
+        RAISE EXCEPTION 'Free tier allows only 1 pet. Upgrade to Premium for 2 pets or Pro for unlimited pets.';
+    ELSIF user_subscription_status = 'premium' AND current_count >= 2 THEN
+        RAISE EXCEPTION 'Premium tier allows up to 2 pets. Upgrade to Pro for unlimited pets.';
+    -- Pro tier has unlimited pets (no limit check needed)
     END IF;
     
     RETURN NEW;
@@ -560,10 +562,24 @@ BEGIN
     WHERE pet_id = NEW.pet_id
     AND content_type LIKE 'image/%';
     
-    -- Apply limits based on subscription
-    IF NOT is_premium AND current_count >= 1 THEN
-        RAISE EXCEPTION 'Free tier allows only 1 photo per pet. Upgrade to premium for unlimited photos.';
-    END IF;
+    -- Apply limits based on subscription tier
+    -- Get subscription status directly
+    DECLARE
+        user_subscription_status subscription_status;
+    BEGIN
+        SELECT u.subscription_status INTO user_subscription_status
+        FROM pets p
+        JOIN families f ON p.family_id = f.id
+        JOIN users u ON f.owner_id = u.id
+        WHERE p.id = NEW.pet_id;
+        
+        -- Apply photo limits: Free = 1 photo, Premium/Pro = 12 photos
+        IF user_subscription_status = 'free' AND current_count >= 1 THEN
+            RAISE EXCEPTION 'Free tier allows only 1 photo per pet. Upgrade to Premium for 12 photos per pet.';
+        ELSIF user_subscription_status IN ('premium', 'pro') AND current_count >= 12 THEN
+            RAISE EXCEPTION 'Premium and Pro tiers allow up to 12 photos per pet.';
+        END IF;
+    END;
     
     RETURN NEW;
 END;
@@ -574,50 +590,49 @@ CREATE TRIGGER enforce_photo_limit
     FOR EACH ROW
     EXECUTE FUNCTION check_photo_limit();
 
--- Function to enforce premium features
-CREATE OR REPLACE FUNCTION check_premium_features()
+-- Function to check family member limits based on subscription tier
+CREATE OR REPLACE FUNCTION check_family_member_limit()
 RETURNS TRIGGER AS $$
 DECLARE
-    user_auth_id UUID;
-    is_premium BOOLEAN;
+    current_count INTEGER;
+    owner_auth_id UUID;
+    user_subscription_status subscription_status;
 BEGIN
-    -- Get user's auth ID based on context
-    IF TG_TABLE_NAME = 'lost_pets' THEN
-        SELECT u.auth_user_id INTO user_auth_id
-        FROM users u
-        WHERE u.id = NEW.reported_by;
-    ELSIF TG_TABLE_NAME = 'notifications' THEN
-        SELECT u.auth_user_id INTO user_auth_id
-        FROM users u
-        WHERE u.id = NEW.user_id;
-    END IF;
+    -- Get family owner's auth ID and subscription status
+    SELECT u.auth_user_id, u.subscription_status INTO owner_auth_id, user_subscription_status
+    FROM families f
+    JOIN users u ON f.owner_id = u.id
+    WHERE f.id = NEW.family_id;
     
-    -- Check if user has premium access
-    is_premium := has_premium_access(user_auth_id);
+    -- Count current family members (excluding owner)
+    SELECT COUNT(*) INTO current_count
+    FROM family_members fm
+    WHERE fm.family_id = NEW.family_id
+    AND fm.user_id != (SELECT f.owner_id FROM families f WHERE f.id = NEW.family_id);
     
-    -- Enforce premium feature restrictions
-    IF TG_TABLE_NAME = 'lost_pets' AND NOT is_premium THEN
-        RAISE EXCEPTION 'Lost pet alerts are a premium feature. Upgrade to premium to use this feature.';
-    END IF;
-    
-    IF TG_TABLE_NAME = 'notifications' AND NEW.type = 'vaccination_due' AND NOT is_premium THEN
-        RAISE EXCEPTION 'Vaccination reminders are a premium feature. Upgrade to premium to use this feature.';
+    -- Apply limits based on subscription tier
+    IF user_subscription_status = 'free' AND current_count >= 1 THEN
+        RAISE EXCEPTION 'Free tier allows main user + 1 additional family member (2 total). Upgrade to Premium for main user + 2 additional members (3 total) or Pro for main user + 4 additional members (5 total).';
+    ELSIF user_subscription_status = 'premium' AND current_count >= 2 THEN
+        RAISE EXCEPTION 'Premium tier allows main user + 2 additional family members (3 total). Upgrade to Pro for main user + 4 additional members (5 total).';
+    ELSIF user_subscription_status = 'pro' AND current_count >= 4 THEN
+        RAISE EXCEPTION 'Pro tier allows main user + 4 additional family members (5 total maximum).';
+    -- Pro tier has unlimited family members (no limit check needed)
     END IF;
     
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER prevent_premium_lost_pets
-    BEFORE INSERT ON lost_pets
+-- Trigger to enforce family member limits
+CREATE TRIGGER enforce_family_member_limit
+    BEFORE INSERT ON family_members
     FOR EACH ROW
-    EXECUTE FUNCTION check_premium_features();
+    EXECUTE FUNCTION check_family_member_limit();
 
-CREATE TRIGGER prevent_premium_notifications
-    BEFORE INSERT ON notifications
-    FOR EACH ROW
-    WHEN (NEW.type = 'vaccination_due')
-    EXECUTE FUNCTION check_premium_features();
+-- Premium features are now available at premium and pro tiers
+-- Lost pet alerts: Free/Premium users receive notifications (10km radius), Pro users can create alerts
+-- No complex scheduling or vaccination reminders
 
 -- Function to update user subscription status from Stripe events
 CREATE OR REPLACE FUNCTION update_subscription_status()
@@ -634,7 +649,8 @@ BEGIN
     -- Update family max_members based on subscription
     UPDATE families
     SET max_members = CASE 
-        WHEN NEW.status IN ('premium', 'family') THEN 6
+        WHEN NEW.status = 'premium' THEN 2
+        WHEN NEW.status = 'pro' THEN 100 -- Effectively unlimited
         ELSE 1
     END
     WHERE owner_id = NEW.user_id;
@@ -738,6 +754,482 @@ CREATE POLICY "Users can view own feature usage" ON feature_usage
 CREATE POLICY "Service role can manage feature usage" ON feature_usage
   FOR ALL TO service_role USING (true);
 
+-- Health Records and Vaccination Tracking Tables
+
+-- Veterinarians table
+CREATE TABLE veterinarians (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+  name VARCHAR(200) NOT NULL,
+  clinic_name VARCHAR(200),
+  phone VARCHAR(20),
+  email VARCHAR(255),
+  address TEXT,
+  notes TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Health records table
+CREATE TABLE health_records (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  pet_id UUID REFERENCES pets(id) ON DELETE CASCADE,
+  title VARCHAR(255) NOT NULL,
+  description TEXT,
+  record_date DATE NOT NULL,
+  veterinarian_id UUID REFERENCES veterinarians(id),
+  weight DECIMAL(5,2),
+  temperature DECIMAL(4,1),
+  notes TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Health record photos table (with subscription limits)
+CREATE TABLE health_record_photos (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  health_record_id UUID REFERENCES health_records(id) ON DELETE CASCADE,
+  photo_url TEXT NOT NULL,
+  caption TEXT,
+  file_size_bytes BIGINT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- User events table (replaces automatic vaccination tracking)
+CREATE TABLE user_events (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  pet_id UUID REFERENCES pets(id) ON DELETE CASCADE,
+  user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+  event_type VARCHAR(100) NOT NULL, -- 'vaccination', 'vet_visit', 'medication', 'reminder'
+  title VARCHAR(255) NOT NULL,
+  description TEXT,
+  event_date DATE NOT NULL,
+  reminder_date DATE, -- Optional future reminder date set by user
+  veterinarian_name VARCHAR(255),
+  notes TEXT,
+  is_reminder_sent BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Health notifications table (for Premium/Pro users)
+CREATE TABLE health_notifications (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+  pet_id UUID REFERENCES pets(id) ON DELETE CASCADE,
+  notification_type VARCHAR(50) NOT NULL, -- 'vaccination_reminder', 'custom_reminder'
+  title VARCHAR(255) NOT NULL,
+  description TEXT,
+  notification_date TIMESTAMP WITH TIME ZONE NOT NULL,
+  is_sent BOOLEAN DEFAULT FALSE,
+  event_id UUID REFERENCES user_events(id) ON DELETE CASCADE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Enable Row Level Security
+ALTER TABLE pet_photos ENABLE ROW LEVEL SECURITY;
+ALTER TABLE veterinarians ENABLE ROW LEVEL SECURITY;
+ALTER TABLE health_records ENABLE ROW LEVEL SECURITY;
+ALTER TABLE health_record_photos ENABLE ROW LEVEL SECURITY;
+ALTER TABLE user_events ENABLE ROW LEVEL SECURITY;
+ALTER TABLE health_notifications ENABLE ROW LEVEL SECURITY;
+
+-- RLS Policies for pet_photos
+CREATE POLICY "Users can view pet photos for own pets" ON pet_photos
+  FOR SELECT USING (
+    EXISTS (
+      SELECT 1 FROM pets p
+      JOIN families f ON p.family_id = f.id
+      LEFT JOIN family_members fm ON f.id = fm.family_id
+      JOIN users u ON (f.owner_id = u.id OR fm.user_id = u.id)
+      WHERE p.id = pet_id
+      AND u.auth_user_id = auth.uid()
+    )
+  );
+
+CREATE POLICY "Users can insert pet photos for own pets with write access" ON pet_photos
+  FOR INSERT WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM pets p
+      JOIN families f ON p.family_id = f.id
+      LEFT JOIN family_members fm ON f.id = fm.family_id
+      JOIN users u ON (f.owner_id = u.id OR (fm.user_id = u.id AND fm.access_level = 'read_write'))
+      WHERE p.id = pet_id
+      AND u.auth_user_id = auth.uid()
+    )
+  );
+
+CREATE POLICY "Users can delete pet photos for own pets with write access" ON pet_photos
+  FOR DELETE USING (
+    EXISTS (
+      SELECT 1 FROM pets p
+      JOIN families f ON p.family_id = f.id
+      LEFT JOIN family_members fm ON f.id = fm.family_id
+      JOIN users u ON (f.owner_id = u.id OR (fm.user_id = u.id AND fm.access_level = 'read_write'))
+      WHERE p.id = pet_id
+      AND u.auth_user_id = auth.uid()
+    )
+  );
+
+-- RLS Policies for veterinarians
+CREATE POLICY "Users can view own veterinarians" ON veterinarians
+  FOR SELECT USING (
+    EXISTS (
+      SELECT 1 FROM users u
+      WHERE u.id = user_id
+      AND u.auth_user_id = auth.uid()
+    )
+  );
+
+CREATE POLICY "Users can insert own veterinarians" ON veterinarians
+  FOR INSERT WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM users u
+      WHERE u.id = user_id
+      AND u.auth_user_id = auth.uid()
+    )
+  );
+
+CREATE POLICY "Users can update own veterinarians" ON veterinarians
+  FOR UPDATE USING (
+    EXISTS (
+      SELECT 1 FROM users u
+      WHERE u.id = user_id
+      AND u.auth_user_id = auth.uid()
+    )
+  );
+
+CREATE POLICY "Users can delete own veterinarians" ON veterinarians
+  FOR DELETE USING (
+    EXISTS (
+      SELECT 1 FROM users u
+      WHERE u.id = user_id
+      AND u.auth_user_id = auth.uid()
+    )
+  );
+
+-- RLS Policies for health records
+CREATE POLICY "Users can view own pet health records" ON health_records
+  FOR SELECT USING (
+    EXISTS (
+      SELECT 1 FROM pets p
+      JOIN families f ON p.family_id = f.id
+      LEFT JOIN family_members fm ON f.id = fm.family_id
+      JOIN users u ON (f.owner_id = u.id OR fm.user_id = u.id)
+      WHERE p.id = pet_id
+      AND u.auth_user_id = auth.uid()
+    )
+  );
+
+CREATE POLICY "Users can insert health records for own pets" ON health_records
+  FOR INSERT WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM pets p
+      JOIN families f ON p.family_id = f.id
+      LEFT JOIN family_members fm ON f.id = fm.family_id
+      JOIN users u ON (f.owner_id = u.id OR (fm.user_id = u.id AND fm.access_level = 'read_write'))
+      WHERE p.id = pet_id
+      AND u.auth_user_id = auth.uid()
+    )
+  );
+
+CREATE POLICY "Users can update health records for own pets with write access" ON health_records
+  FOR UPDATE USING (
+    EXISTS (
+      SELECT 1 FROM pets p
+      JOIN families f ON p.family_id = f.id
+      LEFT JOIN family_members fm ON f.id = fm.family_id
+      JOIN users u ON (f.owner_id = u.id OR (fm.user_id = u.id AND fm.access_level = 'read_write'))
+      WHERE p.id = pet_id
+      AND u.auth_user_id = auth.uid()
+    )
+  );
+
+CREATE POLICY "Users can delete health records for own pets with write access" ON health_records
+  FOR DELETE USING (
+    EXISTS (
+      SELECT 1 FROM pets p
+      JOIN families f ON p.family_id = f.id
+      LEFT JOIN family_members fm ON f.id = fm.family_id
+      JOIN users u ON (f.owner_id = u.id OR (fm.user_id = u.id AND fm.access_level = 'read_write'))
+      WHERE p.id = pet_id
+      AND u.auth_user_id = auth.uid()
+    )
+  );
+
+-- RLS Policies for health record photos
+CREATE POLICY "Users can view health record photos for own pets" ON health_record_photos
+  FOR SELECT USING (
+    EXISTS (
+      SELECT 1 FROM health_records hr
+      JOIN pets p ON hr.pet_id = p.id
+      JOIN families f ON p.family_id = f.id
+      LEFT JOIN family_members fm ON f.id = fm.family_id
+      JOIN users u ON (f.owner_id = u.id OR fm.user_id = u.id)
+      WHERE hr.id = health_record_id
+      AND u.auth_user_id = auth.uid()
+    )
+  );
+
+CREATE POLICY "Users can insert health record photos for own pets with write access" ON health_record_photos
+  FOR INSERT WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM health_records hr
+      JOIN pets p ON hr.pet_id = p.id
+      JOIN families f ON p.family_id = f.id
+      LEFT JOIN family_members fm ON f.id = fm.family_id
+      JOIN users u ON (f.owner_id = u.id OR (fm.user_id = u.id AND fm.access_level = 'read_write'))
+      WHERE hr.id = health_record_id
+      AND u.auth_user_id = auth.uid()
+    )
+  );
+
+CREATE POLICY "Users can delete health record photos for own pets with write access" ON health_record_photos
+  FOR DELETE USING (
+    EXISTS (
+      SELECT 1 FROM health_records hr
+      JOIN pets p ON hr.pet_id = p.id
+      JOIN families f ON p.family_id = f.id
+      LEFT JOIN family_members fm ON f.id = fm.family_id
+      JOIN users u ON (f.owner_id = u.id OR (fm.user_id = u.id AND fm.access_level = 'read_write'))
+      WHERE hr.id = health_record_id
+      AND u.auth_user_id = auth.uid()
+    )
+  );
+
+-- RLS Policies for user_events (replaces vaccination policies)
+CREATE POLICY "Users can view user events for own pets" ON user_events
+  FOR SELECT USING (
+    EXISTS (
+      SELECT 1 FROM pets p
+      JOIN families f ON p.family_id = f.id
+      LEFT JOIN family_members fm ON f.id = fm.family_id
+      JOIN users u ON (f.owner_id = u.id OR fm.user_id = u.id)
+      WHERE p.id = pet_id
+      AND u.auth_user_id = auth.uid()
+    )
+  );
+
+CREATE POLICY "Users can insert user events for own pets with write access" ON user_events
+  FOR INSERT WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM pets p
+      JOIN families f ON p.family_id = f.id
+      LEFT JOIN family_members fm ON f.id = fm.family_id
+      JOIN users u ON (f.owner_id = u.id OR (fm.user_id = u.id AND fm.access_level = 'read_write'))
+      WHERE p.id = pet_id
+      AND u.auth_user_id = auth.uid()
+    )
+  );
+
+CREATE POLICY "Users can update user events for own pets with write access" ON user_events
+  FOR UPDATE USING (
+    EXISTS (
+      SELECT 1 FROM pets p
+      JOIN families f ON p.family_id = f.id
+      LEFT JOIN family_members fm ON f.id = fm.family_id
+      JOIN users u ON (f.owner_id = u.id OR (fm.user_id = u.id AND fm.access_level = 'read_write'))
+      WHERE p.id = pet_id
+      AND u.auth_user_id = auth.uid()
+    )
+  );
+
+CREATE POLICY "Users can delete user events for own pets with write access" ON user_events
+  FOR DELETE USING (
+    EXISTS (
+      SELECT 1 FROM pets p
+      JOIN families f ON p.family_id = f.id
+      LEFT JOIN family_members fm ON f.id = fm.family_id
+      JOIN users u ON (f.owner_id = u.id OR (fm.user_id = u.id AND fm.access_level = 'read_write'))
+      WHERE p.id = pet_id
+      AND u.auth_user_id = auth.uid()
+    )
+  );
+
+-- RLS Policies for health notifications
+CREATE POLICY "Users can view own health notifications" ON health_notifications
+  FOR SELECT USING (
+    EXISTS (
+      SELECT 1 FROM users u
+      WHERE u.id = user_id
+      AND u.auth_user_id = auth.uid()
+    )
+  );
+
+CREATE POLICY "Users can insert own health notifications" ON health_notifications
+  FOR INSERT WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM users u
+      WHERE u.id = user_id
+      AND u.auth_user_id = auth.uid()
+    )
+  );
+
+CREATE POLICY "Users can update own health notifications" ON health_notifications
+  FOR UPDATE USING (
+    EXISTS (
+      SELECT 1 FROM users u
+      WHERE u.id = user_id
+      AND u.auth_user_id = auth.uid()
+    )
+  );
+
+CREATE POLICY "Users can delete own health notifications" ON health_notifications
+  FOR DELETE USING (
+    EXISTS (
+      SELECT 1 FROM users u
+      WHERE u.id = user_id
+      AND u.auth_user_id = auth.uid()
+    )
+  );
+
+-- Subscription limit triggers for health record photos (Free: 1 photo per record, Premium/Pro: 5 photos per record)
+CREATE OR REPLACE FUNCTION check_health_record_photo_limit()
+RETURNS TRIGGER AS $
+DECLARE
+    current_count INTEGER;
+    owner_auth_id UUID;
+    user_subscription_status subscription_status;
+BEGIN
+    -- Get health record owner's subscription status
+    SELECT u.auth_user_id, u.subscription_status INTO owner_auth_id, user_subscription_status
+    FROM health_records hr
+    JOIN pets p ON hr.pet_id = p.id
+    JOIN families f ON p.family_id = f.id
+    JOIN users u ON f.owner_id = u.id
+    WHERE hr.id = NEW.health_record_id;
+    
+    -- Count current photos for this health record
+    SELECT COUNT(*) INTO current_count
+    FROM health_record_photos hrp
+    WHERE hrp.health_record_id = NEW.health_record_id;
+    
+    -- Apply limits based on subscription tier
+    IF user_subscription_status = 'free' AND current_count >= 1 THEN
+        RAISE EXCEPTION 'Free tier allows 1 photo per health record. Upgrade to Premium or Pro for 5 photos per health record.';
+    ELSIF user_subscription_status IN ('premium', 'pro') AND current_count >= 5 THEN
+        RAISE EXCEPTION 'Premium and Pro tiers allow 5 photos per health record.';
+    END IF;
+    
+    RETURN NEW;
+END;
+$ LANGUAGE plpgsql;
+
+CREATE TRIGGER health_record_photo_limit_trigger
+    BEFORE INSERT ON health_record_photos
+    FOR EACH ROW
+    EXECUTE FUNCTION check_health_record_photo_limit();
+
+-- Subscription limit triggers for veterinarians (Free: 1 vet, Premium/Pro: 3 vets)
+CREATE OR REPLACE FUNCTION check_veterinarian_limit()
+RETURNS TRIGGER AS $
+DECLARE
+    current_count INTEGER;
+    owner_auth_id UUID;
+    user_subscription_status subscription_status;
+BEGIN
+    -- Get user's subscription status
+    SELECT u.auth_user_id, u.subscription_status INTO owner_auth_id, user_subscription_status
+    FROM users u
+    WHERE u.id = NEW.user_id;
+    
+    -- Count current veterinarians for this user
+    SELECT COUNT(*) INTO current_count
+    FROM veterinarians v
+    WHERE v.user_id = NEW.user_id;
+    
+    -- Apply limits based on subscription tier
+    IF user_subscription_status = 'free' AND current_count >= 1 THEN
+        RAISE EXCEPTION 'Free tier allows 1 veterinarian contact. Upgrade to Premium or Pro for 3 veterinarian contacts.';
+    ELSIF user_subscription_status IN ('premium', 'pro') AND current_count >= 3 THEN
+        RAISE EXCEPTION 'Premium and Pro tiers allow 3 veterinarian contacts.';
+    END IF;
+    
+    RETURN NEW;
+END;
+$ LANGUAGE plpgsql;
+
+CREATE TRIGGER veterinarian_limit_trigger
+    BEFORE INSERT ON veterinarians
+    FOR EACH ROW
+    EXECUTE FUNCTION check_veterinarian_limit();
+
+-- Function to check if user can create notifications (Premium/Pro only)
+CREATE OR REPLACE FUNCTION check_notification_permission()
+RETURNS TRIGGER AS $
+DECLARE
+    user_subscription_status subscription_status;
+BEGIN
+    -- Get user's subscription status
+    SELECT u.subscription_status INTO user_subscription_status
+    FROM users u
+    WHERE u.id = NEW.user_id;
+    
+    -- Only Premium and Pro users can create notifications
+    IF user_subscription_status = 'free' THEN
+        RAISE EXCEPTION 'Health notifications are available in Premium and Pro tiers only. Free tier users cannot set reminders.';
+    END IF;
+    
+    RETURN NEW;
+END;
+$ LANGUAGE plpgsql;
+
+CREATE TRIGGER notification_permission_trigger
+    BEFORE INSERT ON health_notifications
+    FOR EACH ROW
+    EXECUTE FUNCTION check_notification_permission();
+
+-- Pet photos subscription limits trigger
+CREATE OR REPLACE FUNCTION check_pet_photo_limits()
+RETURNS TRIGGER AS $
+DECLARE
+    user_subscription_status subscription_status;
+    user_id UUID;
+    current_photo_count INTEGER;
+    max_photos INTEGER;
+BEGIN
+    -- Get user ID and subscription status from pet
+    SELECT p.user_id, u.subscription_status INTO user_id, user_subscription_status
+    FROM pets p
+    JOIN users u ON p.user_id = u.id
+    WHERE p.id = NEW.pet_id;
+    
+    -- Set photo limits based on subscription
+    IF user_subscription_status = 'free' THEN
+        max_photos := 1;
+    ELSE -- Premium and Pro both get 12 photos
+        max_photos := 12;
+    END IF;
+    
+    -- Count current photos for this pet
+    SELECT COUNT(*) INTO current_photo_count
+    FROM pet_photos
+    WHERE pet_id = NEW.pet_id;
+    
+    -- Check if adding this photo would exceed the limit
+    IF current_photo_count >= max_photos THEN
+        RAISE EXCEPTION 'Photo limit exceeded. % users can add up to % photos per pet. % for more photos.',
+            CASE 
+                WHEN user_subscription_status = 'free' THEN 'Free'
+                WHEN user_subscription_status = 'premium' THEN 'Premium'
+                ELSE 'Pro'
+            END,
+            max_photos,
+            CASE 
+                WHEN user_subscription_status = 'free' THEN 'Upgrade to Premium'
+                ELSE 'Maximum photo limit reached'
+            END;
+    END IF;
+    
+    RETURN NEW;
+END;
+$ LANGUAGE plpgsql;
+
+CREATE TRIGGER pet_photo_limits_trigger
+    BEFORE INSERT ON pet_photos
+    FOR EACH ROW
+    EXECUTE FUNCTION check_pet_photo_limits();
+
 -- Comments for future enhancements
 /*
   STRIPE INTEGRATION NOTES:
@@ -748,9 +1240,9 @@ CREATE POLICY "Service role can manage feature usage" ON feature_usage
      - Implement idempotency using stripe_event_id
   
   2. Subscription Management:
-     - Premium tier: €7.99/month (unlimited pets, photos, lost pet alerts, vaccination reminders)
-     - Family tier: €12.99/month (up to 6 family members, all premium features)
-     - Free tier: 1 pet, 1 photo per pet, basic features only
+     - Premium tier: €5.99/month (3 total family members, 2 pets, enhanced features)
+     - Pro tier: €8.99/month (5 total family members, unlimited pets, CSV/PDF data export, lost pet reporting)
+     - Free tier: 2 total family members, 1 photo per health record, 1 vet contact, no reminders, lost pet notifications only
   
   3. Payment Processing:
      - All amounts stored in EUR cents (multiply by 100)
@@ -762,4 +1254,7 @@ CREATE POLICY "Service role can manage feature usage" ON feature_usage
      - Premium features are enforced at database level via triggers
      - Feature usage is tracked for analytics and limit enforcement
      - Subscription status is synced automatically from Stripe webhooks
+     - Health notifications require Premium/Pro subscription
+     - Health record photo limits: Free (1), Premium/Pro (5)
+     - Veterinarian contact limits: Free (1), Premium/Pro (3)
 */

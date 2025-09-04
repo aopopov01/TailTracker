@@ -8,36 +8,36 @@ Pet Management & Safety
 
 ## App Description (3,997/4,000 characters)
 
-Keep your beloved pets safe, healthy, and happy with TailTracker - the comprehensive pet management app designed for modern pet parents.
+Keep your beloved pets organized and connected with your family using TailTracker - the simple pet management app designed for modern pet parents.
 
-**🐾 NEVER LOSE YOUR PET AGAIN**
-TailTracker's advanced GPS tracking helps you locate your pet instantly. Set up safe zones around your home and receive real-time alerts if your pet wanders off. Our smart location technology works even when your phone is sleeping, giving you peace of mind 24/7.
+**🏠 COMMUNITY LOST PET ALERTS**
+Receive alerts when pets go missing in your area (10km radius). Our community helps reunite lost pets with their families. Pro tier users can report their own lost pets with photos and location to alert nearby community members.
 
 **📱 COMPLETE PET PROFILES**
-Create detailed profiles for each of your pets with photos, medical records, personality traits, and important information. Store vaccination schedules, medication reminders, and vet contact details all in one secure place.
+Create detailed profiles for each of your pets with photos, medical records, personality traits, and important information. Store vaccination schedules, medication reminders, and vet contact details all in one secure place. Free users get 1 photo per pet, Premium/Pro users get 12 photos per pet.
 
-**🔔 SMART NOTIFICATIONS**
-Never miss important pet care tasks with intelligent reminders for:
-• Feeding schedules and portion tracking
-• Medication and supplement times
-• Grooming appointments
-• Vet checkups and vaccinations
-• Exercise goals and achievements
+**📋 SIMPLE HEALTH RECORDS**
+Keep track of your pet's important health information:
+• Manual health record entries with photos
+• Vaccination records and medical notes
+• Weight and measurement tracking over time
+• Vet contact information storage
+• Health photo documentation
 
-**🗺️ LOCATION FEATURES**
-• Real-time GPS tracking with Apple Maps integration
-• Geofenced safe zones with instant alerts
-• Location history to see where your pet loves to explore
-• Find nearby pet services: vets, groomers, dog parks
-• Share location with family members and pet sitters
+**📱 FAMILY ACCESS**
+• Share pet profiles with family members (2 total free, 3 total premium, unlimited pro)
+• Family members get read-only or read-write access to pet information
+• Main user controls which pets each family member can view and their access level
+• Shared access to photos and health records
+• Lost pet alert notifications
 
-**💊 HEALTH MANAGEMENT**
-Track your pet's health journey with comprehensive tools:
-• Vaccination records and schedules
-• Medication tracking and reminders
-• Weight monitoring and growth charts
-• Symptom logging and health notes
-• Integration with your veterinarian's office
+**💊 BASIC HEALTH TRACKING**
+Simple tools to track your pet's health:
+• Manual health record entries
+• Photo documentation of health information
+• Basic weight and measurement tracking
+• Health notes and observations
+• Simple vet contact storage
 
 **👨‍👩‍👧‍👦 FAMILY SHARING**
 Invite family members to help care for your pets. Everyone stays updated with shared access to profiles, schedules, and location information. Perfect for busy families and shared custody situations.
@@ -50,49 +50,48 @@ Your pet's data is protected with enterprise-grade security:
 • GDPR and privacy regulation compliant
 
 **✨ PREMIUM FEATURES**
-Upgrade to TailTracker Premium for advanced features:
-• Unlimited pet profiles (free version includes 2)
-• Extended location history (30 days vs 7 days)
-• Advanced health analytics and insights
-• Priority customer support
-• Ad-free experience
+Upgrade to TailTracker Premium (€2.99/month) or Pro (€4.99/month):
+• Premium: 3 family members total + 2 pet profiles (vs 2 members + 1 pet free)
+• Pro: unlimited family members + unlimited pet profiles
+• Unlimited health record storage
+• Enhanced family coordination features
+• Enhanced family coordination features
 • Export health records to PDF
 
-**🆘 EMERGENCY PREPAREDNESS**
-Be prepared for any situation:
-• Emergency contact information
-• Medical condition alerts for first responders
-• Lost pet poster generation with QR codes
-• Microchip information storage
-• Insurance policy details
+**🆘 COMMUNITY SUPPORT**
+Connect with other pet owners:
+• Lost pet community reporting
+• Nearby pet owner notifications (5km radius)
+• Photo sharing for lost pet identification
+• Community-based pet recovery system
+• Local pet owner connections
 
 **🏆 WHY CHOOSE TAILTRACKER?**
-✅ Designed by pet lovers, for pet lovers
-✅ Works offline when network is unavailable
-✅ Seamless integration with Apple ecosystem
-✅ Regular updates with new features
-✅ Excellent customer support
-✅ Free version includes core safety features
+✅ Simple and easy to use
+✅ Focus on essential features only
+✅ Affordable family coordination (€2.99/€4.99)
+✅ Community-based lost pet support
 ✅ Privacy-first approach to your pet's data
+✅ No complex features or overwhelming interfaces
+✅ Perfect for families who want to share pet care
 
 **🐕 PERFECT FOR:**
-• Dog owners who love adventures and need tracking
-• Cat parents monitoring indoor/outdoor behavior  
-• Multi-pet households needing organization
-• Senior pets requiring medication management
-• New pet parents learning care routines
-• Busy families coordinating pet care
-• Pet sitters and professional caregivers
+• Families who want to share pet care responsibilities
+• Pet owners who want simple health record tracking
+• Multi-pet households needing basic organization
+• Pet parents who want community support for lost pets
+• Families coordinating basic pet care
+• Pet owners who value simplicity over complexity
 
 **📲 SUPPORTED FEATURES:**
 • iOS 13.0 and later compatibility
 • iPhone and iPad universal app
-• Apple Watch companion app (coming soon)
-• Siri Shortcuts integration
-• Widgets for quick access to pet status
-• CarPlay integration for travel safety
+• Simple and intuitive interface
+• Photo storage and sharing
+• Family-based notifications
+• Community lost pet alerts
 
-Download TailTracker today and give your pets the love and protection they deserve. Join thousands of pet parents who trust TailTracker to keep their furry family members safe and healthy.
+Download TailTracker today and simplify your pet care coordination. Join pet-loving families who choose TailTracker for easy family coordination and community support.
 
 **Need help?** Visit our support center at support.tailtracker.com or contact us directly through the app. Our pet-loving support team is here to help you and your pets succeed.
 

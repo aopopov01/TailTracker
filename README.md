@@ -7,16 +7,16 @@
 
 ## 🎯 Project Overview
 
-TailTracker is a comprehensive cross-platform mobile application designed to revolutionize pet wellness and family care coordination. Built with React Native and Expo, it provides intelligent health monitoring, wellness analytics, care reminders, and family collaboration features to ensure your pet receives optimal care throughout their wellness journey.
+TailTracker is a comprehensive cross-platform mobile application designed to simplify pet health management and family care coordination. Built with React Native and Expo, it provides essential health tracking, family collaboration features, and community support to help families manage their pets' wellbeing together.
 
 ### ✨ Key Features
 
-- **Wellness Dashboard**: Real-time health metrics and daily care tracking
-- **Care Coordination**: Family task management and communication
-- **Health Monitoring**: Preventive care with AI-powered wellness insights
-- **Veterinary Integration**: Professional care coordination and telemedicine
-- **Family Sharing**: Multi-user care responsibilities and wellness updates
-- **Premium Subscription**: Advanced wellness features via Stripe integration
+- **Health Dashboard**: Simple health tracking and family care coordination
+- **Family Coordination**: Multi-user care management and communication
+- **Health Records**: Complete pet health history and documentation
+- **Community Network**: Local pet parent support and resource sharing
+- **Family Sharing**: Multi-user pet care responsibilities
+- **Premium Subscription**: Enhanced family coordination via Stripe integration
 - **Cross-Platform**: Native iOS and Android experiences
 
 ## 🏗️ Architecture
@@ -26,7 +26,7 @@ TailTracker is a comprehensive cross-platform mobile application designed to rev
 - **Backend**: Supabase (PostgreSQL, Real-time, Auth)
 - **Payments**: Stripe Integration
 - **Push Notifications**: Expo Notifications + Firebase
-- **Health Analytics**: Custom wellness tracking algorithms
+- **Health Tracking**: Basic health record management
 - **State Management**: Context API + Custom hooks
 - **Testing**: Jest + Detox E2E
 
@@ -138,10 +138,10 @@ npm run build:android      # Build Android app
 ## 💰 Monetization
 
 ### Subscription Tiers
-- **Basic**: Free tier with core features
-- **Premium**: $9.99/month - Advanced tracking and alerts
-- **Family**: $19.99/month - Multi-pet and family sharing
-- **Enterprise**: Custom pricing for businesses
+- **Free**: 1 pet, 1 user - Core health tracking
+- **Premium**: €9.99/month - 3 pets, 2 users, enhanced alerts
+- **Pro**: €19.99/month - Unlimited pets, 4+ users, community access
+- **Business Tools**: Professional features for pet care providers
 
 ### Payment Integration
 - **Stripe**: Secure payment processing
@@ -152,18 +152,16 @@ npm run build:android      # Build Android app
 ## 📱 Platform-Specific Features
 
 ### iOS
-- **HealthKit**: Pet wellness data integration
-- **Core Data**: Advanced health tracking
-- **Push Notifications**: Rich care reminder support
-- **Apple Watch**: Health monitoring companion app
-- **Shortcuts**: Siri integration for quick wellness updates
+- **Core Data**: Local health record storage
+- **Push Notifications**: Family care alerts and reminders
+- **Camera Integration**: Photo capture for health records
+- **Calendar Integration**: Basic reminder sync
 
 ### Android
-- **Wellness Services**: Background health monitoring
 - **Material Design 3**: Modern UI components
-- **Widgets**: Home screen wellness widgets
-- **Android Auto**: Care reminder integration
-- **Work Profiles**: Enterprise deployment
+- **Push Notifications**: Family coordination alerts
+- **Camera Integration**: Health record photography
+- **Calendar Integration**: Basic reminder sync
 
 ## 🧪 Testing Strategy
 
@@ -255,22 +253,22 @@ eas submit --platform android --latest
 ## 📈 Roadmap
 
 ### Q1 2025
-- [ ] Apple Watch wellness companion app
-- [ ] Advanced wellness analytics dashboard
+- [ ] Enhanced community features
 - [ ] Multi-language support
-- [ ] Enterprise SSO integration
+- [ ] Improved family coordination tools
+- [ ] Advanced photo organization
 
 ### Q2 2025
-- [ ] AI-powered wellness insights
-- [ ] Enhanced veterinary integration
-- [ ] Social sharing features
-- [ ] Advanced care recommendations
+- [ ] Offline functionality improvements
+- [ ] Enhanced community networking
+- [ ] Better family communication tools
+- [ ] Professional service provider tools
 
 ### Q3 2025
-- [ ] IoT wellness device integration
-- [ ] Wearable device support
-- [ ] Advanced health monitoring
-- [ ] Community wellness features
+- [ ] International expansion features
+- [ ] Enhanced business tools
+- [ ] Community marketplace
+- [ ] Advanced family analytics
 
 ## 📞 Support & Contact
 
