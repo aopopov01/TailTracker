@@ -100,8 +100,7 @@
         "android.permission.ACCESS_FINE_LOCATION",
         "android.permission.ACCESS_COARSE_LOCATION"
       ],
-      "blockedPermissions": [],
-      "googleServicesFile": "./google-services.json"
+      "blockedPermissions": []
     },
     "web": {
       "bundler": "metro",

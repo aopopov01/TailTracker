@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -338,6 +338,24 @@ export default function EditPetScreen() {
     </View>
   );
 
+  const handleDateChange = (event: any, selectedDate?: Date) => {
+    // Handle date picker changes properly for both iOS and Android
+    if (Platform.OS === 'android') {
+      // On Android, close picker after user confirms or cancels
+      setShowDatePicker(false);
+      if (event.type === 'set' && selectedDate) {
+        // User confirmed the date selection
+        updateField('birth_date', selectedDate.toISOString().split('T')[0]);
+      }
+      // If event.type === 'dismissed', user cancelled - do nothing
+    } else {
+      // On iOS, keep picker open for spinner mode
+      if (selectedDate) {
+        updateField('birth_date', selectedDate.toISOString().split('T')[0]);
+      }
+    }
+  };
+
   const renderDateField = () => (
     <View style={styles.formField}>
       <Text style={styles.fieldLabel}>Birth Date</Text>
@@ -355,18 +373,25 @@ export default function EditPetScreen() {
       </TouchableOpacity>
       
       {showDatePicker && (
-        <DateTimePicker
-          value={formData.birth_date ? new Date(formData.birth_date) : new Date()}
-          mode="date"
-          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-          onChange={(event, selectedDate) => {
-            setShowDatePicker(Platform.OS === 'ios');
-            if (selectedDate) {
-              updateField('birth_date', selectedDate.toISOString().split('T')[0]);
-            }
-          }}
-          maximumDate={new Date()}
-        />
+        <>
+          <DateTimePicker
+            value={formData.birth_date ? new Date(formData.birth_date) : new Date()}
+            mode="date"
+            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+            onChange={handleDateChange}
+            maximumDate={new Date()}
+          />
+          {Platform.OS === 'ios' && (
+            <View style={styles.iosDatePickerActions}>
+              <TouchableOpacity
+                style={styles.datePickerButton}
+                onPress={() => setShowDatePicker(false)}
+              >
+                <Text style={styles.datePickerButtonText}>Done</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+        </>
       )}
     </View>
   );
@@ -774,6 +799,25 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: fonts.regular,
     color: colors.text,
+  },
+  iosDatePickerActions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    paddingTop: spacing.sm,
+    borderTopWidth: 1,
+    borderTopColor: colors.gray200,
+    marginTop: spacing.sm,
+  },
+  datePickerButton: {
+    backgroundColor: colors.primary,
+    borderRadius: 8,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+  },
+  datePickerButtonText: {
+    fontSize: 16,
+    fontFamily: fonts.semibold,
+    color: colors.white,
   },
   bottomSpacer: {
     height: spacing.xl,

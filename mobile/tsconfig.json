@@ -83,5 +83,5 @@
     "**/*.spec.tsx",
     "node_modules/react-native-maps/**"
   ],
-
+  "extends": "expo/tsconfig.base"
 }
