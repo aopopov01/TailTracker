@@ -548,4 +548,4 @@ export interface AppConfig {
 // Re-export types from other files for convenience
 export * from './Pet';
 export * from './User';
-export * from './Wellness';
+// Wellness types removed for simplified feature set

@@ -2,7 +2,7 @@ import React from 'react';
 import { View, ActivityIndicator } from 'react-native';
 import { Text } from 'react-native-paper';
 import usePremiumAccess from '../../hooks/usePremiumAccess';
-import PremiumGate from './PremiumGate';
+// PremiumGate removed for simplified feature set
 
 interface PremiumFeatureWrapperProps {
   feature: string;

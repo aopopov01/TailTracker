@@ -1,3 +1,2 @@
-export { LostPetCard } from './LostPetCard';
-export { LostPetStatus } from './LostPetStatus';
+// Simple lost pet features for community alerts
 export { LostPetNotificationSettings } from './LostPetNotificationSettings';
