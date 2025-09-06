@@ -22,7 +22,7 @@ import Animated, {
   Easing,
   FadeIn,
 } from 'react-native-reanimated';
-import Svg, { Path, Circle, Ellipse, Polygon, Rect, LinearGradient as SvgLinearGradient, Stop, Defs, G, Line } from 'react-native-svg';
+import Svg, { Path, LinearGradient as SvgLinearGradient, Stop, Defs, G, Rect } from 'react-native-svg';
 import { usePetProfile } from '../../contexts/PetProfileContext';
 import { TailTrackerModal } from '../../src/components/UI/TailTrackerModal';
 import { useTailTrackerModal } from '../../src/hooks/useTailTrackerModal';
@@ -41,80 +41,35 @@ const COLORS = {
   success: '#10B981',
 };
 
-// SVG Pet Icons Components
+// Pet Icons Components using provided images
 const DogIcon = ({ size = 60 }: { size?: number }) => (
-  <Svg width={size} height={size} viewBox="0 0 100 100">
-    <Defs>
-      <SvgLinearGradient id="dogGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-        <Stop offset="0%" stopColor="#5DD4DC"/>
-        <Stop offset="100%" stopColor="#4BA8B5"/>
-      </SvgLinearGradient>
-    </Defs>
-    <Rect width="100" height="100" rx="20" fill="url(#dogGradient)"/>
-    <G fill="white">
-      <Ellipse cx="50" cy="65" rx="25" ry="20"/>
-      <Circle cx="50" cy="40" r="18"/>
-      <Ellipse cx="62" cy="42" rx="8" ry="5"/>
-      <Ellipse cx="40" cy="28" rx="6" ry="12" transform="rotate(-30 40 28)"/>
-      <Ellipse cx="60" cy="28" rx="6" ry="12" transform="rotate(30 60 28)"/>
-      <Ellipse cx="72" cy="55" rx="4" ry="15" transform="rotate(45 72 55)"/>
-      <Rect x="35" y="80" width="4" height="15" rx="2"/>
-      <Rect x="45" y="80" width="4" height="15" rx="2"/>
-      <Rect x="55" y="80" width="4" height="15" rx="2"/>
-      <Rect x="65" y="80" width="4" height="15" rx="2"/>
-    </G>
-  </Svg>
+  <View style={{ width: size, height: size, borderRadius: size * 0.2, overflow: 'hidden' }}>
+    <Image 
+      source={require('../../assets/images/Dog.jpeg')} 
+      style={{ width: size, height: size }}
+      resizeMode="cover"
+    />
+  </View>
 );
 
 const CatIcon = ({ size = 60 }: { size?: number }) => (
-  <Svg width={size} height={size} viewBox="0 0 100 100">
-    <Defs>
-      <SvgLinearGradient id="catGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-        <Stop offset="0%" stopColor="#4BA8B5"/>
-        <Stop offset="100%" stopColor="#1B3A57"/>
-      </SvgLinearGradient>
-    </Defs>
-    <Rect width="100" height="100" rx="20" fill="url(#catGradient)"/>
-    <G fill="white">
-      <Ellipse cx="50" cy="70" rx="22" ry="25"/>
-      <Circle cx="50" cy="40" r="16"/>
-      <Polygon points="38,25 42,10 48,25"/>
-      <Polygon points="52,25 58,10 62,25"/>
-      <Polygon points="40,22 42,15 46,22" fill="#4BA8B5"/>
-      <Polygon points="54,22 58,15 60,22" fill="#4BA8B5"/>
-      <Ellipse cx="50" cy="45" rx="3" ry="2"/>
-      <Line x1="30" y1="42" x2="40" y2="40" stroke="white" strokeWidth="1"/>
-      <Line x1="30" y1="46" x2="40" y2="46" stroke="white" strokeWidth="1"/>
-      <Line x1="60" y1="40" x2="70" y2="42" stroke="white" strokeWidth="1"/>
-      <Line x1="60" y1="46" x2="70" y2="46" stroke="white" strokeWidth="1"/>
-      <Path d="M 72 65 Q 80 50 75 35" stroke="white" strokeWidth="6" fill="none" strokeLinecap="round"/>
-    </G>
-  </Svg>
+  <View style={{ width: size, height: size, borderRadius: size * 0.2, overflow: 'hidden' }}>
+    <Image 
+      source={require('../../assets/images/Cat.jpeg')} 
+      style={{ width: size, height: size }}
+      resizeMode="cover"
+    />
+  </View>
 );
 
 const ParrotIcon = ({ size = 60 }: { size?: number }) => (
-  <Svg width={size} height={size} viewBox="0 0 100 100">
-    <Defs>
-      <SvgLinearGradient id="parrotGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-        <Stop offset="0%" stopColor="#1B3A57"/>
-        <Stop offset="100%" stopColor="#0F1F35"/>
-      </SvgLinearGradient>
-    </Defs>
-    <Rect width="100" height="100" rx="20" fill="url(#parrotGradient)"/>
-    <G fill="white">
-      <Ellipse cx="50" cy="65" rx="18" ry="25"/>
-      <Circle cx="50" cy="38" r="15"/>
-      <Polygon points="42,20 45,8 48,20"/>
-      <Polygon points="48,20 50,5 52,20"/>
-      <Polygon points="52,20 55,8 58,20"/>
-      <Path d="M 62 38 Q 70 42 65 48 Q 62 45 62 38" fill="white"/>
-      <Ellipse cx="45" cy="65" rx="8" ry="20"/>
-      <Ellipse cx="40" cy="65" rx="4" ry="18" fill="#5DD4DC" fillOpacity="0.3"/>
-      <Ellipse cx="50" cy="85" rx="12" ry="8"/>
-      <Ellipse cx="52" cy="90" rx="8" ry="5" fill="#5DD4DC" fillOpacity="0.3"/>
-      <Circle cx="52" cy="35" r="2" fill="#1B3A57"/>
-    </G>
-  </Svg>
+  <View style={{ width: size, height: size, borderRadius: size * 0.2, overflow: 'hidden' }}>
+    <Image 
+      source={require('../../assets/images/Bird.jpeg')} 
+      style={{ width: size, height: size }}
+      resizeMode="cover"
+    />
+  </View>
 );
 
 const OtherPetIcon = ({ size = 60 }: { size?: number }) => (
