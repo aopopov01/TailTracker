@@ -1,5 +1,4 @@
 import { Platform } from 'react-native';
-import { StripePaymentService } from './StripePaymentService';
 import Purchases, {
   PurchasesOffering,
   PurchasesPackage,
@@ -8,6 +7,7 @@ import Purchases, {
   PRODUCT_TYPE,
   INTRO_ELIGIBILITY_STATUS,
 } from 'react-native-purchases';
+import { StripePaymentService } from './StripePaymentService';
 
 export interface SubscriptionProduct {
   identifier: string;
@@ -22,14 +22,14 @@ export interface SubscriptionProduct {
     period: string;
     cycles: number;
   };
-  discounts?: Array<{
+  discounts?: {
     identifier: string;
     price: string;
     priceString: string;
     cycles: number;
     period: string;
     type: 'introductory' | 'promotional';
-  }>;
+  }[];
 }
 
 export interface PurchaseResult {

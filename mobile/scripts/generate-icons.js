@@ -14,9 +14,9 @@
  * Usage: node generate-icons.js
  */
 
+const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
-const { execSync } = require('child_process');
 
 // Paths
 const ROOT_DIR = path.resolve(__dirname, '..');
@@ -60,7 +60,7 @@ function checkDependencies() {
   try {
     execSync('which convert', { stdio: 'ignore' });
     console.log('✓ ImageMagick found');
-  } catch (error) {
+  } catch (_error) {
     console.error('❌ ImageMagick not found. Please install ImageMagick:');
     console.error('Ubuntu/Debian: sudo apt-get install imagemagick');
     console.error('macOS: brew install imagemagick');

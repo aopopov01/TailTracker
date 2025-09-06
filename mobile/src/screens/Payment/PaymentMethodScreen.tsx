@@ -5,28 +5,27 @@ import {
   ScrollView,
   Platform,
 } from 'react-native';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import { PaymentMethod } from '@stripe/stripe-react-native';
 import {
   Appbar,
   Text,
   Button,
   Card,
-  ActivityIndicator,
   Portal,
   Modal,
   Divider,
 } from 'react-native-paper';
-import { useNavigation, useRoute } from '@react-navigation/native';
-import { PaymentMethod } from '@stripe/stripe-react-native';
-import { 
-  StripePaymentService, 
-  SubscriptionPlan 
-} from '../../services/StripePaymentService';
 import { 
   PaymentCardForm, 
   PaymentMethodSelector 
 } from '../../components/Payment';
-import { useTailTrackerModal } from '../../hooks/useTailTrackerModal';
 import { TailTrackerModal } from '../../components/UI/TailTrackerModal';
+import { useTailTrackerModal } from '../../hooks/useTailTrackerModal';
+import { 
+  StripePaymentService, 
+  SubscriptionPlan 
+} from '../../services/StripePaymentService';
 
 interface PaymentMethodScreenProps {
   route: {
@@ -57,7 +56,7 @@ export const PaymentMethodScreen: React.FC<PaymentMethodScreenProps> = () => {
       const selectedPlan = plans.find(p => p.id === planId);
       setPlan(selectedPlan || null);
     }
-  }, [planId]);
+  }, [planId, paymentService]);
 
   const handlePaymentMethodSelected = (paymentMethodId: string) => {
     setSelectedPaymentMethodId(paymentMethodId);

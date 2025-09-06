@@ -63,7 +63,7 @@ export const AnimatedButton: React.FC<AnimatedButtonProps> = ({
         false
       );
     }
-  }, [variant]);
+  }, [variant, pulseScale, shimmerProgress]);
 
   // Size configurations
   const sizeConfig = {

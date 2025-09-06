@@ -11,8 +11,8 @@ import {
   ActivityIndicator
 } from 'react-native';
 import { useAuth } from '../../contexts/AuthContext';
-import { CryptoService } from '../../services/cryptoService';
 import { useTailTrackerModal } from '../../hooks/useTailTrackerModal';
+import { CryptoService } from '../../services/cryptoService';
 import { TailTrackerModal } from '../UI/TailTrackerModal';
 
 interface RegisterScreenProps {
@@ -24,7 +24,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
   onNavigateToLogin,
   onRegistrationSuccess 
 }) => {
-  const { modalConfig, showModal, hideModal, showSuccess, showError } = useTailTrackerModal();
+  const { modalConfig, hideModal, showError } = useTailTrackerModal();
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -103,7 +103,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
           'alert-circle'
         );
       }
-    } catch (error) {
+    } catch {
       showError(
         'Error',
         'An unexpected error occurred. Please try again.',

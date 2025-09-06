@@ -11,8 +11,8 @@ import {
   ActivityIndicator
 } from 'react-native';
 import { useAuth } from '../../contexts/AuthContext';
-import { CryptoService } from '../../services/cryptoService';
 import { useTailTrackerModal } from '../../hooks/useTailTrackerModal';
+import { CryptoService } from '../../services/cryptoService';
 import { TailTrackerModal } from '../UI/TailTrackerModal';
 
 interface LoginScreenProps {
@@ -71,7 +71,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
           'alert-circle'
         );
       }
-    } catch (error) {
+    } catch {
       showError(
         'Error',
         'An unexpected error occurred. Please try again.',

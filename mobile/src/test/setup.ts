@@ -305,7 +305,7 @@ jest.mock('zustand', () => ({
 }));
 
 // Global test utilities
-global.TestUtils = {
+(global as any).TestUtils = {
   mockNavigationProp: {
     navigate: jest.fn(),
     goBack: jest.fn(),
@@ -347,7 +347,7 @@ global.TestUtils = {
 };
 
 // Global test data
-global.TestData = {
+(global as any).TestData = {
   mockUser: {
     id: 'user-1',
     email: 'test@example.com',

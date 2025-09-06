@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -6,12 +6,14 @@ import {
   TouchableOpacity,
   SafeAreaView,
 } from 'react-native';
+
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { TailTrackerModal } from '../../src/components/UI/TailTrackerModal';
+
 import QRCodeGenerator from '../../src/components/Sharing/QRCodeGenerator';
 import QRCodeScanner from '../../src/components/Sharing/QRCodeScanner';
 import SharingManager from '../../src/components/Sharing/SharingManager';
+import { TailTrackerModal } from '../../src/components/UI/TailTrackerModal';
 import { useAuth } from '../../src/contexts/AuthContext';
 
 type SharingScreenType = 'main' | 'generate' | 'scan' | 'manage';
@@ -24,11 +26,11 @@ const SharingScreen: React.FC = () => {
     title: string;
     message?: string;
     type?: 'info' | 'success' | 'warning' | 'error';
-    actions?: Array<{
+    actions?: {
       text: string;
       style?: 'default' | 'destructive' | 'primary';
       onPress: () => void;
-    }>;
+    }[];
     icon?: keyof typeof Ionicons.glyphMap;
   }>({
     visible: false,
@@ -36,13 +38,13 @@ const SharingScreen: React.FC = () => {
     actions: []
   });
 
-  const showModal = (config: typeof modalConfig) => {
+  const showModal = useCallback((config: typeof modalConfig) => {
     setModalConfig({ ...config, visible: true });
-  };
+  }, []);
 
-  const hideModal = () => {
+  const hideModal = useCallback(() => {
     setModalConfig(prev => ({ ...prev, visible: false }));
-  };
+  }, []);
 
   // Handle authentication check in useEffect to prevent infinite re-renders
   useEffect(() => {
@@ -56,7 +58,7 @@ const SharingScreen: React.FC = () => {
         actions: [{ text: 'Go Back', style: 'primary', onPress: () => { hideModal(); router.back(); } }]
       });
     }
-  }, [user]);
+  }, [user, showModal, hideModal]);
 
   if (!user) {
     return null;
@@ -75,7 +77,7 @@ const SharingScreen: React.FC = () => {
           style: 'primary',
           onPress: () => {
             hideModal();
-            router.push('/sharing/shared-pets');
+            router.push('/sharing/shared-pets' as any);
           }
         },
         {
@@ -195,7 +197,7 @@ const MainSharingScreen: React.FC<MainSharingScreenProps> = ({ onNavigate }) => 
 
           <TouchableOpacity 
             style={styles.actionCard}
-            onPress={() => router.push('/sharing/shared-pets')}
+            onPress={() => router.push('/sharing/shared-pets' as any)}
           >
             <View style={styles.actionIconContainer}>
               <Ionicons name="eye" size={32} color="#FF9500" />

@@ -31,7 +31,7 @@ interface iOSActionSheetProps {
 
 const { width: screenWidth } = Dimensions.get('window');
 
-export const iOSActionSheet: React.FC<iOSActionSheetProps> = ({
+export const IOSActionSheet: React.FC<iOSActionSheetProps> = ({
   visible,
   onClose,
   title,

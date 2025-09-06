@@ -7,7 +7,6 @@ import {
   StyleSheet,
   Alert,
   ScrollView,
-  Switch,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';

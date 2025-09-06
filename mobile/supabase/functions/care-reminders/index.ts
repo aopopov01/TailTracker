@@ -153,7 +153,7 @@ Deno.serve(async (req: Request) => {
         status: 405,
       }
     );
-  } catch (error) {
+  } catch (_error) {
     console.error('Care reminders error:', error);
     return new Response(
       JSON.stringify({

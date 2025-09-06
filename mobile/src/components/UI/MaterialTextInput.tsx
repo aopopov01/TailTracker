@@ -1,6 +1,6 @@
 import React from 'react';
-import { TextInput, TextInputProps, HelperText } from 'react-native-paper';
 import { View, StyleSheet } from 'react-native';
+import { TextInput, TextInputProps, HelperText } from 'react-native-paper';
 import { useTheme } from 'react-native-paper';
 
 interface MaterialTextInputProps extends Omit<TextInputProps, 'mode'> {

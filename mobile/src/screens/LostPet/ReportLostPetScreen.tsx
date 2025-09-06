@@ -7,6 +7,9 @@ import {
   Platform,
   AccessibilityInfo,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import * as Location from 'expo-location';
+import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import {
   Text,
   Button,
@@ -17,12 +20,9 @@ import {
   Chip,
   ActivityIndicator,
 } from 'react-native-paper';
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
-import * as Location from 'expo-location';
 
-import { premiumLostPetService, LostPetReport } from '../../services/PremiumLostPetService';
 import PremiumFeatureWrapper from '../../components/Payment/PremiumFeatureWrapper';
+import { premiumLostPetService, LostPetReport } from '../../services/PremiumLostPetService';
 import { Pet } from '../../types/Pet';
 
 interface ReportLostPetScreenProps {
@@ -51,18 +51,18 @@ const ReportLostPetScreen: React.FC<ReportLostPetScreenProps> = ({ route }) => {
   // Check accessibility and get current location on mount
   useEffect(() => {
     checkAccessibilityAndInit();
-  }, []);
+  }, [checkAccessibilityAndInit]);
 
-  const checkAccessibilityAndInit = async () => {
+  const checkAccessibilityAndInit = useCallback(async () => {
     // Check if screen reader is enabled
     const screenReaderEnabled = await AccessibilityInfo.isScreenReaderEnabled();
     setIsScreenReaderEnabled(screenReaderEnabled);
     
     // Get current location
     getCurrentLocation();
-  };
+  }, [getCurrentLocation]);
 
-  const getCurrentLocation = async () => {
+  const getCurrentLocation = useCallback(async () => {
     try {
       setLoading(true);
       const currentLocation = await premiumLostPetService.getCurrentLocation();
@@ -83,7 +83,7 @@ const ReportLostPetScreen: React.FC<ReportLostPetScreenProps> = ({ route }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   const handleMapPress = (event: any) => {
     const { latitude, longitude } = event.nativeEvent.coordinate;
@@ -301,14 +301,46 @@ const ReportLostPetScreen: React.FC<ReportLostPetScreenProps> = ({ route }) => {
               </MapView>
             </View>
           ) : loading ? (
-            <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" />
-              <Text style={styles.loadingText}>Getting your location...</Text>
+            <View 
+              style={styles.loadingContainer}
+              accessible={true}
+              accessibilityRole="progressbar"
+              accessibilityLabel="Loading your current location"
+            >
+              <ActivityIndicator 
+                size="large" 
+                accessible={true}
+                accessibilityLabel="Loading indicator"
+              />
+              <Text 
+                style={styles.loadingText}
+                accessible={true}
+                accessibilityLabel="Getting your location, please wait"
+              >
+                Getting your location...
+              </Text>
             </View>
           ) : (
-            <View style={styles.errorContainer}>
-              <Text>Unable to load map</Text>
-              <Button mode="outlined" onPress={getCurrentLocation}>
+            <View 
+              style={styles.errorContainer}
+              accessible={true}
+              accessibilityRole="alert"
+              accessibilityLabel="Error loading map"
+            >
+              <Text 
+                accessible={true}
+                accessibilityRole="text"
+              >
+                Unable to load map
+              </Text>
+              <Button 
+                mode="outlined" 
+                onPress={getCurrentLocation}
+                accessible={true}
+                accessibilityLabel="Retry loading location and map"
+                accessibilityHint="Double tap to try loading your location again"
+                style={{ minHeight: 44 }}
+              >
                 Retry
               </Button>
             </View>

@@ -5,6 +5,7 @@ import {
   ScrollView,
   Platform,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import {
   Appbar,
   Text,
@@ -15,15 +16,14 @@ import {
   Modal,
   Divider,
 } from 'react-native-paper';
-import { useNavigation } from '@react-navigation/native';
+import { SubscriptionPlanCard } from '../../components/Payment';
+import { TailTrackerModal } from '../../components/UI/TailTrackerModal';
+import { useTailTrackerModal } from '../../hooks/useTailTrackerModal';
 import { 
   StripePaymentService, 
   SubscriptionPlan, 
   SubscriptionStatus 
 } from '../../services/StripePaymentService';
-import { SubscriptionPlanCard } from '../../components/Payment';
-import { useTailTrackerModal } from '../../hooks/useTailTrackerModal';
-import { TailTrackerModal } from '../../components/UI/TailTrackerModal';
 
 export const SubscriptionScreen: React.FC = () => {
   const navigation = useNavigation();
@@ -40,9 +40,9 @@ export const SubscriptionScreen: React.FC = () => {
 
   useEffect(() => {
     loadSubscriptionData();
-  }, []);
+  }, [loadSubscriptionData]);
 
-  const loadSubscriptionData = async () => {
+  const loadSubscriptionData = useCallback(async () => {
     try {
       setLoading(true);
       
@@ -58,7 +58,7 @@ export const SubscriptionScreen: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [showError, paymentService]);
 
   const handleSelectPlan = (planId: string) => {
     setSelectedPlanId(planId);

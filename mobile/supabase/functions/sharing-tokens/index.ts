@@ -215,7 +215,7 @@ Deno.serve(async (req: Request) => {
         status: 404,
       }
     );
-  } catch (error) {
+  } catch (_error) {
     console.error('Sharing tokens error:', error);
     return new Response(
       JSON.stringify({

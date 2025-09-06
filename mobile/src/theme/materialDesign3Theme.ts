@@ -1,5 +1,5 @@
-import { MD3LightTheme, MD3DarkTheme, configureFonts } from 'react-native-paper';
 import { Platform } from 'react-native';
+import { MD3LightTheme, MD3DarkTheme, configureFonts } from 'react-native-paper';
 
 // TailTracker brand colors for Material Design 3
 const TailTrackerColors = {

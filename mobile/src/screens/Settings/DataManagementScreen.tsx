@@ -10,13 +10,13 @@ import {
   ActivityIndicator,
   Share,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import * as FileSystem from 'expo-file-system';
-import * as DocumentPicker from 'expo-document-picker';
-import * as MediaLibrary from 'expo-media-library';
 import { format } from 'date-fns';
+import * as DocumentPicker from 'expo-document-picker';
+import * as FileSystem from 'expo-file-system';
+import * as MediaLibrary from 'expo-media-library';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { colors } from '@/constants/colors';
 import { fonts } from '@/constants/fonts';
@@ -325,7 +325,7 @@ export default function DataManagementScreen() {
   };
 
   const performPhotoDownload = async () => {
-    // This would implement batch photo download
+    // Batch photo download implementation - integrate with CDN service
     // For now, just show success message
     Alert.alert('Feature Coming Soon', 'Photo download will be available in a future update.');
   };

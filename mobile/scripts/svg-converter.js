@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('path');
 
 // Simple SVG to PNG conversion using Node.js Canvas (if available) or browser simulation
-const svgContent = fs.readFileSync(path.join(__dirname, '../assets/logo/tailtracker-logo.svg'), 'utf8');
+// const svgContent = fs.readFileSync(path.join(__dirname, '../assets/logo/tailtracker-logo.svg'), 'utf8');
 
 // Icon specifications
 const iosIcons = [

@@ -1,6 +1,5 @@
 import React from 'react';
 import { Platform } from 'react-native';
-import { modalService } from './modalService';
 import { 
   Camera, 
   CameraType, 
@@ -14,9 +13,10 @@ import {
   getMediaLibraryPermissionsAsync,
   requestMediaLibraryPermissionsAsync,
 } from 'expo-camera';
-import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system';
+import * as ImagePicker from 'expo-image-picker';
 import { androidPermissions } from './AndroidPermissions';
+import { modalService } from './modalService';
 
 export interface PhotoOptions {
   quality?: number;
@@ -48,8 +48,8 @@ export interface CameraCapabilities {
   hasBackCamera: boolean;
   hasFlash: boolean;
   supportedRatios: string[];
-  supportedPreviewSizes: Array<{ width: number; height: number }>;
-  supportedPictureSizes: Array<{ width: number; height: number }>;
+  supportedPreviewSizes: { width: number; height: number }[];
+  supportedPictureSizes: { width: number; height: number }[];
 }
 
 class AndroidCameraService {

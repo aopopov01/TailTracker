@@ -9,12 +9,11 @@ import {
   Platform,
   KeyboardAvoidingView,
   ScrollView,
-  Switch,
 } from 'react-native';
-import { useRouter, useLocalSearchParams } from 'expo-router';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -25,7 +24,7 @@ import Animated, {
   SlideInDown,
 } from 'react-native-reanimated';
 
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 const COLORS = {
   lightCyan: '#5DD4DC',
@@ -143,7 +142,7 @@ export default function PhysicalDetailsScreen() {
 
   // Get species from route params
   const params = useLocalSearchParams<{ species?: string }>();
-  const species = params.species || 'dog';
+  const species = params.species ?? 'dog';
 
   useEffect(() => {
     // Animate progress bar to show step 3 of 7
@@ -154,7 +153,7 @@ export default function PhysicalDetailsScreen() {
         easing: Easing.out(Easing.ease),
       })
     );
-  }, []);
+  }, [progressWidth]);
 
   const progressStyle = useAnimatedStyle(() => ({
     width: progressWidth.value,
@@ -206,7 +205,7 @@ export default function PhysicalDetailsScreen() {
     router.push({
       pathname: '/onboarding/official-records',
       params: { species }
-    });
+    } as any);
   };
 
   const handleBack = () => {
@@ -214,7 +213,6 @@ export default function PhysicalDetailsScreen() {
   };
 
   const handleDateChange = (event: any, selectedDate?: Date) => {
-    const isAndroid = Platform.OS === 'android';
     
     // Handle date selection
     if (event.type === 'set' && selectedDate) {
@@ -564,7 +562,7 @@ export default function PhysicalDetailsScreen() {
                 onChange={handleDateChange}
                 maximumDate={new Date()}
                 minimumDate={new Date(1900, 0, 1)}
-                style={{ backgroundColor: 'white', height: 216 }}
+                style={styles.datePickerStyle}
                 textColor={COLORS.deepNavy}
                 themeVariant="light"
               />
@@ -592,6 +590,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.white,
+  },
+  datePickerStyle: {
+    backgroundColor: 'white',
+    height: 216,
   },
   progressContainer: {
     paddingTop: Platform.OS === 'ios' ? 60 : 40,

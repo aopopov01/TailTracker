@@ -1,6 +1,6 @@
 import React from 'react';
-import { Appbar, Menu, Searchbar } from 'react-native-paper';
 import { StyleSheet, View, StatusBar, Platform } from 'react-native';
+import { Appbar, Menu, Searchbar } from 'react-native-paper';
 import { useTheme } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';

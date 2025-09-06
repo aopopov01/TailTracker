@@ -132,7 +132,7 @@ Deno.serve(async (req: Request) => {
         );
     }
 
-  } catch (error) {
+  } catch (_error) {
     console.error('Webhook handler error:', error);
     return new Response(
       JSON.stringify({

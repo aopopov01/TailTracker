@@ -10,11 +10,12 @@ import {
   Linking,
   TextInput,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import * as MailComposer from 'expo-mail-composer';
+// eslint-disable-next-line import/no-unresolved
 import Constants from 'expo-constants';
+import * as MailComposer from 'expo-mail-composer';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { colors } from '@/constants/colors';
 import { fonts } from '@/constants/fonts';

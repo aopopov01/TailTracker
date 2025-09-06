@@ -17,11 +17,11 @@ import {
   StatusBar,
   Dimensions,
 } from 'react-native';
-import { tailTrackerColors } from '../core/colors';
-import { tailTrackerTypography } from '../core/typography';
-import { tailTrackerSpacing } from '../core/spacing';
 import EmotionalButton from '../components/buttons/EmotionalButton';
 import PetCard from '../components/cards/PetCard';
+import { tailTrackerColors } from '../core/colors';
+import { tailTrackerSpacing } from '../core/spacing';
+import { tailTrackerTypography } from '../core/typography';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -29,7 +29,7 @@ const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 // SPLASH SCREEN - MEMORABLE BRAND MOMENT
 // ====================================
 
-export const SplashScreenDesign = () => (
+const SplashScreenDesign = () => (
   <View style={styles.splashContainer}>
     <StatusBar barStyle="light-content" backgroundColor={tailTrackerColors.primary.trustBlue} />
     
@@ -62,7 +62,7 @@ export const SplashScreenDesign = () => (
 // ONBOARDING FLOW - EMOTIONAL BONDING EXPERIENCE
 // ====================================
 
-export const OnboardingWelcomeDesign = () => (
+const OnboardingWelcomeDesign = () => (
   <SafeAreaView style={styles.onboardingContainer}>
     <StatusBar barStyle="dark-content" />
     
@@ -119,7 +119,7 @@ export const OnboardingWelcomeDesign = () => (
         size="medium"
         fullWidth
         onPress={() => {}}
-        style={{ marginTop: tailTrackerSpacing.base.md }}
+        style={styles.marginTopMd}
       />
     </View>
   </SafeAreaView>
@@ -129,7 +129,7 @@ export const OnboardingWelcomeDesign = () => (
 // HOME DASHBOARD - PET-CENTRIC DESIGN
 // ====================================
 
-export const HomeDashboardDesign = () => (
+const HomeDashboardDesign = () => (
   <SafeAreaView style={styles.homeContainer}>
     <StatusBar barStyle="dark-content" />
     
@@ -257,7 +257,7 @@ export const HomeDashboardDesign = () => (
         variant="secondary"
         size="medium"
         onPress={() => {}}
-        style={{ flex: 1, marginRight: tailTrackerSpacing.base.xs }}
+        style={styles.flexWithMarginRight}
       />
       
       <EmotionalButton
@@ -267,7 +267,7 @@ export const HomeDashboardDesign = () => (
         variant="primary"
         size="medium"
         onPress={() => {}}
-        style={{ flex: 1, marginLeft: tailTrackerSpacing.base.xs }}
+        style={styles.flexWithMarginLeft}
       />
     </View>
   </SafeAreaView>
@@ -277,7 +277,7 @@ export const HomeDashboardDesign = () => (
 // PET PROFILE - MAGAZINE-QUALITY LAYOUT
 // ====================================
 
-export const PetProfileDesign = () => (
+const PetProfileDesign = () => (
   <SafeAreaView style={styles.profileContainer}>
     <StatusBar barStyle="light-content" />
     
@@ -366,7 +366,7 @@ export const PetProfileDesign = () => (
 // LOST PET ALERT - URGENT BUT CALM
 // ====================================
 
-export const LostPetAlertDesign = () => (
+const LostPetAlertDesign = () => (
   <SafeAreaView style={styles.alertContainer}>
     <StatusBar barStyle="light-content" backgroundColor={tailTrackerColors.contextual.emergencyRed} />
     
@@ -422,7 +422,7 @@ export const LostPetAlertDesign = () => (
         size="large"
         fullWidth
         onPress={() => {}}
-        style={{ marginTop: tailTrackerSpacing.base.md }}
+        style={styles.marginTopMd}
       />
       
       <EmotionalButton
@@ -432,7 +432,7 @@ export const LostPetAlertDesign = () => (
         size="medium"
         fullWidth
         onPress={() => {}}
-        style={{ marginTop: tailTrackerSpacing.base.sm }}
+        style={styles.marginTopSm}
       />
     </View>
   </SafeAreaView>
@@ -442,7 +442,7 @@ export const LostPetAlertDesign = () => (
 // PREMIUM UPGRADE - VALUE-FOCUSED
 // ====================================
 
-export const PremiumUpgradeDesign = () => (
+const PremiumUpgradeDesign = () => (
   <SafeAreaView style={styles.premiumContainer}>
     <StatusBar barStyle="dark-content" />
     
@@ -1065,6 +1065,25 @@ const styles = StyleSheet.create({
   premiumAction: {
     paddingHorizontal: tailTrackerSpacing.semantic.containerMargin,
     paddingBottom: tailTrackerSpacing.semantic.safeAreaBottom,
+  },
+  
+  // Additional utility styles
+  marginTopMd: {
+    marginTop: tailTrackerSpacing.base.md,
+  },
+  
+  marginTopSm: {
+    marginTop: tailTrackerSpacing.base.sm,
+  },
+  
+  flexWithMarginRight: {
+    flex: 1,
+    marginRight: tailTrackerSpacing.base.xs,
+  },
+  
+  flexWithMarginLeft: {
+    flex: 1,
+    marginLeft: tailTrackerSpacing.base.xs,
   },
 });
 

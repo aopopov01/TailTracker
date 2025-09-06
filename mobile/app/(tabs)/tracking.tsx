@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   View, 
   Text, 
@@ -8,8 +8,8 @@ import {
   Dimensions,
   RefreshControl 
 } from 'react-native';
-import { LineChart } from 'react-native-chart-kit';
 import { format } from 'date-fns';
+import { LineChart } from 'react-native-chart-kit';
 import { wellnessService, WellnessHelpers } from '../../src/services/WellnessService';
 import { CareTask, WellnessAlert } from '../../src/types/Wellness';
 
@@ -24,14 +24,10 @@ export default function WellnessDashboardScreen() {
   const [complianceRate, setComplianceRate] = useState<number>(0);
   const [wellnessData, setWellnessData] = useState<number[]>([]);
 
-  useEffect(() => {
-    loadDashboardData();
-  }, [selectedPetId]);
-
-  const loadDashboardData = async () => {
+  const loadDashboardData = useCallback(async () => {
     try {
       // For demo purposes, using a mock pet ID
-      const petId = selectedPetId || 'pet_demo_001';
+      const petId = selectedPetId ?? 'pet_demo_001';
       
       const tasks = wellnessService.getTodaysTasks(petId);
       const alerts = wellnessService.getWellnessAlerts(petId).slice(0, 3);
@@ -43,13 +39,17 @@ export default function WellnessDashboardScreen() {
       
       setTodaysTasks(tasks);
       setRecentAlerts(alerts);
-      setWellnessScore(score || 8);
-      setComplianceRate(compliance || 85);
+      setWellnessScore(score ?? 8);
+      setComplianceRate(compliance ?? 85);
       setWellnessData(mockData);
     } catch (error) {
       console.error('Error loading dashboard data:', error);
     }
-  };
+  }, [selectedPetId]);
+
+  useEffect(() => {
+    loadDashboardData();
+  }, [loadDashboardData]);
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -100,10 +100,7 @@ export default function WellnessDashboardScreen() {
           },
         }}
         bezier
-        style={{
-          marginVertical: 8,
-          borderRadius: 16,
-        }}
+        style={styles.chartStyle}
       />
     );
   };
@@ -296,6 +293,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f8f9fa',
+  },
+  chartStyle: {
+    marginVertical: 8,
+    borderRadius: 16,
   },
   header: {
     backgroundColor: '#fff',

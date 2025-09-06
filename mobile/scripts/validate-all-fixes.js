@@ -6,8 +6,8 @@
  * Validates that all TypeScript errors have been resolved across the project
  */
 
-const fs = require('fs');
 const { execSync } = require('child_process');
+const fs = require('fs');
 
 console.log('🧪 TailTracker Complete Error Resolution Validation\n');
 console.log('=' .repeat(70));
@@ -165,7 +165,7 @@ checkContentInFile(
 console.log('\n💻 TYPESCRIPT COMPILATION CHECK\n');
 
 try {
-  const result = execSync('npx tsc --noEmit --skipLibCheck', { 
+  execSync('npx tsc --noEmit --skipLibCheck', { 
     encoding: 'utf8',
     stdio: 'pipe'
   });

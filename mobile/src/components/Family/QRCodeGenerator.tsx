@@ -1,7 +1,7 @@
 // QR Code Generator Component for Family Member Invitations
-import React, { useState, useEffect } from 'react';
-import { View, Text, Alert, StyleSheet, Share, Dimensions } from 'react-native';
-import { Button, VStack, HStack, Box, useColorModeValue } from 'native-base';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, Alert, StyleSheet, Share, Dimensions } from 'react-native';
+import { Button, Text, Card, useTheme, ActivityIndicator } from 'react-native-paper';
 import QRCode from 'react-native-qrcode-svg';
 import { familyAccessService } from '@/services/FamilyAccessService';
 
@@ -21,16 +21,9 @@ export const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({
   const [expiresAt, setExpiresAt] = useState<Date | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>('');
+  const theme = useTheme();
 
-  const bgColor = useColorModeValue('white', 'gray.800');
-  const borderColor = useColorModeValue('gray.200', 'gray.600');
-  const textColor = useColorModeValue('gray.600', 'gray.300');
-
-  useEffect(() => {
-    generateInvite();
-  }, []);
-
-  const generateInvite = async () => {
+  const generateInvite = useCallback(async () => {
     try {
       setLoading(true);
       setError('');
@@ -47,7 +40,11 @@ export const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [familyId]);
+
+  useEffect(() => {
+    generateInvite();
+  }, [generateInvite]);
 
   const shareInvite = async () => {
     try {
@@ -74,21 +71,30 @@ export const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({
 
   if (loading) {
     return (
-      <Box flex={1} justifyContent="center" alignItems="center" p={4}>
-        <Text>Generating secure invite...</Text>
-      </Box>
+      <View style={[styles.container, styles.centered]}>
+        <ActivityIndicator size="large" />
+        <Text variant="bodyLarge" style={styles.loadingText}>
+          Generating secure invite...
+        </Text>
+      </View>
     );
   }
 
   if (error) {
     return (
-      <Box flex={1} justifyContent="center" alignItems="center" p={4}>
-        <VStack space={4} alignItems="center">
-          <Text color="red.500">{error}</Text>
-          <Button onPress={generateInvite}>Try Again</Button>
-          <Button variant="ghost" onPress={onClose}>Close</Button>
-        </VStack>
-      </Box>
+      <View style={[styles.container, styles.centered]}>
+        <Text variant="bodyLarge" style={[styles.errorText, { color: theme.colors.error }]}>
+          {error}
+        </Text>
+        <View style={styles.errorActions}>
+          <Button mode="contained" onPress={generateInvite}>
+            Try Again
+          </Button>
+          <Button mode="text" onPress={onClose}>
+            Close
+          </Button>
+        </View>
+      </View>
     );
   }
 
@@ -96,115 +102,178 @@ export const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({
   const qrSize = Math.min(screenWidth * 0.6, 250);
 
   return (
-    <Box flex={1} p={4} bg={bgColor}>
-      <VStack space={6} alignItems="center">
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+      <View style={styles.content}>
         {/* Header */}
-        <VStack space={2} alignItems="center">
-          <Text fontSize="xl" fontWeight="bold">
+        <View style={styles.header}>
+          <Text variant="headlineMedium" style={styles.title}>
             Family Invite QR Code
           </Text>
-          <Text fontSize="md" color={textColor} textAlign="center">
+          <Text variant="bodyMedium" style={[styles.subtitle, { color: theme.colors.onSurfaceVariant }]}>
             Share this QR code with family members to give them access to {familyName}
           </Text>
-        </VStack>
+        </View>
 
         {/* QR Code */}
-        <Box 
-          p={4} 
-          bg="white" 
-          rounded="lg" 
-          shadow={3}
-          borderWidth={1}
-          borderColor={borderColor}
-        >
-          <QRCode
-            value={qrData}
-            size={qrSize}
-            color="black"
-            backgroundColor="white"
-            logo={require('@/assets/images/logo-small.png')}
-            logoSize={qrSize * 0.2}
-            logoBackgroundColor="white"
-            logoBorderRadius={10}
-          />
-        </Box>
+        <Card style={[styles.qrContainer, { borderColor: theme.colors.outline }]}>
+          <Card.Content style={styles.qrContent}>
+            <QRCode
+              value={qrData}
+              size={qrSize}
+              color="black"
+              backgroundColor="white"
+            />
+          </Card.Content>
+        </Card>
 
         {/* Expiry Info */}
         {expiresAt && (
-          <VStack space={1} alignItems="center">
-            <Text fontSize="sm" color={textColor}>
+          <View style={styles.expiryInfo}>
+            <Text variant="bodyMedium" style={{ color: theme.colors.onSurfaceVariant }}>
               Expires in: {formatExpiryTime(expiresAt)}
             </Text>
-            <Text fontSize="xs" color="gray.400">
+            <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant }}>
               {expiresAt.toLocaleString()}
             </Text>
-          </VStack>
+          </View>
         )}
 
         {/* Instructions */}
-        <Box p={4} bg="blue.50" rounded="md" w="100%">
-          <VStack space={2}>
-            <Text fontSize="sm" fontWeight="semibold" color="blue.800">
+        <Card style={[styles.instructionsCard, { backgroundColor: theme.colors.primaryContainer }]}>
+          <Card.Content>
+            <Text variant="titleSmall" style={[styles.instructionsTitle, { color: theme.colors.onPrimaryContainer }]}>
               How to use:
             </Text>
-            <Text fontSize="xs" color="blue.700">
+            <Text variant="bodySmall" style={[styles.instruction, { color: theme.colors.onPrimaryContainer }]}>
               1. Family member opens TailTracker app
             </Text>
-            <Text fontSize="xs" color="blue.700">
+            <Text variant="bodySmall" style={[styles.instruction, { color: theme.colors.onPrimaryContainer }]}>
               2. Goes to Settings → Family Access → Join Family
             </Text>
-            <Text fontSize="xs" color="blue.700">
+            <Text variant="bodySmall" style={[styles.instruction, { color: theme.colors.onPrimaryContainer }]}>
               3. Scans this QR code
             </Text>
-            <Text fontSize="xs" color="blue.700">
+            <Text variant="bodySmall" style={[styles.instruction, { color: theme.colors.onPrimaryContainer }]}>
               4. You'll receive a confirmation to set their access level
             </Text>
-          </VStack>
-        </Box>
+          </Card.Content>
+        </Card>
 
         {/* Action Buttons */}
-        <VStack space={3} w="100%">
+        <View style={styles.actionButtons}>
           <Button
+            mode="contained"
             onPress={shareInvite}
-            variant="solid"
-            colorScheme="blue"
+            style={styles.primaryButton}
           >
             Share Invite
           </Button>
           
-          <HStack space={3} w="100%">
+          <View style={styles.buttonRow}>
             <Button
-              flex={1}
-              variant="outline"
+              mode="outlined"
               onPress={generateInvite}
+              style={styles.secondaryButton}
             >
               Regenerate
             </Button>
             
             <Button
-              flex={1}
-              variant="ghost"
+              mode="text"
               onPress={onClose}
+              style={styles.secondaryButton}
             >
               Close
             </Button>
-          </HStack>
-        </VStack>
+          </View>
+        </View>
 
         {/* Security Note */}
-        <Box p={3} bg="yellow.50" rounded="md" w="100%">
-          <Text fontSize="xs" color="yellow.800" textAlign="center">
-            🔒 This invite expires in 24 hours for security. Only share with trusted family members.
-          </Text>
-        </Box>
-      </VStack>
-    </Box>
+        <Card style={[styles.securityCard, { backgroundColor: theme.colors.secondaryContainer }]}>
+          <Card.Content>
+            <Text variant="bodySmall" style={[styles.securityNote, { color: theme.colors.onSecondaryContainer }]}>
+              🔒 This invite expires in 24 hours for security. Only share with trusted family members.
+            </Text>
+          </Card.Content>
+        </Card>
+      </View>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#ffffff',
+    padding: 16,
+  },
+  content: {
+    gap: 24,
+    alignItems: 'center',
+  },
+  centered: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 16,
+  },
+  errorText: {
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  errorActions: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  header: {
+    alignItems: 'center',
+    gap: 8,
+  },
+  title: {
+    textAlign: 'center',
+  },
+  subtitle: {
+    textAlign: 'center',
+  },
+  qrContainer: {
+    borderWidth: 1,
+    elevation: 4,
+  },
+  qrContent: {
+    alignItems: 'center',
+    padding: 16,
+  },
+  expiryInfo: {
+    alignItems: 'center',
+    gap: 4,
+  },
+  instructionsCard: {
+    width: '100%',
+  },
+  instructionsTitle: {
+    marginBottom: 8,
+  },
+  instruction: {
+    marginBottom: 4,
+  },
+  actionButtons: {
+    width: '100%',
+    gap: 12,
+  },
+  primaryButton: {
+    width: '100%',
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  secondaryButton: {
+    flex: 1,
+  },
+  securityCard: {
+    width: '100%',
+  },
+  securityNote: {
+    textAlign: 'center',
   },
 });

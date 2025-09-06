@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { createMockSupabaseClient } from '../mocks/SupabaseMock';
 import { mockNotificationService } from '../mocks/NotificationMock';
 import { mockStripeService } from '../mocks/StripeMock';
+import { createMockSupabaseClient } from '../mocks/SupabaseMock';
 
 // Comprehensive Test Data Management for TailTracker
 export class TestDataManager {

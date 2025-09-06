@@ -79,7 +79,7 @@ export const usePremiumAccess = (): PremiumAccessHook => {
         setLoading(false);
       }
     }
-  }, [retryCount]);
+  }, [retryCount, paymentService]);
 
   useEffect(() => {
     loadSubscriptionStatus();
@@ -114,7 +114,7 @@ export const usePremiumAccess = (): PremiumAccessHook => {
 
   const checkResourceAccess = useCallback(async (resource: string, currentCount: number = 0) => {
     return await paymentService.validateResourceAccess(resource, currentCount);
-  }, []);
+  }, [paymentService]);
 
   return {
     subscriptionStatus,

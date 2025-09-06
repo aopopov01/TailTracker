@@ -22,6 +22,12 @@ import {
   Pressable,
   Dimensions,
 } from 'react-native';
+import { Haptics } from 'expo-haptics';
+import { LinearGradient } from 'expo-linear-gradient';
+import {
+  Gesture,
+  GestureDetector,
+} from 'react-native-gesture-handler';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -31,12 +37,6 @@ import Animated, {
   withDelay,
   runOnJS,
 } from 'react-native-reanimated';
-import {
-  Gesture,
-  GestureDetector,
-} from 'react-native-gesture-handler';
-import { LinearGradient } from 'expo-linear-gradient';
-import { Haptics } from 'expo-haptics';
 
 // Import our animation systems
 import {
@@ -48,14 +48,14 @@ import {
   useHeartEyesAnimation,
 } from '../emotionalAnimationSystem';
 import {
-  usePetCardAnimation,
-  useSuccessCelebration,
-} from '../premiumMicroInteractions';
-import {
   useEmotionalIntelligence,
   useContextualSuccessAnimation,
 } from '../emotionalIntelligenceHooks';
 import { useAnimationProfiler } from '../performanceMonitoring';
+import {
+  usePetCardAnimation,
+  useSuccessCelebration,
+} from '../premiumMicroInteractions';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -164,7 +164,7 @@ export const AnimatedPetCard: React.FC<PetCardProps> = ({
     onPress?.(pet);
     
     setTimeout(() => stopProfiling(), 1000);
-  }, [pet, onPress, inferEmotionalState]);
+  }, [pet, onPress, inferEmotionalState, playfulBounceAnimation, startProfiling, stopProfiling, tailWagAnimation, tilt]);
 
   const handleLongPress = useCallback(() => {
     // Indicate deeper interaction
@@ -174,7 +174,7 @@ export const AnimatedPetCard: React.FC<PetCardProps> = ({
     heartEyesAnimation.showHeartEyes();
     
     onLongPress?.(pet);
-  }, [pet, onLongPress, inferEmotionalState]);
+  }, [pet, onLongPress, inferEmotionalState, heartEyesAnimation]);
 
   const handleHeartPress = useCallback(() => {
     // Celebrate love interaction
@@ -194,7 +194,7 @@ export const AnimatedPetCard: React.FC<PetCardProps> = ({
     heartEyesAnimation.showHeartEyes();
 
     onHeartPress?.(pet);
-  }, [pet, heartCount, onHeartPress, contextualCelebrate, celebrateSuccess]);
+  }, [pet, heartCount, onHeartPress, contextualCelebrate, celebrateSuccess, heartEyesAnimation, inferEmotionalState]);
 
   // ====================================
   // AUTO BEHAVIORS
@@ -212,7 +212,7 @@ export const AnimatedPetCard: React.FC<PetCardProps> = ({
 
       return () => clearInterval(interval);
     }
-  }, [pet.mood, pet.isAsleep]);
+  }, [pet.mood, pet.isAsleep, tailWagAnimation]);
 
   // Curious head tilts
   useEffect(() => {
@@ -225,7 +225,7 @@ export const AnimatedPetCard: React.FC<PetCardProps> = ({
 
       return () => clearInterval(interval);
     }
-  }, [pet.mood, pet.isAsleep]);
+  }, [pet.mood, pet.isAsleep, tilt]);
 
   // ====================================
   // GESTURE CONFIGURATION

@@ -1,4 +1,6 @@
-const { device, element, by, waitFor, expect } = require('detox');
+const { device, element, by, expect } = require('detox');
+const TestData = require('../TestData');
+const TestHelpers = require('../TestHelpers');
 
 describe('Pet Management', () => {
   beforeAll(async () => {

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { modalService } from '../../services/modalService';
-import { TailTrackerModal } from './TailTrackerModal';
 import type { ModalConfig } from '../../services/modalService';
+import { TailTrackerModal } from './TailTrackerModal';
 
 export const GlobalModalProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [modalConfig, setModalConfig] = useState<ModalConfig>({

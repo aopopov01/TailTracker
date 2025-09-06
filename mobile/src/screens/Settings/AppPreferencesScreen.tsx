@@ -9,11 +9,11 @@ import {
   Alert,
   StatusBar,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Picker } from '@react-native-picker/picker';
+import { useNavigation } from '@react-navigation/native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { colors } from '@/constants/colors';
 import { fonts } from '@/constants/fonts';
@@ -158,7 +158,7 @@ export default function AppPreferencesScreen() {
   const renderPickerSetting = (
     title: string,
     subtitle: string,
-    options: Array<{ label: string; value: any }>,
+    options: { label: string; value: any }[],
     selectedValue: any,
     onValueChange: (value: any) => void
   ) => (

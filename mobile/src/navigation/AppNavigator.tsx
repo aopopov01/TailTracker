@@ -1,25 +1,25 @@
 import React from 'react';
-import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
+import { Platform, StatusBar } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createDrawerNavigator } from '@react-navigation/drawer';
+import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
 import { useTheme } from 'react-native-paper';
-import { Platform, StatusBar } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 // Import screens
-import { AuthNavigator } from './AuthNavigator';
-import { HomeScreen } from '@/screens/HomeScreen';
-import { PetsScreen } from '@/screens/PetsScreen';
-import { MapScreen } from '@/screens/MapScreen';
-import { ProfileScreen } from '@/screens/ProfileScreen';
-import { NotificationsScreen } from '@/screens/NotificationsScreen';
-import { SettingsScreen } from '@/screens/SettingsScreen';
-import { PetDetailScreen } from '@/screens/PetDetailScreen';
 import { AddPetScreen } from '@/screens/AddPetScreen';
+import { HomeScreen } from '@/screens/HomeScreen';
 import { LocationHistoryScreen } from '@/screens/LocationHistoryScreen';
-import { SubscriptionScreen } from '@/screens/SubscriptionScreen';
+import { MapScreen } from '@/screens/MapScreen';
+import { NotificationsScreen } from '@/screens/NotificationsScreen';
+import { PetDetailScreen } from '@/screens/PetDetailScreen';
+import { PetsScreen } from '@/screens/PetsScreen';
+import { ProfileScreen } from '@/screens/ProfileScreen';
 import { PrivacyPolicyScreen, TermsOfServiceScreen } from '@/screens/Settings';
+import { SettingsScreen } from '@/screens/SettingsScreen';
+import { SubscriptionScreen } from '@/screens/SubscriptionScreen';
+import { AuthNavigator } from './AuthNavigator';
 
 // Navigation types
 export type RootStackParamList = {

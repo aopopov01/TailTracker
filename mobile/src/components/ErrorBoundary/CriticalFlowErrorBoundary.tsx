@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
-import ErrorBoundary, { ErrorBoundaryProps } from './ErrorBoundary';
 import { offlineQueueManager } from '../../services/OfflineQueueManager';
+import ErrorBoundary, { ErrorBoundaryProps } from './ErrorBoundary';
 
 export interface CriticalFlowErrorBoundaryProps extends Omit<ErrorBoundaryProps, 'criticalFlow' | 'fallback'> {
   flowName: string;

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -41,12 +41,7 @@ export const FamilyChat: React.FC<FamilyChatProps> = ({ petId, recipientId }) =>
   const [isLoading, setIsLoading] = useState(true);
   const scrollViewRef = useRef<ScrollView>(null);
 
-  useEffect(() => {
-    loadData();
-    setupMessageListener();
-  }, [petId, recipientId]);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       setIsLoading(true);
       const user = familyCoordinationService.getCurrentUser();
@@ -59,12 +54,12 @@ export const FamilyChat: React.FC<FamilyChatProps> = ({ petId, recipientId }) =>
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [petId, recipientId]);
 
-  const setupMessageListener = () => {
+  const setupMessageListener = useCallback(() => {
     // In a real app, this would set up real-time listeners
-    const cleanup = familyCoordinationService.onMessagesUpdate((updatedMessages) => {
-      setMessages(updatedMessages.filter(msg => {
+    const cleanup = familyCoordinationService.onMessagesUpdate((updatedMessages: any) => {
+      setMessages(updatedMessages.filter((msg: any) => {
         if (petId && msg.petId !== petId) return false;
         if (recipientId && msg.recipientId !== recipientId) return false;
         return true;
@@ -72,7 +67,12 @@ export const FamilyChat: React.FC<FamilyChatProps> = ({ petId, recipientId }) =>
     });
 
     return cleanup;
-  };
+  }, [petId, recipientId]);
+
+  useEffect(() => {
+    loadData();
+    setupMessageListener();
+  }, [petId, recipientId, loadData, setupMessageListener]);
 
   const sendMessage = async () => {
     if (!newMessage.trim() || !currentUser) return;

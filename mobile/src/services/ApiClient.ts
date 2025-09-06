@@ -1,7 +1,7 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabaseEnhanced } from '../../config/supabase';
 import { errorRecoveryService } from './ErrorRecoveryService';
 import { offlineQueueManager } from './OfflineQueueManager';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export interface ApiRequestConfig {
   method?: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
@@ -203,7 +203,7 @@ export class ApiClient {
         }
       }
 
-      const response = await this.makeHttpRequest(url, config);
+      const response = await this.makeHttpRequest<T>(url, config);
       
       // Cache successful GET responses
       if (config.cache?.enabled && config.method !== 'POST' && response.status === 200) {

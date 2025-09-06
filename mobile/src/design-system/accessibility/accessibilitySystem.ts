@@ -6,10 +6,16 @@
  * Every feature is designed to be accessible from the ground up.
  */
 
+import React from 'react';
 import { Platform, AccessibilityInfo, Dimensions } from 'react-native';
 import { tailTrackerColors } from '../core/colors';
-import { tailTrackerTypography } from '../core/typography';
 import { tailTrackerSpacing } from '../core/spacing';
+import { tailTrackerTypography } from '../core/typography';
+
+// ====================================
+// ACCESSIBILITY HOOKS AND UTILITIES
+// ====================================
+
 
 // ====================================
 // WCAG 2.1 COMPLIANCE FRAMEWORK
@@ -444,7 +450,7 @@ export class FocusManager {
   }
   
   // Get focus order for screen
-  static getFocusOrder(elements: Array<{ id: string; priority: number }>) {
+  static getFocusOrder(elements: { id: string; priority: number }[]) {
     return elements
       .sort((a, b) => a.priority - b.priority)
       .map(element => element.id);
@@ -696,7 +702,7 @@ export const motionAccessibility = {
  */
 export class AccessibilityTester {
   // Test color contrast
-  static testColorContrast(colorPairs: Array<{ foreground: string; background: string; context: string }>) {
+  static testColorContrast(colorPairs: { foreground: string; background: string; context: string }[]) {
     const results = colorPairs.map(pair => ({
       ...pair,
       ...ColorContrastChecker.getAccessibilityRating(pair.foreground, pair.background),
@@ -712,7 +718,7 @@ export class AccessibilityTester {
   }
   
   // Test touch target sizes
-  static testTouchTargets(targets: Array<{ id: string; width: number; height: number; context: string }>) {
+  static testTouchTargets(targets: { id: string; width: number; height: number; context: string }[]) {
     const { width: screenWidth } = Dimensions.get('window');
     const isTablet = screenWidth >= 768;
     const minimumSize = isTablet ? touchAccessibility.minimumSizes.tablet.primary : touchAccessibility.minimumSizes.mobile.primary;
@@ -733,7 +739,7 @@ export class AccessibilityTester {
   }
   
   // Test accessibility labels
-  static testAccessibilityLabels(elements: Array<{ id: string; accessibilityLabel?: string; role: string }>) {
+  static testAccessibilityLabels(elements: { id: string; accessibilityLabel?: string; role: string }[]) {
     const results = elements.map(element => ({
       ...element,
       hasLabel: !!element.accessibilityLabel,
@@ -943,12 +949,6 @@ export const accessibilityChecklist = {
     },
   ],
 } as const;
-
-// ====================================
-// ACCESSIBILITY HOOKS AND UTILITIES
-// ====================================
-
-import React from 'react';
 
 /**
  * React Hook for Accessibility State

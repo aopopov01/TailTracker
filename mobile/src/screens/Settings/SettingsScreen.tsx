@@ -13,10 +13,10 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
-import { useAuth } from '../../hooks/useAuth';
-import { useUserProfile } from '../../hooks/useUserProfile';
-import { usePremiumStatus } from '../../hooks/usePremiumStatus';
 import { useAppSettings } from '../../hooks/useAppSettings';
+import { useAuth } from '../../hooks/useAuth';
+import { usePremiumStatus } from '../../hooks/usePremiumStatus';
+import { useUserProfile } from '../../hooks/useUserProfile';
 
 type RootStackParamList = {
   ProfileSettings: undefined;

@@ -15,7 +15,7 @@
     "strict": true,
     "forceConsistentCasingInFileNames": true,
     "module": "esnext",
-    "moduleResolution": "bundler",
+    "moduleResolution": "node",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
@@ -61,9 +61,15 @@
   "include": [
     "app/**/*.ts",
     "app/**/*.tsx",
-    "src/contexts/**/*.ts",
-    "src/contexts/**/*.tsx",
+    "src/**/*.ts",
+    "src/**/*.tsx",
     "services/**/*.ts",
+    "contexts/**/*.ts",
+    "contexts/**/*.tsx",
+    "accessibility/**/*.ts",
+    "accessibility/**/*.tsx",
+    "payments/**/*.ts",
+    "payments/**/*.tsx",
     ".expo/types/**/*.ts",
     "expo-env.d.ts"
   ],
@@ -71,15 +77,11 @@
     "node_modules",
     "android",
     "ios",
-    "src/design-system/**/*",
-    "src/components/UI/**/*",
-    "src/test/**/*",
-    "src/utils/**/*",
-    "src/screens/**/*",
     "**/*.test.ts",
     "**/*.test.tsx",
     "**/*.spec.ts",
-    "**/*.spec.tsx"
+    "**/*.spec.tsx",
+    "node_modules/react-native-maps/**"
   ],
-  "extends": "expo/tsconfig.base"
+
 }

@@ -1,5 +1,6 @@
 import React, { Suspense, lazy, ComponentType, LazyExoticComponent } from 'react';
 import { View, ActivityIndicator, StyleSheet, Text } from 'react-native';
+import { log } from '../../utils/Logger';
 import { usePerformanceOptimizer } from '../../utils/PerformanceOptimizer';
 
 /**
@@ -42,7 +43,7 @@ export const createLazyComponent = <P extends object>(
       
       // Track lazy loading performance
       if (__DEV__) {
-        console.log(`Lazy component loaded: ${chunkName || 'unknown'} in ${loadTime.toFixed(2)}ms`);
+        log.performance(`Lazy component loaded: ${chunkName || 'unknown'} in ${loadTime.toFixed(2)}ms`);
       }
       
       // Track metric for performance monitoring
@@ -58,7 +59,7 @@ export const createLazyComponent = <P extends object>(
       return module;
     } catch (error) {
       const loadTime = performance.now() - startTime;
-      console.error(`Failed to load lazy component ${chunkName || 'unknown'} after ${loadTime.toFixed(2)}ms:`, error);
+      log.error(`Failed to load lazy component ${chunkName || 'unknown'} after ${loadTime.toFixed(2)}ms:`, error);
       throw error;
     }
   });
@@ -67,7 +68,7 @@ export const createLazyComponent = <P extends object>(
   if (preload) {
     setTimeout(() => {
       importFunc().catch(error => {
-        console.warn('Failed to preload component:', error);
+        log.warn('Failed to preload component:', error);
       });
     }, 0);
   }
@@ -141,7 +142,7 @@ class LazyErrorBoundary extends React.Component<
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('Lazy loading error:', error, errorInfo);
+    log.error('Lazy loading error:', error, errorInfo);
     
     // Track error for performance monitoring
     if (typeof window !== 'undefined' && window.performance) {
@@ -240,7 +241,7 @@ export const withLazyLoading = <P extends object>(
 /**
  * Hook for dynamic imports with performance tracking
  */
-export const useDynamicImport = <T>(
+export const useDynamicImport = <T extends unknown>(
   importFunc: () => Promise<T>,
   deps: React.DependencyList = []
 ) => {
@@ -263,7 +264,7 @@ export const useDynamicImport = <T>(
       trackMetric('dynamic_import_success', loadTime);
       
       if (__DEV__) {
-        console.log(`Dynamic import completed in ${loadTime.toFixed(2)}ms`);
+        log.performance(`Dynamic import completed in ${loadTime.toFixed(2)}ms`);
       }
     } catch (err) {
       const loadTime = Date.now() - startTime;
@@ -272,11 +273,12 @@ export const useDynamicImport = <T>(
       setError(error);
       trackMetric('dynamic_import_error', loadTime);
       
-      console.error(`Dynamic import failed after ${loadTime.toFixed(2)}ms:`, error);
+      log.error(`Dynamic import failed after ${loadTime.toFixed(2)}ms:`, error);
     } finally {
       setLoading(false);
     }
-  }, deps);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [importFunc, trackMetric, ...deps]);
 
   React.useEffect(() => {
     loadModule();
@@ -294,7 +296,7 @@ export const useDynamicImport = <T>(
  * Preload utility for critical components
  */
 export const preloadComponents = (
-  components: Array<() => Promise<any>>,
+  components: (() => Promise<any>)[],
   options: { priority?: 'high' | 'low'; delay?: number } = {}
 ) => {
   const { priority = 'low', delay = 0 } = options;
@@ -308,10 +310,10 @@ export const preloadComponents = (
         const loadTime = Date.now() - startTime;
         
         if (__DEV__) {
-          console.log(`Preloaded component ${index} in ${loadTime.toFixed(2)}ms`);
+          log.performance(`Preloaded component ${index} in ${loadTime.toFixed(2)}ms`);
         }
       } catch (error) {
-        console.warn(`Failed to preload component ${index}:`, error);
+        log.warn(`Failed to preload component ${index}:`, error);
       }
     });
 

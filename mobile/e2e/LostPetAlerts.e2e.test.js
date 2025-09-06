@@ -1,3 +1,10 @@
+const { device, element, by, expect } = require('detox');
+const AppNavigation = require('./AppNavigation');
+const DeviceHelpers = require('./DeviceHelpers');
+const LostPetHelpers = require('./LostPetHelpers');
+const NotificationHelpers = require('./NotificationHelpers');
+const TestUsers = require('./TestUsers');
+
 describe('Lost Pet Alerts E2E Tests', () => {
   beforeAll(async () => {
     // Ensure app is in clean state
@@ -13,7 +20,7 @@ describe('Lost Pet Alerts E2E Tests', () => {
     // Reset to home screen before each test
     try {
       await device.launchApp({ newInstance: false });
-    } catch (error) {
+    } catch (_error) {
       await device.launchApp({ delete: true });
     }
   });
@@ -246,7 +253,7 @@ describe('Lost Pet Alerts E2E Tests', () => {
         
         // Go back
         await element(by.id('backButton')).tap();
-      } catch (error) {
+      } catch (_error) {
         // No alerts available, which is fine for testing
         await expect(element(by.text('No lost pets in your area'))).toBeVisible();
       }
@@ -488,7 +495,7 @@ describe('Lost Pet Alerts E2E Tests', () => {
         
         // Scroll back to top
         await element(by.id('nearbyAlertsList')).scroll(1000, 'up');
-      } catch (error) {
+      } catch (_error) {
         // List might not be long enough to scroll, which is fine
       }
     });
@@ -498,7 +505,7 @@ describe('Lost Pet Alerts E2E Tests', () => {
     // Clean up test data
     try {
       await AppNavigation.logout();
-    } catch (error) {
+    } catch (_error) {
       // Already logged out or app in unexpected state
     }
   });

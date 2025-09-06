@@ -44,7 +44,7 @@ export const usePremiumNotificationService = () => {
   // Initialize the premium notification service
   useEffect(() => {
     initializeService();
-  }, []);
+  }, [initializeService]);
 
   // Update notification status when premium access changes
   useEffect(() => {
@@ -53,7 +53,7 @@ export const usePremiumNotificationService = () => {
     }
   }, [hasPremiumAccess, isInitialized]);
 
-  const initializeService = async () => {
+  const initializeService = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
@@ -95,7 +95,7 @@ export const usePremiumNotificationService = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   const updateNotificationStatus = async () => {
     try {

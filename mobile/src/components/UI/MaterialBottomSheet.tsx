@@ -1,4 +1,4 @@
-import React, { forwardRef, useImperativeHandle } from 'react';
+import React, { forwardRef, useImperativeHandle, useCallback } from 'react';
 import { 
   View, 
   StyleSheet, 
@@ -78,7 +78,7 @@ export const MaterialBottomSheet = forwardRef<BottomSheetRef, MaterialBottomShee
     });
 
     return () => backHandler.remove();
-  }, [visible]);
+  }, [visible, closeSheet]);
 
   const panResponder = PanResponder.create({
     onMoveShouldSetPanResponder: (_, gestureState) => {
@@ -133,7 +133,7 @@ export const MaterialBottomSheet = forwardRef<BottomSheetRef, MaterialBottomShee
     onStateChange?.(initialIndex === 0 ? 'collapsed' : 'expanded');
   };
 
-  const closeSheet = () => {
+  const closeSheet = useCallback(() => {
     Animated.parallel([
       Animated.timing(translateY, {
         toValue: screenHeight,
@@ -151,7 +151,7 @@ export const MaterialBottomSheet = forwardRef<BottomSheetRef, MaterialBottomShee
     });
     
     onStateChange?.('closed');
-  };
+  }, [translateY, opacity, onClose, onStateChange]);
 
   const animateToIndex = (index: number) => {
     setCurrentIndex(index);
@@ -271,14 +271,16 @@ export const MaterialBottomSheet = forwardRef<BottomSheetRef, MaterialBottomShee
   );
 });
 
+MaterialBottomSheet.displayName = 'MaterialBottomSheet';
+
 // Specialized bottom sheet components
 export const ActionBottomSheet = forwardRef<BottomSheetRef, {
-  actions: Array<{
+  actions: {
     title: string;
     icon: string;
     onPress: () => void;
     destructive?: boolean;
-  }>;
+  }[];
   onClose?: () => void;
 }>(({ actions, onClose }, ref) => {
   const theme = useTheme();
@@ -326,6 +328,8 @@ export const ActionBottomSheet = forwardRef<BottomSheetRef, {
     </MaterialBottomSheet>
   );
 });
+
+ActionBottomSheet.displayName = 'ActionBottomSheet';
 
 const styles = StyleSheet.create({
   modalContainer: {

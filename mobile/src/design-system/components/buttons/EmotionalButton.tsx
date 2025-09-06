@@ -17,10 +17,10 @@ import {
   GestureResponderEvent,
   Platform,
 } from 'react-native';
+import { tailTrackerMotions } from '../../animations/motionSystem';
 import { tailTrackerColors } from '../../core/colors';
-import { tailTrackerTypography } from '../../core/typography';
 import { tailTrackerSpacing } from '../../core/spacing';
-import { tailTrackerMotions } from '../animations/motionSystem';
+import { tailTrackerTypography } from '../../core/typography';
 
 // ====================================
 // COMPONENT TYPES

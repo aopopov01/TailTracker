@@ -1,5 +1,4 @@
-import { databaseService, SharingToken, SharedAccess, StoredPetProfile, SharedPetAccess } from '../../services/database';
-import { User } from '../types/User';
+import { databaseService, SharingToken, SharedPetAccess } from '../../services/database';
 
 export interface QRCodeData {
   type: 'pet_sharing';

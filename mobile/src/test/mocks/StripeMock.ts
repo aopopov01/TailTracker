@@ -149,7 +149,7 @@ class MockStripeService {
     // Simulate initialization delay
     await new Promise(resolve => setTimeout(resolve, 300));
     
-    if (!publishableKey || !publishableKey.startsWith('pk_')) {
+    if (!publishableKey?.startsWith('pk_')) {
       throw new Error('Invalid publishable key');
     }
     

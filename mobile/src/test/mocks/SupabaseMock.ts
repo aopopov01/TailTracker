@@ -308,7 +308,7 @@ class MockQueryBuilder {
   private mockData: { [key: string]: any[] };
   private query: {
     select?: string;
-    filters?: Array<{ field: string; operator: string; value: any }>;
+    filters?: { field: string; operator: string; value: any }[];
     order?: { field: string; direction: string };
     limit?: number;
     single?: boolean;
@@ -540,7 +540,7 @@ class MockRPCBuilder {
 // Mock Realtime Channel
 class MockRealtimeChannel {
   private channelName: string;
-  private subscriptions: Array<{ event: string; callback: Function }> = [];
+  private subscriptions: { event: string; callback: Function }[] = [];
 
   constructor(channelName: string) {
     this.channelName = channelName;

@@ -75,7 +75,7 @@ export const TypingAnimation: React.FC<TypingAnimationProps> = ({
       -1,
       false
     );
-  }, []);
+  }, [cursorOpacity]);
 
   const cursorStyle = useAnimatedStyle(() => ({
     opacity: cursorOpacity.value,
@@ -120,7 +120,7 @@ export const AnimatedGradientText: React.FC<AnimatedGradientTextProps> = ({
       -1,
       false
     );
-  }, [speed]);
+  }, [speed, gradientProgress]);
 
   const animatedTextStyle = useAnimatedStyle(() => {
     // Simulate gradient by changing color over time
@@ -215,7 +215,7 @@ const AnimatedWord: React.FC<AnimatedWordProps> = ({
 
     const timeout = setTimeout(startAnimation, delay);
     return () => clearTimeout(timeout);
-  }, [delay, animationType]);
+  }, [delay, animationType, opacity, scale, translateY]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     opacity: opacity.value,
@@ -257,7 +257,7 @@ export const ShinyText: React.FC<ShinyTextProps> = ({
       -1,
       false
     );
-  }, []);
+  }, [shimmerProgress]);
 
   const shimmerStyle = useAnimatedStyle(() => {
     const translateX = interpolate(
@@ -338,7 +338,7 @@ export const BoxReveal: React.FC<BoxRevealProps> = ({
       clearTimeout(contentTimeout);
       clearTimeout(boxTimeout);
     };
-  }, [duration, delay]);
+  }, [duration, delay, boxPosition, contentOpacity, contentTranslateY]);
 
   const contentStyle = useAnimatedStyle(() => ({
     opacity: contentOpacity.value,

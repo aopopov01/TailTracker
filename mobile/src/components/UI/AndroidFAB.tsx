@@ -1,6 +1,6 @@
 import React from 'react';
-import { FAB, Portal } from 'react-native-paper';
 import { StyleSheet, View } from 'react-native';
+import { FAB, Portal } from 'react-native-paper';
 import { useTheme } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -133,12 +133,12 @@ export const SyncFAB: React.FC<{ onPress: () => void; loading?: boolean; visible
 
 // Multi-action FAB component
 interface MultiActionFABProps {
-  actions: Array<{
+  actions: {
     icon: string;
     label: string;
     onPress: () => void;
     color?: string;
-  }>;
+  }[];
   visible?: boolean;
 }
 

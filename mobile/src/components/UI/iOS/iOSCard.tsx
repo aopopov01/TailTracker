@@ -19,7 +19,7 @@ interface iOSCardProps {
   cornerRadius?: number;
 }
 
-export const iOSCard: React.FC<iOSCardProps> = ({
+export const IOSCard: React.FC<iOSCardProps> = ({
   children,
   style,
   blurred = false,

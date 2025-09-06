@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -13,7 +13,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import * as LocalAuthentication from 'expo-local-authentication';
 import * as SecureStore from 'expo-secure-store';
-import { useAuth } from '../../hooks/useAuth';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface SecuritySettings {
   biometricEnabled: boolean;
@@ -57,9 +57,9 @@ export const SecuritySettingsScreen: React.FC = () => {
 
   useEffect(() => {
     initializeSecuritySettings();
-  }, []);
+  }, [initializeSecuritySettings]);
 
-  const initializeSecuritySettings = async () => {
+  const initializeSecuritySettings = useCallback(async () => {
     try {
       // Check biometric availability
       const isAvailable = await LocalAuthentication.hasHardwareAsync();
@@ -79,9 +79,9 @@ export const SecuritySettingsScreen: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [loadSecuritySettings]);
 
-  const loadSecuritySettings = async () => {
+  const loadSecuritySettings = useCallback(async () => {
     try {
       const savedSettings = await SecureStore.getItemAsync('security_settings');
       if (savedSettings) {
@@ -91,7 +91,7 @@ export const SecuritySettingsScreen: React.FC = () => {
     } catch (error) {
       console.error('Error loading security settings:', error);
     }
-  };
+  }, []);
 
   const saveSecuritySettings = async (newSettings: SecuritySettings) => {
     try {

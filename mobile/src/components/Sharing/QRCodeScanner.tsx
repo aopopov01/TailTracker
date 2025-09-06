@@ -7,14 +7,13 @@ import {
   TextInput,
   Modal,
   SafeAreaView,
-  Dimensions,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-import { SharingService } from '../../services/sharingService';
+import * as Haptics from 'expo-haptics';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTailTrackerModal } from '../../hooks/useTailTrackerModal';
+import { SharingService } from '../../services/sharingService';
 import { TailTrackerModal } from '../UI/TailTrackerModal';
-import * as Haptics from 'expo-haptics';
 
 interface QRCodeScannerProps {
   onClose: () => void;
@@ -26,7 +25,7 @@ const QRCodeScanner: React.FC<QRCodeScannerProps> = ({
   onAccessGranted
 }) => {
   const { user } = useAuth();
-  const { modalConfig, showModal, hideModal, showWarning, showSuccess, showError } = useTailTrackerModal();
+  const { modalConfig, showModal, hideModal, showWarning, showError } = useTailTrackerModal();
   const [manualToken, setManualToken] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
 

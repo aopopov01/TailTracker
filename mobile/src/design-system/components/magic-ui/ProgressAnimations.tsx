@@ -55,7 +55,7 @@ export const AnimatedCircularProgressBar: React.FC<AnimatedCircularProgressBarPr
   useEffect(() => {
     const targetProgress = ((value - min) / (max - min)) * 100;
     progress.value = withTiming(targetProgress, { duration });
-  }, [value, min, max, duration]);
+  }, [value, min, max, duration, progress]);
 
   const animatedStyle = useAnimatedStyle(() => {
     const strokeDashoffset = circumference - (progress.value / 100) * circumference;
@@ -158,7 +158,7 @@ export const NumberTicker: React.FC<NumberTickerProps> = ({
 
     const timeout = setTimeout(startAnimation, delay);
     return () => clearTimeout(timeout);
-  }, [value, duration, delay]);
+  }, [value, duration, delay, animatedValue]);
 
   // Update display value during animation
   useEffect(() => {
@@ -168,7 +168,7 @@ export const NumberTicker: React.FC<NumberTickerProps> = ({
     }, 16); // ~60fps
 
     return () => clearInterval(interval);
-  }, []);
+  }, [animatedValue]);
 
   const formatNumber = (num: number) => {
     return num.toFixed(decimalPlaces);
@@ -213,7 +213,7 @@ export const OrbitingCircles: React.FC<OrbitingCirclesProps> = ({
       -1,
       false
     );
-  }, [duration, reverse]);
+  }, [duration, reverse, rotation]);
 
   return (
     <View
@@ -345,7 +345,7 @@ export const BlurFade: React.FC<BlurFadeProps> = ({
 
     const timeout = setTimeout(startAnimation, delay);
     return () => clearTimeout(timeout);
-  }, [delay, duration]);
+  }, [delay, duration, opacity, translateX, translateY]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     opacity: opacity.value,
@@ -383,7 +383,7 @@ export const ScrollProgress: React.FC<ScrollProgressProps> = ({
 
   useEffect(() => {
     animatedProgress.value = withTiming(progress, { duration: 300 });
-  }, [progress]);
+  }, [progress, animatedProgress]);
 
   const progressStyle = useAnimatedStyle(() => {
     const width = interpolate(animatedProgress.value, [0, 1], [0, 100]);

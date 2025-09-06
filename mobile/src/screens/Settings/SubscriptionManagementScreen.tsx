@@ -67,7 +67,7 @@ export const SubscriptionManagementScreen: React.FC = () => {
     {
       id: 'premium_monthly',
       name: 'Premium Monthly',
-      price: 4.99,
+      price: 5.99,
       period: 'month',
       current: isPremium && currentSubscription?.plan_id === 'premium_monthly',
       features: [

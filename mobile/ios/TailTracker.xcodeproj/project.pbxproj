@@ -16,6 +16,11 @@
 		BB2F792D24A3F905000567C9 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = BB2F792C24A3F905000567C9 /* Expo.plist */; };
 		7ACAA230241E4DD8A433D3F4 /* noop-file.swift in Sources */ = {isa = PBXBuildFile; fileRef = E96A2310C756472383766A2A /* noop-file.swift */; };
 		4D76090B80914C5AB568306D /* notification.wav in Resources */ = {isa = PBXBuildFile; fileRef = CBE853BB9AA5420691D1371C /* notification.wav */; };
+		17F335129ECE476B9FD4D4E0 /* pet_alert.wav in Resources */ = {isa = PBXBuildFile; fileRef = FD3B9A61C25A46D4923B96B4 /* pet_alert.wav */; };
+		CF2958D9500D4171BBCF9772 /* health_reminder.wav in Resources */ = {isa = PBXBuildFile; fileRef = 597252C9B04D468792DD1DE0 /* health_reminder.wav */; };
+		F4E4DB06362241AD8B89E0B1 /* activity_update.wav in Resources */ = {isa = PBXBuildFile; fileRef = 9A3BDB8B464942B48672E7DA /* activity_update.wav */; };
+		DB07C40890D44103B8CEA7F9 /* social_notification.wav in Resources */ = {isa = PBXBuildFile; fileRef = 9D3476989F4142A2B42841E0 /* social_notification.wav */; };
+		F5F2D3409CAE40ED98488EE3 /* emergency_alert.wav in Resources */ = {isa = PBXBuildFile; fileRef = A6985818602541989BD82BEC /* emergency_alert.wav */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -35,6 +40,11 @@
 		E96A2310C756472383766A2A /* noop-file.swift */ = {isa = PBXFileReference; name = "noop-file.swift"; path = "TailTracker/noop-file.swift"; sourceTree = "<group>"; fileEncoding = 4; lastKnownFileType = sourcecode.swift; explicitFileType = undefined; includeInIndex = 0; };
 		5803EABA2A194F90AD1CF2F9 /* TailTracker-Bridging-Header.h */ = {isa = PBXFileReference; name = "TailTracker-Bridging-Header.h"; path = "TailTracker/TailTracker-Bridging-Header.h"; sourceTree = "<group>"; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; explicitFileType = undefined; includeInIndex = 0; };
 		CBE853BB9AA5420691D1371C /* notification.wav */ = {isa = PBXFileReference; name = "notification.wav"; path = "TailTracker/notification.wav"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		FD3B9A61C25A46D4923B96B4 /* pet_alert.wav */ = {isa = PBXFileReference; name = "pet_alert.wav"; path = "TailTracker/pet_alert.wav"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		597252C9B04D468792DD1DE0 /* health_reminder.wav */ = {isa = PBXFileReference; name = "health_reminder.wav"; path = "TailTracker/health_reminder.wav"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		9A3BDB8B464942B48672E7DA /* activity_update.wav */ = {isa = PBXFileReference; name = "activity_update.wav"; path = "TailTracker/activity_update.wav"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		9D3476989F4142A2B42841E0 /* social_notification.wav */ = {isa = PBXFileReference; name = "social_notification.wav"; path = "TailTracker/social_notification.wav"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
+		A6985818602541989BD82BEC /* emergency_alert.wav */ = {isa = PBXFileReference; name = "emergency_alert.wav"; path = "TailTracker/emergency_alert.wav"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -62,6 +72,11 @@
 				E96A2310C756472383766A2A /* noop-file.swift */,
 				5803EABA2A194F90AD1CF2F9 /* TailTracker-Bridging-Header.h */,
 				CBE853BB9AA5420691D1371C /* notification.wav */,
+				FD3B9A61C25A46D4923B96B4 /* pet_alert.wav */,
+				597252C9B04D468792DD1DE0 /* health_reminder.wav */,
+				9A3BDB8B464942B48672E7DA /* activity_update.wav */,
+				9D3476989F4142A2B42841E0 /* social_notification.wav */,
+				A6985818602541989BD82BEC /* emergency_alert.wav */,
 			);
 			name = TailTracker;
 			sourceTree = "<group>";
@@ -203,6 +218,11 @@
 				3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */,
 				33216E4C6C1B48E4BCEC06BC /* TailTracker-Bridging-Header.h in Resources */,
 				4D76090B80914C5AB568306D /* notification.wav in Resources */,
+				17F335129ECE476B9FD4D4E0 /* pet_alert.wav in Resources */,
+				CF2958D9500D4171BBCF9772 /* health_reminder.wav in Resources */,
+				F4E4DB06362241AD8B89E0B1 /* activity_update.wav in Resources */,
+				DB07C40890D44103B8CEA7F9 /* social_notification.wav in Resources */,
+				F5F2D3409CAE40ED98488EE3 /* emergency_alert.wav in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

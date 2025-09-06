@@ -1,7 +1,7 @@
-import React, { createContext, useContext, useReducer, useEffect, useRef, ReactNode } from 'react';
-import { User, UserCredentials, UserRegistration, LoginResult, RegistrationResult } from '../types/User';
+import React, { createContext, useContext, useReducer, useEffect, useRef, useCallback, ReactNode } from 'react';
 import { AuthService } from '../services/authService';
 import { SessionService } from '../services/sessionService';
+import { User, UserCredentials, UserRegistration, LoginResult, RegistrationResult } from '../types/User';
 
 interface AuthState {
   user: User | null;
@@ -77,160 +77,244 @@ const initialState: AuthState = {
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [state, dispatch] = useReducer(authReducer, initialState);
   const isMountedRef = useRef(true);
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
   
+  // Safe dispatch function that checks if component is still mounted
+  const safeDispatch = useCallback((action: AuthAction) => {
+    if (isMountedRef.current) {
+      dispatch(action);
+    }
+  }, []);
+
+  // Cleanup function for all resources
+  const cleanup = useCallback(() => {
+    isMountedRef.current = false;
+    
+    // Abort any ongoing async operations
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+    
+    // Clear refresh interval
+    if (refreshIntervalRef.current) {
+      clearInterval(refreshIntervalRef.current);
+      refreshIntervalRef.current = null;
+    }
+  }, []);
+
   // Cleanup on unmount
   useEffect(() => {
-    return () => {
-      isMountedRef.current = false;
-    };
-  }, []);
+    return cleanup;
+  }, [cleanup]);
 
   // Initialize authentication state on app start
   useEffect(() => {
     const initializeAuth = async () => {
+      // Create new AbortController for this operation
+      const abortController = new AbortController();
+      abortControllerRef.current = abortController;
+
       try {
-        dispatch({ type: 'SET_LOADING', payload: true });
+        safeDispatch({ type: 'SET_LOADING', payload: true });
         
         const currentUser = await AuthService.getCurrentUser();
-        if (!isMountedRef.current) return; // Prevent state update on unmounted component
+        
+        // Check if operation was aborted or component unmounted
+        if (abortController.signal.aborted || !isMountedRef.current) {
+          return;
+        }
         
         if (currentUser) {
           // Refresh session to ensure it's still valid
           const isValid = await AuthService.refreshSession();
-          if (!isMountedRef.current) return; // Prevent state update on unmounted component
+          
+          // Check again if operation was aborted or component unmounted
+          if (abortController.signal.aborted || !isMountedRef.current) {
+            return;
+          }
           
           if (isValid) {
-            dispatch({ type: 'LOGIN_SUCCESS', payload: currentUser });
+            safeDispatch({ type: 'LOGIN_SUCCESS', payload: currentUser });
           } else {
-            dispatch({ type: 'LOGOUT' });
+            safeDispatch({ type: 'LOGOUT' });
           }
         } else {
-          dispatch({ type: 'LOGOUT' });
+          safeDispatch({ type: 'LOGOUT' });
         }
       } catch (error) {
-        console.error('Auth initialization error:', error);
-        if (isMountedRef.current) {
-          dispatch({ type: 'LOGOUT' });
+        // Don't log or handle errors if operation was aborted
+        if (!abortController.signal.aborted) {
+          console.error('Auth initialization error:', error);
+          safeDispatch({ type: 'LOGOUT' });
         }
       } finally {
-        if (isMountedRef.current) {
-          dispatch({ type: 'SET_LOADING', payload: false });
+        // Clear the abort controller reference if this is still the active one
+        if (abortControllerRef.current === abortController) {
+          abortControllerRef.current = null;
         }
+        
+        safeDispatch({ type: 'SET_LOADING', payload: false });
       }
     };
 
     initializeAuth();
-  }, []);
+  }, [safeDispatch]);
 
   // Auto-refresh session periodically
   useEffect(() => {
-    if (!state.isAuthenticated) return;
+    // Clear any existing interval first to prevent multiple intervals
+    if (refreshIntervalRef.current) {
+      clearInterval(refreshIntervalRef.current);
+      refreshIntervalRef.current = null;
+    }
 
-    const refreshInterval = setInterval(async () => {
+    if (!state.isAuthenticated) {
+      return;
+    }
+
+    const refreshSession = async () => {
       try {
-        if (!isMountedRef.current) return; // Prevent operations on unmounted component
+        // Double-check component is still mounted and authenticated
+        if (!isMountedRef.current || !state.isAuthenticated) {
+          return;
+        }
         
         const refreshed = await AuthService.refreshSession();
-        if (!isMountedRef.current) return; // Prevent state update on unmounted component
+        
+        // Check again after async operation
+        if (!isMountedRef.current || !state.isAuthenticated) {
+          return;
+        }
         
         if (!refreshed) {
-          dispatch({ type: 'LOGOUT' });
+          safeDispatch({ type: 'LOGOUT' });
         }
       } catch (error) {
-        console.error('Session refresh error:', error);
+        // Only log and handle error if component is still mounted
         if (isMountedRef.current) {
-          dispatch({ type: 'LOGOUT' });
+          console.error('Session refresh error:', error);
+          safeDispatch({ type: 'LOGOUT' });
         }
       }
-    }, 15 * 60 * 1000); // Refresh every 15 minutes
-
-    // Critical fix: Always clear interval on cleanup
-    return () => {
-      clearInterval(refreshInterval);
     };
-  }, [state.isAuthenticated]);
+
+    // Set up the interval with proper cleanup
+    refreshIntervalRef.current = setInterval(refreshSession, 15 * 60 * 1000); // Refresh every 15 minutes
+
+    // Cleanup function for this effect
+    return () => {
+      if (refreshIntervalRef.current) {
+        clearInterval(refreshIntervalRef.current);
+        refreshIntervalRef.current = null;
+      }
+    };
+  }, [state.isAuthenticated, safeDispatch]);
 
   const login = async (credentials: UserCredentials): Promise<LoginResult> => {
     try {
-      dispatch({ type: 'SET_LOADING', payload: true });
-      dispatch({ type: 'CLEAR_ERROR' });
+      safeDispatch({ type: 'SET_LOADING', payload: true });
+      safeDispatch({ type: 'CLEAR_ERROR' });
 
       const result = await AuthService.login(credentials);
       
+      // Check if component is still mounted after async operation
+      if (!isMountedRef.current) {
+        return { success: false, error: 'Component unmounted during login' };
+      }
+      
       if (result.success && result.user) {
-        dispatch({ type: 'LOGIN_SUCCESS', payload: result.user });
+        safeDispatch({ type: 'LOGIN_SUCCESS', payload: result.user });
       } else {
-        dispatch({ type: 'SET_ERROR', payload: result.error || 'Login failed' });
+        safeDispatch({ type: 'SET_ERROR', payload: result.error || 'Login failed' });
       }
 
       return result;
-    } catch (error) {
+    } catch {
       const errorMessage = 'An unexpected error occurred during login';
-      dispatch({ type: 'SET_ERROR', payload: errorMessage });
+      safeDispatch({ type: 'SET_ERROR', payload: errorMessage });
       return { success: false, error: errorMessage };
+    } finally {
+      safeDispatch({ type: 'SET_LOADING', payload: false });
     }
   };
 
   const register = async (userData: UserRegistration): Promise<RegistrationResult> => {
     try {
-      dispatch({ type: 'SET_LOADING', payload: true });
-      dispatch({ type: 'CLEAR_ERROR' });
+      safeDispatch({ type: 'SET_LOADING', payload: true });
+      safeDispatch({ type: 'CLEAR_ERROR' });
 
       const result = await AuthService.register(userData);
       
+      // Check if component is still mounted after async operation
+      if (!isMountedRef.current) {
+        return { success: false, error: 'Component unmounted during registration' };
+      }
+      
       if (result.success && result.user) {
         // Auto-login after successful registration
-        dispatch({ type: 'LOGIN_SUCCESS', payload: result.user });
+        safeDispatch({ type: 'LOGIN_SUCCESS', payload: result.user });
         
         // Create a session for the new user
         await SessionService.createSession(result.user);
       } else {
-        dispatch({ type: 'SET_ERROR', payload: result.error || 'Registration failed' });
+        safeDispatch({ type: 'SET_ERROR', payload: result.error || 'Registration failed' });
       }
 
       return result;
-    } catch (error) {
+    } catch {
       const errorMessage = 'An unexpected error occurred during registration';
-      dispatch({ type: 'SET_ERROR', payload: errorMessage });
+      safeDispatch({ type: 'SET_ERROR', payload: errorMessage });
       return { success: false, error: errorMessage };
     } finally {
-      dispatch({ type: 'SET_LOADING', payload: false });
+      safeDispatch({ type: 'SET_LOADING', payload: false });
     }
   };
 
   const logout = async (): Promise<void> => {
     try {
-      dispatch({ type: 'SET_LOADING', payload: true });
+      safeDispatch({ type: 'SET_LOADING', payload: true });
+      
+      // Clear any ongoing operations first
+      cleanup();
+      
       await AuthService.logout();
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
-      dispatch({ type: 'LOGOUT' });
+      safeDispatch({ type: 'LOGOUT' });
     }
   };
 
   const refreshSession = async (): Promise<boolean> => {
     try {
       const refreshed = await AuthService.refreshSession();
-      if (!isMountedRef.current) return false; // Prevent state update on unmounted component
+      
+      // Check if component is still mounted after async operation
+      if (!isMountedRef.current) {
+        return false;
+      }
       
       if (refreshed) {
         const currentUser = await AuthService.getCurrentUser();
-        if (!isMountedRef.current) return false; // Prevent state update on unmounted component
+        
+        // Check again after second async operation
+        if (!isMountedRef.current) {
+          return false;
+        }
         
         if (currentUser) {
-          dispatch({ type: 'UPDATE_USER', payload: currentUser });
+          safeDispatch({ type: 'UPDATE_USER', payload: currentUser });
         }
       } else {
-        dispatch({ type: 'LOGOUT' });
+        safeDispatch({ type: 'LOGOUT' });
       }
 
       return refreshed;
     } catch (error) {
       console.error('Session refresh error:', error);
-      if (isMountedRef.current) {
-        dispatch({ type: 'LOGOUT' });
-      }
+      safeDispatch({ type: 'LOGOUT' });
       return false;
     }
   };
@@ -240,28 +324,33 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     newPassword: string
   ): Promise<{ success: boolean; error?: string }> => {
     try {
-      dispatch({ type: 'SET_LOADING', payload: true });
-      dispatch({ type: 'CLEAR_ERROR' });
+      safeDispatch({ type: 'SET_LOADING', payload: true });
+      safeDispatch({ type: 'CLEAR_ERROR' });
 
       const result = await AuthService.changePassword(currentPassword, newPassword);
       
+      // Check if component is still mounted after async operation
+      if (!isMountedRef.current) {
+        return { success: false, error: 'Component unmounted during password change' };
+      }
+      
       if (!result.success) {
-        dispatch({ type: 'SET_ERROR', payload: result.error || 'Password change failed' });
+        safeDispatch({ type: 'SET_ERROR', payload: result.error || 'Password change failed' });
       }
 
       return result;
-    } catch (error) {
+    } catch {
       const errorMessage = 'An unexpected error occurred while changing password';
-      dispatch({ type: 'SET_ERROR', payload: errorMessage });
+      safeDispatch({ type: 'SET_ERROR', payload: errorMessage });
       return { success: false, error: errorMessage };
     } finally {
-      dispatch({ type: 'SET_LOADING', payload: false });
+      safeDispatch({ type: 'SET_LOADING', payload: false });
     }
   };
 
-  const clearError = () => {
-    dispatch({ type: 'CLEAR_ERROR' });
-  };
+  const clearError = useCallback(() => {
+    safeDispatch({ type: 'CLEAR_ERROR' });
+  }, [safeDispatch]);
 
   const contextValue: AuthContextType = {
     // State

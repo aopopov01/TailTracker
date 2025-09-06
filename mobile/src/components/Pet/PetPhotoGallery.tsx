@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -33,9 +33,9 @@ export const PetPhotoGallery: React.FC<PetPhotoGalleryProps> = ({
     loadPhotos();
     loadPhotoLimits();
     loadSubscriptionStatus();
-  }, [petId]);
+  }, [petId, loadPhotos]);
 
-  const loadPhotos = async () => {
+  const loadPhotos = useCallback(async () => {
     try {
       setIsLoading(true);
       const petPhotos = await petService.getPetPhotos(petId);
@@ -47,7 +47,7 @@ export const PetPhotoGallery: React.FC<PetPhotoGalleryProps> = ({
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [petId]);
 
   const loadPhotoLimits = async () => {
     try {

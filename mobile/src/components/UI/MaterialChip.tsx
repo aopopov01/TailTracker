@@ -1,6 +1,6 @@
 import React from 'react';
-import { Chip, ChipProps } from 'react-native-paper';
 import { StyleSheet, View } from 'react-native';
+import { Chip, ChipProps } from 'react-native-paper';
 import { useTheme } from 'react-native-paper';
 import { petColors, statusColors } from '@/theme/materialTheme';
 
@@ -134,7 +134,7 @@ export const StatusChip: React.FC<{ status: keyof typeof statusColors } & Materi
 );
 
 export const FilterChipGroup: React.FC<{
-  chips: Array<{ id: string; label: string; selected: boolean }>;
+  chips: { id: string; label: string; selected: boolean }[];
   onSelectionChange: (id: string) => void;
 }> = ({ chips, onSelectionChange }) => (
   <View style={styles.chipGroup}>

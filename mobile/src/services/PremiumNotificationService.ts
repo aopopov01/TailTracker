@@ -6,16 +6,16 @@
  * requests are validated against the user's subscription status.
  */
 
+import { Alert } from 'react-native';
+import { router } from 'expo-router';
+import { PremiumGate } from '../components/Payment/PremiumGate';
+import { StripePaymentService } from './StripePaymentService';
 import {
   unifiedNotificationService,
   UnifiedNotification,
   NotificationType,
   TailTrackerNotifications,
 } from './UnifiedNotificationService';
-import { StripePaymentService } from './StripePaymentService';
-import { PremiumGate } from '../components/Payment/PremiumGate';
-import { router } from 'expo-router';
-import { Alert } from 'react-native';
 
 // Notification types that require premium access
 const PREMIUM_NOTIFICATION_TYPES: NotificationType[] = [

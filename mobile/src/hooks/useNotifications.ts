@@ -9,6 +9,12 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { AppState, AppStateStatus } from 'react-native';
 import { 
+  notificationPermissionManager,
+  PermissionReason,
+  PermissionFlowState,
+  PermissionResult,
+} from '../services/NotificationPermissionManager';
+import { 
   unifiedNotificationService,
   UnifiedNotification,
   NotificationPreferences,
@@ -18,12 +24,6 @@ import {
   PermissionState,
   TailTrackerNotifications,
 } from '../services/UnifiedNotificationService';
-import { 
-  notificationPermissionManager,
-  PermissionReason,
-  PermissionFlowState,
-  PermissionResult,
-} from '../services/NotificationPermissionManager';
 
 // Hook for managing notification service initialization and state
 export const useNotificationService = () => {

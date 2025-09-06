@@ -10,12 +10,12 @@
 import React, { useEffect, useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Text, Button, ActivityIndicator } from 'react-native-paper';
+import { PremiumGate } from '../components/Payment/PremiumGate';
+import { usePremiumAccess } from '../hooks/usePremiumAccess';
 import { PaymentInitializationService } from '../services/PaymentInitializationService';
 import { StripePaymentService } from '../services/StripePaymentService';
-import { usePremiumAccess } from '../hooks/usePremiumAccess';
-import { PremiumGate } from '../components/Payment/PremiumGate';
-import { PaymentErrorUtils } from '../utils/paymentErrorUtils';
 import { modalService } from '../utils/modalService';
+import { PaymentErrorUtils } from '../utils/paymentErrorUtils';
 
 /**
  * Main App Component with Payment Integration
@@ -29,9 +29,9 @@ export const AppWithPayments: React.FC = () => {
   // Initialize payment services on app start
   useEffect(() => {
     initializePaymentServices();
-  }, []);
+  }, [initializePaymentServices]);
 
-  const initializePaymentServices = async () => {
+  const initializePaymentServices = useCallback(async () => {
     try {
       const paymentInit = PaymentInitializationService.getInstance();
       
@@ -48,7 +48,7 @@ export const AppWithPayments: React.FC = () => {
       setInitializationError('Unexpected error during payment initialization');
       console.error('Payment initialization error:', error);
     }
-  };
+  }, [userId, authToken]);
 
   // Handle user authentication changes
   const handleUserLogin = async (newUserId: string, newAuthToken: string) => {

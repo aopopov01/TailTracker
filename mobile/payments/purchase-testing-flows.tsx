@@ -1,7 +1,7 @@
 // TailTracker In-App Purchase Testing Flows
 // Comprehensive testing implementation for subscription flows and premium features
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -10,12 +10,12 @@ import {
   ScrollView,
   ActivityIndicator,
   Platform,
+  StyleSheet,
 } from 'react-native';
 import Purchases, {
   PurchasesOffering,
   PurchasesPackage,
   CustomerInfo,
-  PurchasesError,
 } from 'react-native-purchases';
 
 // ============================================================================
@@ -172,24 +172,11 @@ export const PurchaseTestingDashboard: React.FC = () => {
 
   const purchaseService = PurchaseService.getInstance();
 
-  useEffect(() => {
-    initializePurchases();
+  const addTestResult = useCallback((result: string) => {
+    setTestResults(prev => [...prev, `${new Date().toLocaleTimeString()}: ${result}`]);
   }, []);
 
-  const initializePurchases = async () => {
-    setIsLoading(true);
-    try {
-      await purchaseService.initialize();
-      await refreshData();
-      addTestResult('✅ Purchase service initialized');
-    } catch (error) {
-      addTestResult(`❌ Initialization failed: ${error}`);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const refreshData = async () => {
+  const refreshData = useCallback(async () => {
     try {
       const [status, currentOfferings] = await Promise.all([
         purchaseService.checkSubscriptionStatus(),
@@ -201,11 +188,24 @@ export const PurchaseTestingDashboard: React.FC = () => {
     } catch (error) {
       addTestResult(`❌ Failed to refresh data: ${error}`);
     }
-  };
+  }, [addTestResult, purchaseService]);
 
-  const addTestResult = (result: string) => {
-    setTestResults(prev => [...prev, `${new Date().toLocaleTimeString()}: ${result}`]);
-  };
+  const initializePurchases = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      await purchaseService.initialize();
+      await refreshData();
+      addTestResult('✅ Purchase service initialized');
+    } catch (error) {
+      addTestResult(`❌ Initialization failed: ${error}`);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [refreshData, addTestResult, purchaseService]);
+
+  useEffect(() => {
+    initializePurchases();
+  }, [initializePurchases]);
 
   // ============================================================================
   // TEST SCENARIOS
@@ -324,8 +324,8 @@ export const PurchaseTestingDashboard: React.FC = () => {
   // ============================================================================
 
   const renderSubscriptionStatus = () => (
-    <View style={{ padding: 16, backgroundColor: '#F8F9FA', borderRadius: 8, marginBottom: 16 }}>
-      <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 8 }}>
+    <View style={styles.statusContainer}>
+      <Text style={styles.sectionTitle}>
         Subscription Status
       </Text>
       {subscriptionStatus ? (
@@ -347,8 +347,8 @@ export const PurchaseTestingDashboard: React.FC = () => {
   );
 
   const renderOfferings = () => (
-    <View style={{ padding: 16, backgroundColor: '#F8F9FA', borderRadius: 8, marginBottom: 16 }}>
-      <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 8 }}>
+    <View style={styles.statusContainer}>
+      <Text style={styles.sectionTitle}>
         Available Offerings
       </Text>
       {offerings ? (
@@ -368,93 +368,93 @@ export const PurchaseTestingDashboard: React.FC = () => {
   );
 
   const renderTestButtons = () => (
-    <View style={{ marginBottom: 16 }}>
-      <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 8 }}>
+    <View style={styles.testButtonsContainer}>
+      <Text style={styles.sectionTitle}>
         Test Scenarios
       </Text>
-      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+      <View style={styles.buttonsRow}>
         <TouchableOpacity
-          style={{ backgroundColor: '#007AFF', padding: 12, borderRadius: 8, marginBottom: 8 }}
+          style={styles.testButtonBlue}
           onPress={testScenarios.testMonthlyPurchase}
           disabled={isLoading}
         >
-          <Text style={{ color: 'white', textAlign: 'center' }}>Test Monthly Purchase</Text>
+          <Text style={styles.buttonText}>Test Monthly Purchase</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={{ backgroundColor: '#34C759', padding: 12, borderRadius: 8, marginBottom: 8 }}
+          style={styles.testButtonGreen}
           onPress={testScenarios.testYearlyPurchase}
           disabled={isLoading}
         >
-          <Text style={{ color: 'white', textAlign: 'center' }}>Test Yearly Purchase</Text>
+          <Text style={styles.buttonText}>Test Yearly Purchase</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={{ backgroundColor: '#FF9500', padding: 12, borderRadius: 8, marginBottom: 8 }}
+          style={styles.testButtonOrange}
           onPress={testScenarios.testRestorePurchases}
           disabled={isLoading}
         >
-          <Text style={{ color: 'white', textAlign: 'center' }}>Test Restore</Text>
+          <Text style={styles.buttonText}>Test Restore</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={{ backgroundColor: '#5856D6', padding: 12, borderRadius: 8, marginBottom: 8 }}
+          style={styles.testButtonPurple}
           onPress={testScenarios.testSubscriptionStatus}
           disabled={isLoading}
         >
-          <Text style={{ color: 'white', textAlign: 'center' }}>Check Status</Text>
+          <Text style={styles.buttonText}>Check Status</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={{ backgroundColor: '#AF52DE', padding: 12, borderRadius: 8, marginBottom: 8 }}
+          style={styles.testButtonMagenta}
           onPress={testScenarios.testUserIdentification}
           disabled={isLoading}
         >
-          <Text style={{ color: 'white', textAlign: 'center' }}>Test User ID</Text>
+          <Text style={styles.buttonText}>Test User ID</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={{ backgroundColor: '#FF3B30', padding: 12, borderRadius: 8, marginBottom: 8 }}
+          style={styles.testButtonRed}
           onPress={testScenarios.testErrorHandling}
           disabled={isLoading}
         >
-          <Text style={{ color: 'white', textAlign: 'center' }}>Test Errors</Text>
+          <Text style={styles.buttonText}>Test Errors</Text>
         </TouchableOpacity>
       </View>
     </View>
   );
 
   const renderTestResults = () => (
-    <View style={{ padding: 16, backgroundColor: '#F8F9FA', borderRadius: 8 }}>
-      <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 8 }}>
+    <View style={styles.statusContainer}>
+      <Text style={styles.sectionTitle}>
         Test Results
       </Text>
-      <ScrollView style={{ maxHeight: 200 }}>
+      <ScrollView style={styles.resultsScroll}>
         {testResults.map((result, index) => (
-          <Text key={index} style={{ fontSize: 12, marginBottom: 4, fontFamily: 'monospace' }}>
+          <Text key={index} style={styles.resultText}>
             {result}
           </Text>
         ))}
       </ScrollView>
       <TouchableOpacity
-        style={{ backgroundColor: '#8E8E93', padding: 8, borderRadius: 4, marginTop: 8 }}
+        style={styles.testButtonGray}
         onPress={() => setTestResults([])}
       >
-        <Text style={{ color: 'white', textAlign: 'center', fontSize: 12 }}>Clear Results</Text>
+        <Text style={styles.smallButtonText}>Clear Results</Text>
       </TouchableOpacity>
     </View>
   );
 
   return (
-    <ScrollView style={{ flex: 1, padding: 16, backgroundColor: 'white' }}>
-      <Text style={{ fontSize: 24, fontWeight: 'bold', marginBottom: 16, textAlign: 'center' }}>
+    <ScrollView style={styles.container}>
+      <Text style={styles.mainTitle}>
         TailTracker Purchase Testing
       </Text>
 
       {isLoading && (
-        <View style={{ alignItems: 'center', marginBottom: 16 }}>
+        <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#007AFF" />
-          <Text style={{ marginTop: 8 }}>Processing...</Text>
+          <Text style={styles.loadingText}>Processing...</Text>
         </View>
       )}
 
@@ -522,19 +522,13 @@ export const PremiumGate: React.FC<PremiumGateProps> = ({
 
   return fallbackComponent || (
     <TouchableOpacity
-      style={{
-        padding: 16,
-        backgroundColor: '#FFF3CD',
-        borderRadius: 8,
-        borderWidth: 1,
-        borderColor: '#FFEAA7',
-      }}
+      style={styles.premiumGateButton}
       onPress={showUpgradePrompt}
     >
-      <Text style={{ textAlign: 'center', color: '#856404' }}>
+      <Text style={styles.premiumGateTitle}>
         🔒 {featureName} - Premium Feature
       </Text>
-      <Text style={{ textAlign: 'center', fontSize: 12, color: '#856404', marginTop: 4 }}>
+      <Text style={styles.premiumGateSubtitle}>
         Tap to upgrade
       </Text>
     </TouchableOpacity>
@@ -613,6 +607,122 @@ export const PurchaseTestingUtils = {
     }
   },
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 16,
+    backgroundColor: 'white',
+  },
+  mainTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  loadingContainer: {
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  loadingText: {
+    marginTop: 8,
+  },
+  statusContainer: {
+    padding: 16,
+    backgroundColor: '#F8F9FA',
+    borderRadius: 8,
+    marginBottom: 16,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 8,
+  },
+  testButtonsContainer: {
+    marginBottom: 16,
+  },
+  buttonsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  testButtonBlue: {
+    backgroundColor: '#007AFF',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 8,
+  },
+  testButtonGreen: {
+    backgroundColor: '#34C759',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 8,
+  },
+  testButtonOrange: {
+    backgroundColor: '#FF9500',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 8,
+  },
+  testButtonPurple: {
+    backgroundColor: '#5856D6',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 8,
+  },
+  testButtonMagenta: {
+    backgroundColor: '#AF52DE',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 8,
+  },
+  testButtonRed: {
+    backgroundColor: '#FF3B30',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 8,
+  },
+  testButtonGray: {
+    backgroundColor: '#8E8E93',
+    padding: 8,
+    borderRadius: 4,
+    marginTop: 8,
+  },
+  buttonText: {
+    color: 'white',
+    textAlign: 'center',
+  },
+  resultsScroll: {
+    maxHeight: 200,
+  },
+  resultText: {
+    fontSize: 12,
+    marginBottom: 4,
+    fontFamily: 'monospace',
+  },
+  smallButtonText: {
+    color: 'white',
+    textAlign: 'center',
+    fontSize: 12,
+  },
+  premiumGateButton: {
+    padding: 16,
+    backgroundColor: '#FFF3CD',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#FFEAA7',
+  },
+  premiumGateTitle: {
+    textAlign: 'center',
+    color: '#856404',
+  },
+  premiumGateSubtitle: {
+    textAlign: 'center',
+    fontSize: 12,
+    color: '#856404',
+    marginTop: 4,
+  },
+});
 
 export default {
   PurchaseService,

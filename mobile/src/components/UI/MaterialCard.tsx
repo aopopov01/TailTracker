@@ -1,6 +1,6 @@
 import React from 'react';
-import { Card, CardProps } from 'react-native-paper';
 import { StyleSheet, ViewStyle } from 'react-native';
+import { Card, CardProps } from 'react-native-paper';
 import { useTheme } from 'react-native-paper';
 
 interface MaterialCardProps extends CardProps {

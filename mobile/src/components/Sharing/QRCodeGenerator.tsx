@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -8,13 +8,12 @@ import {
   ActivityIndicator,
   Dimensions
 } from 'react-native';
-import QRCode from 'react-native-qrcode-svg';
 import { MaterialIcons } from '@expo/vector-icons';
-import * as FileSystem from 'expo-file-system';
 import * as MediaLibrary from 'expo-media-library';
-import { SharingService, QRCodeData } from '../../services/sharingService';
+import QRCode from 'react-native-qrcode-svg';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTailTrackerModal } from '../../hooks/useTailTrackerModal';
+import { SharingService, QRCodeData } from '../../services/sharingService';
 import { TailTrackerModal } from '../UI/TailTrackerModal';
 
 interface QRCodeGeneratorProps {
@@ -39,9 +38,9 @@ const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({
 
   useEffect(() => {
     generateQRCode();
-  }, []);
+  }, [generateQRCode]);
 
-  const generateQRCode = async () => {
+  const generateQRCode = useCallback(async () => {
     if (!user) return;
 
     setIsGenerating(true);
@@ -67,7 +66,7 @@ const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({
     } finally {
       setIsGenerating(false);
     }
-  };
+  }, [user, expirationHours, showError]);
 
   const shareQRCode = async () => {
     if (!qrData || !token) return;

@@ -12,7 +12,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, {
   SlideInUp,
-  SlideInDown,
   FadeIn,
 } from 'react-native-reanimated';
 

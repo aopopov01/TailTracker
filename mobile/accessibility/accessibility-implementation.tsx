@@ -7,12 +7,10 @@ import {
   Text,
   TouchableOpacity,
   Image,
-  ScrollView,
   AccessibilityInfo,
   Platform,
-  Alert,
+  StyleSheet,
 } from 'react-native';
-import { useAccessibilityInfo } from '@react-native-community/hooks';
 
 // ============================================================================
 // ACCESSIBILITY CONSTANTS AND UTILITIES
@@ -154,32 +152,23 @@ export const AccessiblePetCard: React.FC<AccessiblePetCardProps> = ({
       }}
       onPress={handlePress}
       onLongPress={onLongPress}
-      style={{
-        padding: 16,
-        marginVertical: 8,
-        backgroundColor: '#FFFFFF',
-        borderRadius: 12,
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 3,
-      }}
+      style={accessibilityStyles.petCardContainer}
     >
-      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+      <View style={accessibilityStyles.petCardRow}>
         <Image
           source={{ uri: `https://via.placeholder.com/60x60/CCCCCC/FFFFFF?text=${pet.name.charAt(0)}` }}
-          style={{ width: 60, height: 60, borderRadius: 30 }}
+          style={accessibilityStyles.petAvatar}
           accessible={false} // Decorative image, described in parent label
         />
-        <View style={{ flex: 1, marginLeft: 12 }}>
+        <View style={accessibilityStyles.petInfoContainer}>
           <Text
-            style={{ fontSize: 18, fontWeight: 'bold', color: '#2C3E50' }}
+            style={accessibilityStyles.petName}
             accessible={false} // Content included in parent accessibility label
           >
             {pet.name}
           </Text>
           <Text
-            style={{ fontSize: 14, color: '#7F8C8D', marginTop: 4 }}
+            style={accessibilityStyles.petLocation}
             accessible={false}
           >
             {pet.location}
@@ -187,12 +176,7 @@ export const AccessiblePetCard: React.FC<AccessiblePetCardProps> = ({
         </View>
         {pet.isTracking && (
           <View
-            style={{
-              width: 12,
-              height: 12,
-              borderRadius: 6,
-              backgroundColor: '#2ECC71',
-            }}
+            style={accessibilityStyles.trackingIndicator}
             accessible={false} // Status included in parent label
           />
         )}
@@ -202,19 +186,19 @@ export const AccessiblePetCard: React.FC<AccessiblePetCardProps> = ({
 };
 
 interface AccessibleMapViewProps {
-  pets: Array<{
+  pets: {
     id: string;
     name: string;
     latitude: number;
     longitude: number;
-  }>;
-  safeZones: Array<{
+  }[];
+  safeZones: {
     id: string;
     name: string;
     latitude: number;
     longitude: number;
     radius: number;
-  }>;
+  }[];
   onPetPress: (petId: string) => void;
   onSafeZonePress: (zoneId: string) => void;
 }
@@ -238,21 +222,15 @@ export const AccessibleMapView: React.FC<AccessibleMapViewProps> = ({
         accessibilityRole="image"
         accessibilityLabel={mapAccessibilityLabel}
         accessibilityHint={mapAccessibilityHint}
-        style={{
-          height: 300,
-          backgroundColor: '#E8F4FD',
-          borderRadius: 12,
-          justifyContent: 'center',
-          alignItems: 'center',
-        }}
+        style={accessibilityStyles.mapContainer}
       >
-        <Text style={{ color: '#7F8C8D' }}>Interactive Map</Text>
+        <Text style={accessibilityStyles.mapTextStyle}>Interactive Map</Text>
       </View>
 
       {/* Accessible Map Legend */}
-      <View style={{ marginTop: 16 }}>
+      <View style={accessibilityStyles.sectionContainer}>
         <Text
-          style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 8 }}
+          style={accessibilityStyles.sectionTitle}
           accessibilityRole="header"
         >
           Map Contents
@@ -260,9 +238,9 @@ export const AccessibleMapView: React.FC<AccessibleMapViewProps> = ({
 
         {/* Pet Locations List */}
         {pets.length > 0 && (
-          <View style={{ marginBottom: 16 }}>
+          <View style={accessibilityStyles.itemContainer}>
             <Text
-              style={{ fontSize: 16, fontWeight: '600', marginBottom: 8 }}
+              style={accessibilityStyles.itemTitle}
               accessibilityRole="header"
             >
               Pet Locations
@@ -278,15 +256,10 @@ export const AccessibleMapView: React.FC<AccessibleMapViewProps> = ({
                   announceForAccessibility(`Centering map on ${pet.name}`);
                   onPetPress(pet.id);
                 }}
-                style={{
-                  padding: 12,
-                  backgroundColor: '#F8F9FA',
-                  marginVertical: 4,
-                  borderRadius: 8,
-                }}
+                style={accessibilityStyles.petLocationItem}
               >
-                <Text style={{ fontSize: 16 }}>{pet.name}</Text>
-                <Text style={{ fontSize: 14, color: '#7F8C8D' }}>
+                <Text style={accessibilityStyles.itemText}>{pet.name}</Text>
+                <Text style={accessibilityStyles.itemSubtext}>
                   Lat: {pet.latitude.toFixed(4)}, Lng: {pet.longitude.toFixed(4)}
                 </Text>
               </TouchableOpacity>
@@ -298,7 +271,7 @@ export const AccessibleMapView: React.FC<AccessibleMapViewProps> = ({
         {safeZones.length > 0 && (
           <View>
             <Text
-              style={{ fontSize: 16, fontWeight: '600', marginBottom: 8 }}
+              style={accessibilityStyles.itemTitle}
               accessibilityRole="header"
             >
               Safe Zones
@@ -314,15 +287,10 @@ export const AccessibleMapView: React.FC<AccessibleMapViewProps> = ({
                   announceForAccessibility(`Opening ${zone.name} safe zone details`);
                   onSafeZonePress(zone.id);
                 }}
-                style={{
-                  padding: 12,
-                  backgroundColor: '#E8F5E8',
-                  marginVertical: 4,
-                  borderRadius: 8,
-                }}
+                style={accessibilityStyles.safeZoneItem}
               >
-                <Text style={{ fontSize: 16 }}>{zone.name}</Text>
-                <Text style={{ fontSize: 14, color: '#7F8C8D' }}>
+                <Text style={accessibilityStyles.itemText}>{zone.name}</Text>
+                <Text style={accessibilityStyles.itemSubtext}>
                   Radius: {zone.radius}m
                 </Text>
               </TouchableOpacity>
@@ -374,20 +342,13 @@ export const AccessibleAlertButton: React.FC<AccessibleAlertButtonProps> = ({
         disabled: false,
       }}
       onPress={handlePress}
-      style={{
-        backgroundColor: isEmergency ? '#E74C3C' : '#3498DB',
-        padding: 16,
-        borderRadius: 12,
-        alignItems: 'center',
-        marginVertical: 8,
-      }}
+      style={[
+        accessibilityStyles.alertButtonContainer,
+        isEmergency ? accessibilityStyles.emergencyButtonColor : accessibilityStyles.normalButtonColor
+      ]}
     >
       <Text
-        style={{
-          color: '#FFFFFF',
-          fontSize: 18,
-          fontWeight: 'bold',
-        }}
+        style={accessibilityStyles.alertButtonText}
         accessible={false} // Content included in parent accessibility label
       >
         {isEmergency ? 'EMERGENCY ALERT' : 'Send Alert'}
@@ -537,6 +498,110 @@ export const PlatformAccessibility = {
     },
   },
 };
+
+const accessibilityStyles = StyleSheet.create({
+  petCardContainer: {
+    padding: 16,
+    marginVertical: 8,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  petCardRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  petAvatar: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+  },
+  petInfoContainer: {
+    flex: 1,
+    marginLeft: 12,
+  },
+  petName: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#2C3E50',
+  },
+  petLocation: {
+    fontSize: 14,
+    color: '#7F8C8D',
+    marginTop: 4,
+  },
+  trackingIndicator: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: '#2ECC71',
+  },
+  mapContainer: {
+    height: 300,
+    backgroundColor: '#E8F4FD',
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  mapTextStyle: {
+    color: '#7F8C8D',
+  },
+  sectionContainer: {
+    marginTop: 16,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 8,
+  },
+  itemContainer: {
+    marginBottom: 16,
+  },
+  itemTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 8,
+  },
+  itemText: {
+    fontSize: 16,
+  },
+  itemSubtext: {
+    fontSize: 14,
+    color: '#7F8C8D',
+  },
+  petLocationItem: {
+    padding: 12,
+    backgroundColor: '#F8F9FA',
+    marginVertical: 4,
+    borderRadius: 8,
+  },
+  safeZoneItem: {
+    padding: 12,
+    backgroundColor: '#E8F5E8',
+    marginVertical: 4,
+    borderRadius: 8,
+  },
+  alertButtonContainer: {
+    padding: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    marginVertical: 8,
+  },
+  emergencyButtonColor: {
+    backgroundColor: '#E74C3C',
+  },
+  normalButtonColor: {
+    backgroundColor: '#3498DB',
+  },
+  alertButtonText: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+});
 
 export default {
   AccessibilityLabels,

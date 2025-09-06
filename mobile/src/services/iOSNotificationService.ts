@@ -1,7 +1,7 @@
 import { Platform } from 'react-native';
-import * as Notifications from 'expo-notifications';
-import * as Device from 'expo-device';
 import Constants from 'expo-constants';
+import * as Device from 'expo-device';
+import * as Notifications from 'expo-notifications';
 
 export interface iOSNotificationOptions {
   title: string;
@@ -16,7 +16,7 @@ export interface iOSNotificationOptions {
   badge?: number;
   subtitle?: string;
   launchImageName?: string;
-  attachments?: Array<{
+  attachments?: {
     url: string;
     options?: {
       typeHint?: string;
@@ -29,7 +29,7 @@ export interface iOSNotificationOptions {
       };
       thumbnailTime?: number;
     };
-  }>;
+  }[];
 }
 
 export interface NotificationAction {

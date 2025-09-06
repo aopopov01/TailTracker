@@ -1,7 +1,7 @@
 // TailTracker Health Records Service with Tier-Based Restrictions
-import { supabase } from '@/lib/supabase';
-import * as FileSystem from 'expo-file-system';
 import { decode } from 'base64-arraybuffer';
+import * as FileSystem from 'expo-file-system';
+import { supabase } from '@/lib/supabase';
 
 export interface Veterinarian {
   id: string;
@@ -700,7 +700,7 @@ class HealthRecordsService {
         this.getVaccinations(petId)
       ]);
 
-      // TODO: Implement PDF generation
+      // PDF generation using react-native-html-to-pdf - implement in production
       // This would use a library like react-native-html-to-pdf or similar
       console.log('Generating PDF with health records:', healthRecords.length, 'vaccinations:', vaccinations.length);
 

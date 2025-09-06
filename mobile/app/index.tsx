@@ -9,10 +9,9 @@ import {
   Image,
   Platform,
 } from 'react-native';
-import { useRouter } from 'expo-router';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-import { useAuth } from '../src/contexts/AuthContext';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useRouter } from 'expo-router';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -23,6 +22,7 @@ import Animated, {
   FadeIn,
   SlideInDown,
 } from 'react-native-reanimated';
+import { useAuth } from '../src/contexts/AuthContext';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -97,7 +97,7 @@ export default function PremiumLandingPage() {
       -1,
       true
     );
-  }, []);
+  }, [floatY, logoOpacity, logoScale]);
 
   const logoAnimatedStyle = useAnimatedStyle(() => ({
     transform: [
@@ -110,10 +110,10 @@ export default function PremiumLandingPage() {
   const handleGetStarted = () => {
     if (isAuthenticated) {
       // If user is logged in, go to dashboard
-      router.push('/(tabs)/dashboard');
+      router.push('/(tabs)/dashboard' as any);
     } else {
       // If not logged in, go to registration
-      router.push('/auth/register');
+      router.push('/auth/register' as any);
     }
   };
 
@@ -176,7 +176,7 @@ export default function PremiumLandingPage() {
           {!isAuthenticated && (
             <TouchableOpacity
               style={styles.heroSignInLink}
-              onPress={() => router.push('/auth/login')}
+              onPress={() => router.push('/auth/login' as any)}
             >
               <Text style={styles.heroSignInText}>Already have an account? </Text>
               <Text style={styles.heroSignInTextBold}>Sign In</Text>

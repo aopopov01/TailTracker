@@ -1,7 +1,7 @@
-import { supabase } from '@/lib/supabase';
 import { decode } from 'base64-arraybuffer';
 import { FileSystem } from 'expo-file-system';
 import * as ImageManipulator from 'expo-image-manipulator';
+import { supabase } from '@/lib/supabase';
 
 export interface Pet {
   id: string;

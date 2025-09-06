@@ -1,7 +1,7 @@
 import { Platform, Alert } from 'react-native';
-import { androidPermissions } from './AndroidPermissions';
 import * as Location from 'expo-location';
 import { supabaseEnhanced } from '../../config/supabase';
+import { androidPermissions } from './AndroidPermissions';
 import { TailTrackerAPI } from './ApiClient';
 import { errorRecoveryService } from './ErrorRecoveryService';
 import { offlineQueueManager } from './OfflineQueueManager';
@@ -171,7 +171,7 @@ class PremiumLostPetService {
       }
 
       // Send community notifications to all nearby users
-      if (response.data && response.data.lost_pet_id) {
+      if (response.data?.lost_pet_id) {
         try {
           await this.sendCommunityLostPetNotification({
             petName: reportData.pet_id, // Will need pet name from database

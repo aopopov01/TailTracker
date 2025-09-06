@@ -36,7 +36,7 @@ export const useLostPetNotifications = (): UseLostPetNotificationsHook => {
   // Initialize notification status
   useEffect(() => {
     initializeNotifications();
-  }, []);
+  }, [initializeNotifications]);
 
   // Handle app state changes
   useEffect(() => {
@@ -76,9 +76,9 @@ export const useLostPetNotifications = (): UseLostPetNotificationsHook => {
       notificationListener.remove();
       responseListener.remove();
     };
-  }, []);
+  }, [handleLostPetAlert]);
 
-  const initializeNotifications = async () => {
+  const initializeNotifications = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -105,7 +105,7 @@ export const useLostPetNotifications = (): UseLostPetNotificationsHook => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   const requestPermissions = async (): Promise<boolean> => {
     try {
@@ -212,17 +212,20 @@ export const useLostPetNotifications = (): UseLostPetNotificationsHook => {
 
   const updateNotificationCount = async () => {
     try {
-      const notifications = await Notifications.getAllPresentedNotificationsAsync();
+      // Use getPresentedNotificationsAsync which is more widely supported
+      const notifications = await Notifications.getPresentedNotificationsAsync();
       const lostPetNotifications = notifications.filter(
         n => n.request.content.data?.type === 'lost_pet_alert'
       );
       setPendingNotifications(lostPetNotifications.length);
     } catch (err) {
       console.error('Update notification count error:', err);
+      // Fallback to 0 if the function is not available
+      setPendingNotifications(0);
     }
   };
 
-  const handleLostPetAlert = (notification: Notifications.Notification, data: PushNotificationData) => {
+  const handleLostPetAlert = useCallback((notification: Notifications.Notification, data: PushNotificationData) => {
     // Show in-app alert if app is active
     if (AppState.currentState === 'active') {
       Alert.alert(
@@ -237,7 +240,7 @@ export const useLostPetNotifications = (): UseLostPetNotificationsHook => {
         ]
       );
     }
-  };
+  }, []);
 
   const handleNotificationTapped = (data: PushNotificationData) => {
     // This would integrate with React Navigation

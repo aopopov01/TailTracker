@@ -1,5 +1,5 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import NetInfo from '@react-native-community/netinfo';
 import { errorRecoveryService } from './ErrorRecoveryService';
 import { offlineQueueManager } from './OfflineQueueManager';
@@ -55,11 +55,11 @@ export interface ErrorMetrics {
   authErrors: number;
   crashRate: number;
   errorsByFeature: Record<string, number>;
-  mostCommonErrors: Array<{
+  mostCommonErrors: {
     error: string;
     count: number;
     lastOccurrence: number;
-  }>;
+  }[];
 }
 
 export class ErrorMonitoringService {

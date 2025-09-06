@@ -12,15 +12,15 @@
  */
 
 import { Platform, AppState, AppStateStatus, Linking } from 'react-native';
-import * as Notifications from 'expo-notifications';
-import * as Device from 'expo-device';
-import * as TaskManager from 'expo-task-manager';
-import * as BackgroundFetch from 'expo-background-fetch';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as BackgroundFetch from 'expo-background-fetch';
+import * as Device from 'expo-device';
+import * as Notifications from 'expo-notifications';
 import { router } from 'expo-router';
-import { supabase } from './supabase';
+import * as TaskManager from 'expo-task-manager';
 import { androidNotificationService, NotificationChannelId } from './AndroidNotificationService';
 import { iOSNotificationService } from './iOSNotificationService';
+import { supabase } from './supabase';
 
 // Storage keys
 const STORAGE_KEYS = {
@@ -171,7 +171,7 @@ export class UnifiedNotificationService {
   private preferences: NotificationPreferences | null = null;
   private analytics: NotificationAnalytics | null = null;
   private eventListeners: Map<NotificationEvent, Set<NotificationEventListener>> = new Map();
-  private deepLinkQueue: Array<{ route: DeepLinkRoute; params?: Record<string, any> }> = [];
+  private deepLinkQueue: { route: DeepLinkRoute; params?: Record<string, any> }[] = [];
   private isInitialized = false;
   private appStateListener: any = null;
 

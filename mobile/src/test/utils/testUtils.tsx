@@ -1,6 +1,6 @@
 import React from 'react';
-import { render, RenderOptions } from '@testing-library/react-native';
 import { NavigationContainer } from '@react-navigation/native';
+import { render, RenderOptions } from '@testing-library/react-native';
 import { Provider as PaperProvider } from 'react-native-paper';
 import { QueryClient, QueryClientProvider } from 'react-query';
 import { lightTheme } from '@/theme/materialTheme';

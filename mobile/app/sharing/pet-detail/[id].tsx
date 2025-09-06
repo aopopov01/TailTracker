@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -11,12 +11,13 @@ import {
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
-import { SharingService } from '../../../src/services/sharingService';
 import { StoredPetProfile } from '../../../services/database';
-import { useAuth } from '../../../src/contexts/AuthContext';
 import { databaseService } from '../../../services/database';
-import { useTailTrackerModal } from '../../../src/hooks/useTailTrackerModal';
 import { TailTrackerModal } from '../../../src/components/UI/TailTrackerModal';
+import { useAuth } from '../../../src/contexts/AuthContext';
+import { useTailTrackerModal } from '../../../src/hooks/useTailTrackerModal';
+import { SharingService } from '../../../src/services/sharingService';
+import { log } from '../../../src/utils/Logger';
 
 const SharedPetDetailScreen: React.FC = () => {
   const { user } = useAuth();
@@ -25,23 +26,17 @@ const SharedPetDetailScreen: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const { modalConfig, showError, hideModal } = useTailTrackerModal();
 
-  useEffect(() => {
-    if (id && user) {
-      loadPetDetails();
-    }
-  }, [id, user]);
-
-  const loadPetDetails = async () => {
+  const loadPetDetails = useCallback(async () => {
     if (!id || !user) return;
 
     try {
       // Get shared pets for this user and find the specific one
-      const sharedPets = await SharingService.getSharedPets(user.id);
+      const sharedPets = await SharingService.getSharedPets(parseInt(user.id, 10));
       const targetPet = sharedPets.find(p => p.petId.toString() === id);
       
       if (targetPet) {
         // Get full pet details using the database service
-        const fullPetDetails = await databaseService.getSharedPetDetails(targetPet.petId, user.id);
+        const fullPetDetails = await databaseService.getSharedPetDetails(targetPet.petId, parseInt(user.id, 10));
         if (fullPetDetails) {
           setPet(fullPetDetails);
         } else {
@@ -63,7 +58,7 @@ const SharedPetDetailScreen: React.FC = () => {
         );
       }
     } catch (error) {
-      console.error('Error loading pet details:', error);
+      log.error('Error loading pet details:', error);
       showError(
         'Error',
         'Failed to load pet details.',
@@ -73,7 +68,13 @@ const SharedPetDetailScreen: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [id, user, showError]);
+
+  useEffect(() => {
+    if (id && user) {
+      loadPetDetails();
+    }
+  }, [id, user, loadPetDetails]);
 
   const getSpeciesIcon = (species: string | undefined) => {
     switch (species?.toLowerCase()) {
@@ -231,7 +232,7 @@ const SharedPetDetailScreen: React.FC = () => {
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <MaterialIcons name="arrow-back" size={24} color="#007AFF" />
         </TouchableOpacity>
-        <Text style={styles.title}>{pet.name || 'Pet Details'}</Text>
+        <Text style={styles.title}>{pet.name ?? 'Pet Details'}</Text>
         <View style={styles.placeholder} />
       </View>
 
@@ -261,7 +262,7 @@ const SharedPetDetailScreen: React.FC = () => {
             </View>
           )}
           <View style={styles.petHeaderInfo}>
-            <Text style={styles.petName}>{pet.name || 'Unnamed Pet'}</Text>
+            <Text style={styles.petName}>{pet.name ?? 'Unnamed Pet'}</Text>
             <Text style={styles.petSpecies}>
               {pet.species ? pet.species.charAt(0).toUpperCase() + pet.species.slice(1) : 'Unknown species'}
             </Text>
@@ -278,15 +279,14 @@ const SharedPetDetailScreen: React.FC = () => {
             {renderInfoItem('Gender', pet.gender)}
             {renderInfoItem('Date of Birth', formatDate(pet.dateOfBirth))}
             {renderInfoItem('Color/Markings', pet.colorMarkings)}
-            {pet.weight && renderInfoItem('Weight', `${pet.weight} ${pet.weightUnit || 'lbs'}`)}
-            {pet.height && renderInfoItem('Height', `${pet.height} ${pet.heightUnit || 'inches'}`)}
+            {pet.weight && renderInfoItem('Weight', `${pet.weight} ${pet.weightUnit ?? 'lbs'}`)}
+            {pet.height && renderInfoItem('Height', `${pet.height} ${pet.heightUnit ?? 'inches'}`)}
           </>
         ))}
 
         {/* Identification */}
-        {(pet.microchipId || pet.registrationNumber) && renderInfoSection('Identification', 'badge', (
+        {pet.registrationNumber && renderInfoSection('Identification', 'badge', (
           <>
-            {renderInfoItem('Microchip ID', pet.microchipId)}
             {renderInfoItem('Registration Number', pet.registrationNumber)}
           </>
         ))}
@@ -315,9 +315,8 @@ const SharedPetDetailScreen: React.FC = () => {
         ))}
 
         {/* Contact Information */}
-        {(pet.veterinarian || pet.emergencyContact) && renderInfoSection('Contacts', 'contacts', (
+        {pet.emergencyContact && renderInfoSection('Contacts', 'contacts', (
           <>
-            {renderContactInfo(pet.veterinarian, 'Veterinarian')}
             {renderContactInfo(pet.emergencyContact, 'Emergency Contact')}
           </>
         ))}

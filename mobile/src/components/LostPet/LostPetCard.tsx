@@ -2,17 +2,17 @@ import React from 'react';
 import {
   View,
   StyleSheet,
-  TouchableOpacity,
   Linking,
   Alert,
+  AccessibilityInfo,
 } from 'react-native';
+import FastImage from 'react-native-fast-image';
 import {
   Text,
   Card,
   Button,
   Chip,
 } from 'react-native-paper';
-import FastImage from 'react-native-fast-image';
 
 import { 
   LostPetAlert, 
@@ -91,27 +91,58 @@ export const LostPetCard: React.FC<LostPetCardProps> = ({
     }
   };
 
+  const urgencyLevel = LostPetHelpers.getUrgencyLevel(alert.last_seen_date);
+  const urgencyText = urgencyLevel === 'high' ? 'High urgency' : urgencyLevel === 'medium' ? 'Medium urgency' : 'Low urgency';
+  
   return (
-    <Card style={[styles.card, getUrgencyStyle(alert.last_seen_date)]}>
+    <Card 
+      style={[styles.card, getUrgencyStyle(alert.last_seen_date)]}
+      accessible={true}
+      accessibilityRole="button"
+      accessibilityLabel={`Lost pet alert for ${alert.pet_name}, a ${alert.species}${alert.breed ? ` ${alert.breed}` : ''}. ${urgencyText}. Distance: ${premiumLostPetService.formatDistance(alert.distance_km)}. ${LostPetHelpers.formatTimeAgo(alert.last_seen_date)}.`}
+      accessibilityHint="Double tap to interact with this lost pet alert"
+    >
       <Card.Content>
         <View style={styles.header}>
           <View style={[styles.info, { flex: compact ? 1 : undefined }]}>
-            <Text style={styles.petName}>{alert.pet_name}</Text>
-            <Text style={styles.petDetails}>
+            <Text 
+              style={styles.petName}
+              accessibilityRole="header"
+              accessible={true}
+              accessibilityLabel={`Pet name: ${alert.pet_name}`}
+            >
+              {alert.pet_name}
+            </Text>
+            <Text 
+              style={styles.petDetails}
+              accessible={true}
+              accessibilityLabel={`Pet details: ${alert.species}${alert.breed && !compact ? `, breed: ${alert.breed}` : ''}`}
+            >
               {LostPetHelpers.getSpeciesIcon(alert.species)} {alert.species}
               {alert.breed && !compact && ` • ${alert.breed}`}
             </Text>
             
-            <View style={styles.metaInfo}>
+            <View 
+              style={styles.metaInfo}
+              accessible={true}
+              accessibilityLabel={`Location and timing information`}
+            >
               <Chip
                 icon="map-marker"
                 style={styles.distanceChip}
                 textStyle={styles.chipText}
                 compact
+                accessible={true}
+                accessibilityLabel={`Distance from your location: ${premiumLostPetService.formatDistance(alert.distance_km)}`}
+                accessibilityRole="text"
               >
                 {premiumLostPetService.formatDistance(alert.distance_km)}
               </Chip>
-              <Text style={styles.timeAgo}>
+              <Text 
+                style={styles.timeAgo}
+                accessible={true}
+                accessibilityLabel={`Time since last seen: ${LostPetHelpers.formatTimeAgo(alert.last_seen_date)}`}
+              >
                 {LostPetHelpers.formatTimeAgo(alert.last_seen_date)}
               </Text>
             </View>
@@ -122,29 +153,52 @@ export const LostPetCard: React.FC<LostPetCardProps> = ({
               source={{ uri: alert.photo_url }}
               style={[styles.petPhoto, compact && styles.petPhotoCompact]}
               resizeMode={FastImage.resizeMode.cover}
+              accessible={true}
+              accessibilityRole="image"
+              accessibilityLabel={`Photo of ${alert.pet_name}, the missing ${alert.species}${alert.breed ? ` ${alert.breed}` : ''}`}
+              accessibilityHint="This is a recent photo of the missing pet to help with identification"
             />
           )}
         </View>
 
         {alert.last_seen_address && !compact && (
-          <Text style={styles.location} numberOfLines={2}>
+          <Text 
+            style={styles.location} 
+            numberOfLines={2}
+            accessible={true}
+            accessibilityLabel={`Last seen location: ${alert.last_seen_address}`}
+            accessibilityRole="text"
+          >
             📍 Last seen: {alert.last_seen_address}
           </Text>
         )}
 
         {alert.description && !compact && (
-          <Text style={styles.description} numberOfLines={3}>
+          <Text 
+            style={styles.description} 
+            numberOfLines={3}
+            accessible={true}
+            accessibilityLabel={`Description from owner: ${alert.description}`}
+            accessibilityRole="text"
+          >
             {alert.description}
           </Text>
         )}
 
         {alert.reward_amount && (
-          <View style={styles.rewardContainer}>
+          <View 
+            style={styles.rewardContainer}
+            accessible={true}
+            accessibilityLabel="Reward information"
+          >
             <Chip
               icon="cash"
               style={styles.rewardChip}
               textStyle={{ color: 'white', fontWeight: 'bold' }}
               compact={compact}
+              accessible={true}
+              accessibilityRole="text"
+              accessibilityLabel={`Reward offered: ${premiumLostPetService.formatReward(alert.reward_amount, alert.reward_currency)}`}
             >
               {premiumLostPetService.formatReward(alert.reward_amount, alert.reward_currency)}
             </Chip>
@@ -152,15 +206,26 @@ export const LostPetCard: React.FC<LostPetCardProps> = ({
         )}
 
         {showActions && (
-          <View style={[styles.actionButtons, compact && styles.actionButtonsCompact]}>
+          <View 
+            style={[styles.actionButtons, compact && styles.actionButtonsCompact]}
+            accessible={true}
+            accessibilityLabel="Action buttons for this lost pet alert"
+          >
             {alert.contact_phone && (
               <Button
                 mode="outlined"
                 icon="phone"
-                onPress={handleCall}
-                style={styles.actionButton}
+                onPress={() => {
+                  handleCall();
+                  AccessibilityInfo.announceForAccessibility(`Calling ${alert.pet_name}'s owner at ${alert.contact_phone}`);
+                }}
+                style={[styles.actionButton, { minHeight: 44 }]}
                 compact={compact}
                 labelStyle={compact ? styles.compactButtonText : undefined}
+                accessible={true}
+                accessibilityLabel={`Call ${alert.pet_name}'s owner at ${alert.contact_phone}`}
+                accessibilityHint="Double tap to call the pet owner's phone number"
+                accessibilityRole="button"
               >
                 {compact ? 'Call' : 'Call Owner'}
               </Button>
@@ -168,11 +233,18 @@ export const LostPetCard: React.FC<LostPetCardProps> = ({
             <Button
               mode="contained"
               icon="check-circle"
-              onPress={handleFound}
-              style={styles.foundButton}
+              onPress={() => {
+                handleFound();
+                AccessibilityInfo.announceForAccessibility(`Marking ${alert.pet_name} as found. This will notify the owner.`);
+              }}
+              style={[styles.foundButton, { minHeight: 44 }]}
               buttonColor="#4CAF50"
               compact={compact}
               labelStyle={compact ? styles.compactButtonText : undefined}
+              accessible={true}
+              accessibilityLabel={`Mark ${alert.pet_name} as found`}
+              accessibilityHint="Double tap to report that you have found this pet. This will notify the owner and remove the alert."
+              accessibilityRole="button"
             >
               Found!
             </Button>

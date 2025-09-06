@@ -89,7 +89,7 @@ describe('iOS Biometric Authentication E2E', () => {
         try {
           // Set device to use Touch ID instead of Face ID
           await device.setTouchIdEnrollment(true);
-        } catch (error) {
+        } catch (_error) {
           console.warn('Touch ID not available on this device');
         }
       }
@@ -106,7 +106,7 @@ describe('iOS Biometric Authentication E2E', () => {
       try {
         await device.matchFinger();
         await expect(element(by.id('home-screen'))).toBeVisible();
-      } catch (error) {
+      } catch (_error) {
         // Skip test if Touch ID not available
         console.warn('Touch ID not available, skipping test');
       }
@@ -279,7 +279,7 @@ describe('iOS Biometric Authentication E2E', () => {
       try {
         await device.setBiometricEnrollment(false);
         await device.setBiometricEnrollment(true);
-      } catch (error) {
+      } catch (_error) {
         // Expected behavior
       }
       

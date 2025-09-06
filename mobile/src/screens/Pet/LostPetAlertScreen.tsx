@@ -7,14 +7,13 @@ import {
   Alert,
   ScrollView,
   TextInput,
-  Switch,
   Linking,
   Share,
 } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import * as Location from 'expo-location';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { databaseService } from '../../services/databaseService';
 
 interface LostPetAlert {
@@ -61,9 +60,9 @@ export default function LostPetAlertScreen() {
   useEffect(() => {
     loadData();
     getCurrentLocation();
-  }, [petId, alertId]);
+  }, [petId, alertId, getCurrentLocation, loadData]);
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       if (petId) {
         const petData = await databaseService.getPet(petId);
@@ -88,9 +87,9 @@ export default function LostPetAlertScreen() {
       console.error('Error loading data:', error);
       Alert.alert('Error', 'Failed to load pet information');
     }
-  };
+  }, [petId, alertId]);
 
-  const getCurrentLocation = async () => {
+  const getCurrentLocation = useCallback(async () => {
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
@@ -124,7 +123,7 @@ export default function LostPetAlertScreen() {
     } catch (error) {
       console.error('Error getting location:', error);
     }
-  };
+  }, [alertData.lost_location]);
 
   const updateField = (field: keyof LostPetAlert, value: any) => {
     setAlertData(prev => ({ ...prev, [field]: value }));

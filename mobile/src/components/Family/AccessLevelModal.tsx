@@ -1,17 +1,16 @@
 // Access Level Confirmation Modal for Family Owners
 import React, { useState } from 'react';
-import { Alert } from 'react-native';
+import { Alert, View, StyleSheet } from 'react-native';
 import { 
-  Modal, 
-  VStack, 
-  HStack, 
-  Text, 
-  Button, 
-  Radio, 
-  Box,
+  Modal as RNModal,
+  Portal,
+  Text,
+  Button,
+  RadioButton,
   Avatar,
-  useColorModeValue
-} from 'native-base';
+  Card,
+  useTheme
+} from 'react-native-paper';
 import { familyAccessService, type AccessLevel } from '@/services/FamilyAccessService';
 
 interface PendingMember {
@@ -40,9 +39,7 @@ export const AccessLevelModal: React.FC<AccessLevelModalProps> = ({
 }) => {
   const [selectedAccessLevel, setSelectedAccessLevel] = useState<AccessLevel>('read');
   const [loading, setLoading] = useState(false);
-
-  const bgColor = useColorModeValue('white', 'gray.800');
-  const borderColor = useColorModeValue('gray.200', 'gray.600');
+  const theme = useTheme();
 
   const handleConfirmAccess = async () => {
     if (!pendingMember) return;
@@ -90,7 +87,7 @@ export const AccessLevelModal: React.FC<AccessLevelModalProps> = ({
           text: 'Deny', 
           style: 'destructive',
           onPress: () => {
-            // TODO: Implement deny functionality
+            // Deny family member access and close modal
             onClose();
           }
         }
@@ -99,110 +96,175 @@ export const AccessLevelModal: React.FC<AccessLevelModalProps> = ({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="lg">
-      <Modal.Content>
-        <Modal.CloseButton />
-        <Modal.Header>Confirm Family Access</Modal.Header>
-        
-        <Modal.Body>
-          <VStack space={4}>
+    <Portal>
+      <RNModal
+        visible={isOpen}
+        onDismiss={onClose}
+        contentContainerStyle={[styles.modalContainer, { backgroundColor: theme.colors.surface }]}
+      >
+        <View style={styles.modalContent}>
+          <Text variant="headlineSmall" style={styles.modalTitle}>
+            Confirm Family Access
+          </Text>
+          
+          <View style={styles.modalBody}>
             {/* Member Info */}
             {pendingMember && (
-              <Box p={4} borderWidth={1} borderColor={borderColor} rounded="md">
-                <HStack space={3} alignItems="center">
-                  <Avatar
-                    size="md"
-                    source={{ uri: pendingMember.user?.avatar_url }}
-                    bg="blue.500"
-                  >
-                    {pendingMember.user?.full_name?.charAt(0) || '?'}
-                  </Avatar>
-                  <VStack flex={1}>
-                    <Text fontSize="md" fontWeight="semibold">
-                      {pendingMember.user?.full_name || 'Unknown User'}
-                    </Text>
-                    <Text fontSize="sm" color="gray.500">
-                      {pendingMember.user?.email}
-                    </Text>
-                  </VStack>
-                </HStack>
-              </Box>
+              <Card style={[styles.memberCard, { borderColor: theme.colors.outline }]}>
+                <Card.Content>
+                  <View style={styles.memberInfo}>
+                    <Avatar.Text
+                      size={48}
+                      label={pendingMember.user?.full_name?.charAt(0) || '?'}
+                      style={{ backgroundColor: theme.colors.primary }}
+                    />
+                    <View style={styles.memberDetails}>
+                      <Text variant="titleMedium">
+                        {pendingMember.user?.full_name || 'Unknown User'}
+                      </Text>
+                      <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant }}>
+                        {pendingMember.user?.email}
+                      </Text>
+                    </View>
+                  </View>
+                </Card.Content>
+              </Card>
             )}
             
             {/* Access Level Selection */}
-            <VStack space={3}>
-              <Text fontSize="md" fontWeight="semibold">
+            <View style={styles.accessLevelSection}>
+              <Text variant="titleMedium" style={styles.sectionTitle}>
                 Choose Access Level:
               </Text>
               
-              <Radio.Group
-                name="accessLevel"
+              <RadioButton.Group
+                onValueChange={(value) => setSelectedAccessLevel(value as AccessLevel)}
                 value={selectedAccessLevel}
-                onChange={setSelectedAccessLevel as any}
               >
-                <VStack space={3}>
-                  <Radio value="read" my={1}>
-                    <VStack ml={3} flex={1}>
-                      <Text fontWeight="medium">Read Only</Text>
-                      <Text fontSize="sm" color="gray.500">
-                        Can view pet profiles, health records, and photos. Cannot make changes.
-                      </Text>
-                    </VStack>
-                  </Radio>
-                  
-                  <Radio value="read_write" my={1}>
-                    <VStack ml={3} flex={1}>
-                      <Text fontWeight="medium">Read & Write</Text>
-                      <Text fontSize="sm" color="gray.500">
-                        Can view and edit pet profiles, add health records, and upload photos.
-                      </Text>
-                    </VStack>
-                  </Radio>
-                </VStack>
-              </Radio.Group>
-            </VStack>
+                <View style={styles.radioOption}>
+                  <RadioButton value="read" />
+                  <View style={styles.radioContent}>
+                    <Text variant="titleSmall">Read Only</Text>
+                    <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant }}>
+                      Can view pet profiles, health records, and photos. Cannot make changes.
+                    </Text>
+                  </View>
+                </View>
+                
+                <View style={styles.radioOption}>
+                  <RadioButton value="read_write" />
+                  <View style={styles.radioContent}>
+                    <Text variant="titleSmall">Read & Write</Text>
+                    <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant }}>
+                      Can view and edit pet profiles, add health records, and upload photos.
+                    </Text>
+                  </View>
+                </View>
+              </RadioButton.Group>
+            </View>
             
             {/* Security Note */}
-            <Box p={3} bg="blue.50" rounded="md">
-              <Text fontSize="xs" color="blue.800">
-                💡 You can change their access level later from Family Settings.
-              </Text>
-            </Box>
+            <Card style={[styles.noteCard, { backgroundColor: theme.colors.primaryContainer }]}>
+              <Card.Content>
+                <Text variant="bodySmall" style={{ color: theme.colors.onPrimaryContainer }}>
+                  💡 You can change their access level later from Family Settings.
+                </Text>
+              </Card.Content>
+            </Card>
             
             {/* Warning for Write Access */}
             {selectedAccessLevel === 'read_write' && (
-              <Box p={3} bg="yellow.50" rounded="md">
-                <Text fontSize="xs" color="yellow.800">
-                  ⚠️ Read & Write access allows this person to modify pet information, add health records, and upload photos.
-                </Text>
-              </Box>
+              <Card style={[styles.noteCard, { backgroundColor: theme.colors.errorContainer }]}>
+                <Card.Content>
+                  <Text variant="bodySmall" style={{ color: theme.colors.onErrorContainer }}>
+                    ⚠️ Read & Write access allows this person to modify pet information, add health records, and upload photos.
+                  </Text>
+                </Card.Content>
+              </Card>
             )}
-          </VStack>
-        </Modal.Body>
-        
-        <Modal.Footer>
-          <HStack space={3} flex={1}>
+          </View>
+          
+          <View style={styles.modalFooter}>
             <Button
-              flex={1}
-              variant="ghost"
-              colorScheme="red"
+              mode="text"
               onPress={handleDeny}
               disabled={loading}
+              buttonColor={theme.colors.errorContainer}
+              textColor={theme.colors.onErrorContainer}
+              style={styles.footerButton}
             >
               Deny Access
             </Button>
             
             <Button
-              flex={1}
+              mode="contained"
               onPress={handleConfirmAccess}
-              isLoading={loading}
-              loadingText="Confirming..."
+              loading={loading}
+              disabled={loading}
+              style={styles.footerButton}
             >
               Grant Access
             </Button>
-          </HStack>
-        </Modal.Footer>
-      </Modal.Content>
-    </Modal>
+          </View>
+        </View>
+      </RNModal>
+    </Portal>
   );
 };
+
+const styles = StyleSheet.create({
+  modalContainer: {
+    margin: 20,
+    borderRadius: 8,
+    maxHeight: '80%',
+  },
+  modalContent: {
+    padding: 20,
+  },
+  modalTitle: {
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  modalBody: {
+    gap: 16,
+  },
+  memberCard: {
+    borderWidth: 1,
+  },
+  memberInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  memberDetails: {
+    flex: 1,
+  },
+  accessLevelSection: {
+    gap: 12,
+  },
+  sectionTitle: {
+    marginBottom: 8,
+  },
+  radioOption: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 8,
+    paddingVertical: 8,
+  },
+  radioContent: {
+    flex: 1,
+    gap: 4,
+  },
+  noteCard: {
+    padding: 8,
+  },
+  modalFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 12,
+    marginTop: 16,
+  },
+  footerButton: {
+    flex: 1,
+  },
+});

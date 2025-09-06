@@ -28,7 +28,7 @@ interface iOSTabBarProps {
   blurred?: boolean;
 }
 
-export const iOSTabBar: React.FC<iOSTabBarProps> = ({
+export const IOSTabBar: React.FC<iOSTabBarProps> = ({
   tabs,
   activeTab,
   onTabPress,

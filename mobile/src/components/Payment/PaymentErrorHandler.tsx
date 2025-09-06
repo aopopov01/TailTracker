@@ -3,8 +3,6 @@ import {
   View,
   StyleSheet,
 } from 'react-native';
-import { useTailTrackerModal } from '../../hooks/useTailTrackerModal';
-import { TailTrackerModal } from '../UI/TailTrackerModal';
 import {
   Card,
   Title,
@@ -12,7 +10,9 @@ import {
   Button,
   List,
 } from 'react-native-paper';
+import { useTailTrackerModal } from '../../hooks/useTailTrackerModal';
 import { PaymentError } from '../../services/StripePaymentService';
+import { TailTrackerModal } from '../UI/TailTrackerModal';
 
 interface PaymentErrorHandlerProps {
   error: PaymentError | string | null;
@@ -133,7 +133,8 @@ export const PaymentErrorHandler: React.FC<PaymentErrorHandlerProps> = ({
   const suggestions = showSuggestions ? getSuggestions(paymentError.code, paymentError.type) : [];
 
   return (
-    <Card style={[styles.container, { borderLeftColor: getErrorColor(paymentError.type) }]}>
+    <>
+      <Card style={[styles.container, { borderLeftColor: getErrorColor(paymentError.type) }]}>
       <Card.Content>
         <View style={styles.header}>
           <View style={[styles.iconContainer, { backgroundColor: getErrorColor(paymentError.type) + '20' }]}>
@@ -219,6 +220,7 @@ export const PaymentErrorHandler: React.FC<PaymentErrorHandlerProps> = ({
       actions={modalConfig.actions}
       icon={modalConfig.icon}
     />
+    </>
   );
 };
 

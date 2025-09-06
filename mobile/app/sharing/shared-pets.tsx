@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -12,9 +12,10 @@ import {
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { SharingService } from '../../src/services/sharingService';
 import { SharedPetAccess } from '../../services/database';
 import { useAuth } from '../../src/contexts/AuthContext';
+import { SharingService } from '../../src/services/sharingService';
+import { log } from '../../src/utils/Logger';
 
 interface SharedPetWithOwner extends SharedPetAccess {
   // All needed properties are already in SharedPetAccess
@@ -26,23 +27,23 @@ const SharedPetsScreen: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  useEffect(() => {
-    loadSharedPets();
-  }, []);
-
-  const loadSharedPets = async () => {
+  const loadSharedPets = useCallback(async () => {
     if (!user) return;
 
     try {
-      const pets = await SharingService.getSharedPets(user.id);
+      const pets = await SharingService.getSharedPets(parseInt(user.id, 10));
       setSharedPets(pets);
     } catch (error) {
-      console.error('Error loading shared pets:', error);
+      log.error('Error loading shared pets:', error);
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
     }
-  };
+  }, [user]);
+
+  useEffect(() => {
+    loadSharedPets();
+  }, [loadSharedPets]);
 
   const handleRefresh = () => {
     setIsRefreshing(true);
@@ -57,7 +58,7 @@ const SharedPetsScreen: React.FC = () => {
         shared: 'true',
         ownerName: `${pet.ownerFirstName} ${pet.ownerLastName}`
       }
-    });
+    } as any);
   };
 
   const getSpeciesIcon = (species: string | undefined) => {
@@ -116,10 +117,10 @@ const SharedPetsScreen: React.FC = () => {
 
         {/* Pet Info */}
         <View style={styles.petInfo}>
-          <Text style={styles.petName}>{item.petName || 'Unnamed Pet'}</Text>
+          <Text style={styles.petName}>{item.petName ?? 'Unnamed Pet'}</Text>
           <View style={styles.petDetailsRow}>
             <Text style={styles.petSpecies}>
-              {item.species || 'Unknown species'}
+              {item.species ?? 'Unknown species'}
             </Text>
             {item.breed && (
               <>
@@ -168,7 +169,7 @@ const SharedPetsScreen: React.FC = () => {
         </TouchableOpacity>
         <Text style={styles.title}>Shared Pets</Text>
         <TouchableOpacity 
-          onPress={() => router.push('/sharing')} 
+          onPress={() => router.push('/sharing' as any)} 
           style={styles.addButton}
         >
           <MaterialIcons name="qr-code-scanner" size={24} color="#007AFF" />
@@ -185,7 +186,7 @@ const SharedPetsScreen: React.FC = () => {
             </Text>
             <TouchableOpacity 
               style={styles.scanButton}
-              onPress={() => router.push('/sharing')}
+              onPress={() => router.push('/sharing' as any)}
             >
               <MaterialIcons name="qr-code-scanner" size={20} color="white" />
               <Text style={styles.scanButtonText}>Scan QR Code</Text>

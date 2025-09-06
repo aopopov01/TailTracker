@@ -23,6 +23,8 @@ import {
   Pressable,
   StatusBar,
 } from 'react-native';
+import { Haptics } from 'expo-haptics';
+import { LinearGradient } from 'expo-linear-gradient';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -35,8 +37,6 @@ import Animated, {
   interpolate,
   Extrapolate,
 } from 'react-native-reanimated';
-import { LinearGradient } from 'expo-linear-gradient';
-import { Haptics } from 'expo-haptics';
 
 // Import our animation systems
 import {
@@ -45,19 +45,19 @@ import {
   useTailWagAnimation,
 } from '../emotionalAnimationSystem';
 import {
-  usePremiumButtonAnimation,
-  useSuccessCelebration,
-  usePersonalizedLoadingAnimation,
-} from '../premiumMicroInteractions';
-import {
   useEmotionalIntelligence,
   useContextualSuccessAnimation,
   useMoodResponsivePetAnimation,
 } from '../emotionalIntelligenceHooks';
-import { useAnimationProfiler } from '../performanceMonitoring';
 import { tailTrackerMotions } from '../motionSystem';
+import { useAnimationProfiler } from '../performanceMonitoring';
+import {
+  usePremiumButtonAnimation,
+  useSuccessCelebration,
+  usePersonalizedLoadingAnimation,
+} from '../premiumMicroInteractions';
 
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 // ====================================
 // TYPES
@@ -266,7 +266,7 @@ export const AnimatedOnboarding: React.FC = () => {
         stopProfiling();
       }, duration * 0.5);
     }, duration * 0.3);
-  }, [currentStep, getOptimalAnimationConfig]);
+  }, [getOptimalAnimationConfig, descriptionOpacity, illustrationScale, slideProgress, startProfiling, stopProfiling, subtitleOpacity, titleOpacity]);
 
   const animateProgressBar = useCallback(() => {
     const progress = (currentStep + 1) / ONBOARDING_STEPS.length;
@@ -274,7 +274,7 @@ export const AnimatedOnboarding: React.FC = () => {
       damping: 20,
       stiffness: 150,
     });
-  }, [currentStep]);
+  }, [currentStep, progressBarWidth]);
 
   const animateBackgroundGradient = useCallback(() => {
     const step = ONBOARDING_STEPS[currentStep];
@@ -284,7 +284,7 @@ export const AnimatedOnboarding: React.FC = () => {
       duration: tailTrackerMotions.durations.graceful,
       easing: tailTrackerMotions.easing.caring,
     });
-  }, [currentStep]);
+  }, [currentStep, backgroundGradientProgress]);
 
   // ====================================
   // INTERACTION HANDLERS
@@ -356,7 +356,7 @@ export const AnimatedOnboarding: React.FC = () => {
       // Complete onboarding
       handleComplete();
     }
-  }, [currentStep, isTransitioning, animateStepTransition]);
+  }, [currentStep, isTransitioning, animateStepTransition, animateBackgroundGradient, animateProgressBar, bounce, celebrate, contextualCelebrate, handleComplete, heartEyesAnimation, inferEmotionalState, inferPetEmotion, startWagging]);
 
   const handlePrevious = useCallback(() => {
     if (isTransitioning || currentStep === 0) return;
@@ -367,7 +367,7 @@ export const AnimatedOnboarding: React.FC = () => {
       animateProgressBar();
       animateBackgroundGradient();
     }, 300);
-  }, [currentStep, isTransitioning, animateStepTransition]);
+  }, [currentStep, isTransitioning, animateStepTransition, animateBackgroundGradient, animateProgressBar]);
 
   const handleComplete = useCallback(() => {
     // Final celebration
@@ -410,7 +410,7 @@ export const AnimatedOnboarding: React.FC = () => {
       animateProgressBar();
       animateBackgroundGradient();
     }, 100);
-  }, []);
+  }, [animateBackgroundGradient, animateProgressBar, descriptionOpacity, illustrationScale, subtitleOpacity, titleOpacity]);
 
   // ====================================
   // ANIMATED STYLES

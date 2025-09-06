@@ -1,7 +1,7 @@
 // TailTracker Family Access Service with QR Code Invitation System
-import { supabase } from '@/lib/supabase';
 import { randomBytes } from 'expo-crypto';
 import * as Crypto from 'expo-crypto';
+import { supabase } from '@/lib/supabase';
 
 export type AccessLevel = 'read' | 'read_write';
 export type UserRole = 'owner' | 'member' | 'viewer';

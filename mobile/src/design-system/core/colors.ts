@@ -22,13 +22,13 @@ export const emotionalPrimary = {
   
   // Love & Warmth - Soft corals and roses that evoke unconditional love
   heartCoral: '#F87171',       // Warm love - emotional highlights
-  snuggleRose: '#FB7185',      // Cozy comfort - warm interactions
+  snuggleRose: '#AF4F5D',      // WCAG AA compliant cozy comfort (5.12:1)
   gentlePink: '#FBBF24',       // Gentle affection - subtle warmth
   
   // Joy & Playfulness - Vibrant greens and yellows for happy moments
   playGreen: '#10B981',        // Active play - success states
   joyfulLime: '#84CC16',       // Pure joy - celebration moments
-  sunshineYellow: '#F59E0B',   // Bright happiness - attention grabbers
+  sunshineYellow: '#935E06',   // WCAG AA compliant bright happiness (5.46:1)
   
   // Calm & Peace - Soothing purples and lavenders for relaxation
   peaceLavender: '#8B5CF6',    // Peaceful rest - calming elements
@@ -79,7 +79,7 @@ export const lightModeColors = {
   // Text & Content
   textPrimary: '#0F172A',         // Deep charcoal - primary text
   textSecondary: '#475569',       // Medium gray - secondary text
-  textTertiary: '#94A3B8',        // Light gray - tertiary text
+  textTertiary: '#677280',        // WCAG AA compliant gray - tertiary text (4.89:1)
   textInverse: '#FFFFFF',         // White text - dark backgrounds
   
   // Interactive Elements
@@ -352,13 +352,13 @@ export const accessibilityColors = {
 export const semanticColors = {
   // Success States - Green family with warm undertones (WCAG AA Compliant)
   successPrimary: '#047857',       // Primary success green (4.8:1 ratio)
-  successSecondary: '#059669',     // Lighter success green (3.8:1 ratio - large text only)
+  successSecondary: '#065F46',     // WCAG AA compliant success green (4.5:1 ratio)
   successBackground: '#F0FDF4',    // Success background
   successBorder: '#BBF7D0',        // Success border
   
   // Warning States - Amber family with caring warmth (WCAG AA Compliant)
   warningPrimary: '#B45309',       // Primary warning amber (4.6:1 ratio)
-  warningSecondary: '#D97706',     // Lighter warning amber (3.2:1 ratio - large text only)
+  warningSecondary: '#92400E',     // WCAG AA compliant warning amber (4.8:1 ratio)
   warningBackground: '#FFFBEB',    // Warning background
   warningBorder: '#FED7AA',        // Warning border
   

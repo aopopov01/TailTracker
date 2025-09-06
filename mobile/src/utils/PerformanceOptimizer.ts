@@ -1,3 +1,4 @@
+import React, { useEffect, useState } from 'react';
 import { Platform, Dimensions, DeviceEventEmitter } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Device from 'expo-device';
@@ -402,8 +403,6 @@ class PerformanceOptimizerService {
 export const performanceOptimizer = new PerformanceOptimizerService();
 
 // React hook for using performance optimizer
-import { useEffect, useState } from 'react';
-
 export const usePerformanceOptimizer = () => {
   const [isInitialized, setIsInitialized] = useState(false);
   const [settings, setSettings] = useState<PerformanceSettings | null>(null);
@@ -435,8 +434,6 @@ export const usePerformanceOptimizer = () => {
 };
 
 // Performance monitoring component
-import React from 'react';
-
 export const PerformanceMonitor: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   useEffect(() => {
     performanceOptimizer.startPerfMonitoring();
@@ -456,7 +453,7 @@ export const PerformanceMonitor: React.FC<{ children: React.ReactNode }> = ({ ch
     return () => clearInterval(interval);
   }, []);
 
-  return <>{children}</>;
+  return React.createElement(React.Fragment, null, children);
 };
 
 export default performanceOptimizer;

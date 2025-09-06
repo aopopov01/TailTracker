@@ -209,6 +209,27 @@ export const PetProfileProvider: React.FC<{ children: ReactNode }> = ({ children
   };
 
   // Database operations
+  const loadPets = useCallback(async (): Promise<void> => {
+    if (!user) {
+      dispatch({ type: 'SET_PETS', payload: [] });
+      return;
+    }
+
+    try {
+      dispatch({ type: 'SET_LOADING', payload: true });
+      dispatch({ type: 'CLEAR_ERROR' });
+
+      const pets = await databaseService.getAllPets(parseInt(user.id, 10));
+      dispatch({ type: 'SET_PETS', payload: pets });
+    } catch (error) {
+      console.error('Load pets error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to load pets';
+      dispatch({ type: 'SET_ERROR', payload: errorMessage });
+    } finally {
+      dispatch({ type: 'SET_LOADING', payload: false });
+    }
+  }, [user]);
+
   const savePetProfile = useCallback(async (profile: PetProfile): Promise<number> => {
     if (!user) {
       throw new Error('User must be authenticated to save pet profile');
@@ -218,7 +239,7 @@ export const PetProfileProvider: React.FC<{ children: ReactNode }> = ({ children
       dispatch({ type: 'SET_SAVING', payload: true });
       dispatch({ type: 'CLEAR_ERROR' });
 
-      const petId = await databaseService.savePetProfile(profile, user.id);
+      const petId = await databaseService.savePetProfile(profile, parseInt(user.id, 10));
       
       // Reload pets to get the updated list
       await loadPets();
@@ -232,7 +253,7 @@ export const PetProfileProvider: React.FC<{ children: ReactNode }> = ({ children
     } finally {
       dispatch({ type: 'SET_SAVING', payload: false });
     }
-  }, [user]);
+  }, [user, loadPets]);
 
   const updatePetProfile = useCallback(async (id: number, profile: Partial<PetProfile>): Promise<void> => {
     if (!user) {
@@ -243,7 +264,7 @@ export const PetProfileProvider: React.FC<{ children: ReactNode }> = ({ children
       dispatch({ type: 'SET_SAVING', payload: true });
       dispatch({ type: 'CLEAR_ERROR' });
 
-      await databaseService.updatePetProfile(id, profile, user.id);
+      await databaseService.updatePetProfile(id, profile, parseInt(user.id, 10));
       
       // Update local state
       dispatch({ type: 'UPDATE_PET', payload: { id, updates: profile } });
@@ -266,7 +287,7 @@ export const PetProfileProvider: React.FC<{ children: ReactNode }> = ({ children
       dispatch({ type: 'SET_SAVING', payload: true });
       dispatch({ type: 'CLEAR_ERROR' });
 
-      await databaseService.deletePet(id, user.id);
+      await databaseService.deletePet(id, parseInt(user.id, 10));
       
       // Update local state
       dispatch({ type: 'REMOVE_PET', payload: id });
@@ -280,27 +301,6 @@ export const PetProfileProvider: React.FC<{ children: ReactNode }> = ({ children
     }
   }, [user]);
 
-  const loadPets = useCallback(async (): Promise<void> => {
-    if (!user) {
-      dispatch({ type: 'SET_PETS', payload: [] });
-      return;
-    }
-
-    try {
-      dispatch({ type: 'SET_LOADING', payload: true });
-      dispatch({ type: 'CLEAR_ERROR' });
-
-      const pets = await databaseService.getAllPets(user.id);
-      dispatch({ type: 'SET_PETS', payload: pets });
-    } catch (error) {
-      console.error('Load pets error:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Failed to load pets';
-      dispatch({ type: 'SET_ERROR', payload: errorMessage });
-    } finally {
-      dispatch({ type: 'SET_LOADING', payload: false });
-    }
-  }, [user]);
-
   const loadPetById = useCallback(async (id: number): Promise<StoredPetProfile | null> => {
     if (!user) {
       throw new Error('User must be authenticated to load pet');
@@ -308,7 +308,7 @@ export const PetProfileProvider: React.FC<{ children: ReactNode }> = ({ children
 
     try {
       dispatch({ type: 'CLEAR_ERROR' });
-      return await databaseService.getPetById(id, user.id);
+      return await databaseService.getPetById(id, parseInt(user.id, 10));
     } catch (error) {
       console.error('Load pet by ID error:', error);
       const errorMessage = error instanceof Error ? error.message : 'Failed to load pet';

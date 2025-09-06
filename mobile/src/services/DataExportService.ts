@@ -1,8 +1,9 @@
 // TailTracker Pro Tier Data Export Service
-import { supabase } from '@/lib/supabase';
+import { format } from 'date-fns';
 import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
-import { format } from 'date-fns';
+import { supabase } from '@/lib/supabase';
+// eslint-disable-next-line import/no-unresolved
 
 export interface ExportOptions {
   format: 'csv' | 'pdf';

@@ -8,6 +8,8 @@
  */
 
 import React from 'react';
+import { Haptics } from 'expo-haptics';
+import { Gesture } from 'react-native-gesture-handler';
 import {
   useSharedValue,
   useAnimatedStyle,
@@ -21,8 +23,6 @@ import {
   runOnJS,
   useDerivedValue,
 } from 'react-native-reanimated';
-import { Gesture } from 'react-native-gesture-handler';
-import { Haptics } from 'expo-haptics';
 import { tailTrackerMotions } from './motionSystem';
 
 // ====================================
@@ -189,7 +189,7 @@ export const useBreathingAnimation = (isActive: boolean, emotion: EmotionalState
         easing: tailTrackerMotions.easing.natural,
       });
     }
-  }, [isActive, emotion]);
+  }, [isActive, emotion, pattern.duration, pattern.max, pattern.min, scale]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
@@ -218,20 +218,20 @@ export const useBlinkingAnimation = (emotion: EmotionalState = 'calm') => {
 
   const pattern = blinkPatterns[emotion];
 
-  const blink = () => {
-    opacity.value = withSequence(
-      withTiming(0.1, { duration: pattern.blinkDuration / 2 }),
-      withTiming(1, { duration: pattern.blinkDuration / 2 })
-    );
-  };
-
   React.useEffect(() => {
+    const blink = () => {
+      opacity.value = withSequence(
+        withTiming(0.1, { duration: pattern.blinkDuration / 2 }),
+        withTiming(1, { duration: pattern.blinkDuration / 2 })
+      );
+    };
+
     const interval = setInterval(() => {
       runOnJS(blink)();
     }, pattern.interval);
 
     return () => clearInterval(interval);
-  }, [emotion]);
+  }, [emotion, pattern.interval, pattern.blinkDuration, opacity]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     opacity: opacity.value,

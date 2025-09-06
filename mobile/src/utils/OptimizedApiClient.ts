@@ -1,6 +1,9 @@
-import { Platform } from 'react-native';
+// Platform import removed - not used in this file
+import { useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { supabase } from '../services/supabase';
+import { supabase } from '../../services/supabase';
+
+// React hook for API client
 
 /**
  * Optimized API Client with caching, deduplication, and retry mechanisms
@@ -14,7 +17,7 @@ export interface CacheEntry<T = any> {
   etag?: string;
 }
 
-export interface RequestOptions extends RequestInit {
+export interface RequestOptions extends Omit<RequestInit, 'cache'> {
   timeout?: number;
   retries?: number;
   retryDelay?: number;
@@ -229,7 +232,9 @@ class OptimizedApiClient {
 
     try {
       // Add authentication if available
-      const headers = { ...options.headers };
+      const headers: Record<string, string> = { 
+        ...options.headers as Record<string, string> 
+      };
       try {
         const session = await supabase.auth.getSession();
         if (session.data.session?.access_token) {
@@ -275,7 +280,7 @@ class OptimizedApiClient {
       // Retry logic
       if (
         attempt < options.retries! &&
-        error.name !== 'AbortError' &&
+        (error instanceof Error ? error.name !== 'AbortError' : true) &&
         this.shouldRetry(error, attempt)
       ) {
         await this.delay(options.retryDelay! * Math.pow(2, attempt - 1)); // Exponential backoff
@@ -363,7 +368,7 @@ class OptimizedApiClient {
    * Batch multiple requests
    */
   async batch<T = any>(
-    requests: Array<{ url: string; options?: RequestOptions }>,
+    requests: { url: string; options?: RequestOptions }[],
     options: { concurrent?: number; failFast?: boolean } = {}
   ): Promise<ApiResponse<T>[]> {
     const { concurrent = 5, failFast = false } = options;
@@ -472,9 +477,6 @@ class OptimizedApiClient {
 
 // Create singleton instance
 export const apiClient = new OptimizedApiClient();
-
-// React hook for API client
-import { useCallback } from 'react';
 
 export const useApiClient = () => {
   const get = useCallback(<T = any>(url: string, options?: RequestOptions) => 

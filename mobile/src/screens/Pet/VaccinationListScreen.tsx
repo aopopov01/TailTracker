@@ -11,10 +11,10 @@ import {
   RefreshControl,
   FlatList,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { colors } from '@/constants/colors';
 import { fonts } from '@/constants/fonts';
@@ -44,7 +44,7 @@ export default function VaccinationListScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  const loadVaccinations = async () => {
+  const loadVaccinations = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('vaccinations')
@@ -61,7 +61,7 @@ export default function VaccinationListScreen() {
       setLoading(false);
       setRefreshing(false);
     }
-  };
+  }, [petId]);
 
   const onRefresh = () => {
     setRefreshing(true);
@@ -71,7 +71,7 @@ export default function VaccinationListScreen() {
   useFocusEffect(
     useCallback(() => {
       loadVaccinations();
-    }, [petId])
+    }, [loadVaccinations])
   );
 
   const deleteVaccination = async (vaccinationId: string) => {

@@ -9,13 +9,13 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { Alert } from 'react-native';
+import { router } from 'expo-router';
 import { 
   premiumLostPetService,
   LostPetAlert,
   LostPetReport 
 } from '../services/PremiumLostPetService';
 import { usePremiumAccess } from './usePremiumAccess';
-import { router } from 'expo-router';
 
 interface LostPetAlertsHook {
   // State
@@ -54,12 +54,12 @@ export const useLostPetAlerts = (radiusKm: number = 25): LostPetAlertsHook => {
   // Check location permission on mount
   useEffect(() => {
     checkLocationPermission();
-  }, []);
+  }, [checkLocationPermission]);
 
   // Load nearby alerts on mount and when radius changes
   useEffect(() => {
     loadNearbyAlerts(radiusKm);
-  }, [radiusKm]);
+  }, [radiusKm, loadNearbyAlerts]);
 
   const checkLocationPermission = useCallback(async () => {
     try {
@@ -149,7 +149,7 @@ export const useLostPetAlerts = (radiusKm: number = 25): LostPetAlertsHook => {
         error: error instanceof Error ? error.message : 'Failed to report lost pet',
       };
     }
-  }, [hasPremiumAccess, refreshAlerts]);
+  }, [hasPremiumAccess, refreshAlerts, showPremiumUpgrade]);
 
   const markPetFound = useCallback(async (alertId: string) => {
     try {

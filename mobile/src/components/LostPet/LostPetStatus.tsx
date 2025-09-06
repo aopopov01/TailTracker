@@ -4,18 +4,17 @@ import {
   StyleSheet,
   Alert,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import {
   Text,
   Card,
   Button,
   Chip,
-  ActivityIndicator,
 } from 'react-native-paper';
-import { useNavigation } from '@react-navigation/native';
 
+import usePremiumAccess from '../../hooks/usePremiumAccess';
 import { premiumLostPetService } from '../../services/PremiumLostPetService';
 import { Pet } from '../../types/Pet';
-import usePremiumAccess from '../../hooks/usePremiumAccess';
 
 interface LostPetStatusProps {
   pet: Pet;

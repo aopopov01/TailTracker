@@ -7,9 +7,9 @@
  * Validates WCAG 2.1 AA compliance across the entire application
  */
 
+const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
-const { execSync } = require('child_process');
 
 // Color contrast validation using the accessibility system
 const ColorContrastChecker = {

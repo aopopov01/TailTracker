@@ -17,7 +17,7 @@ interface DataTransparencyProps {
 }
 
 export const DataTransparency: React.FC<DataTransparencyProps> = ({ navigation }) => {
-  const { modalConfig, showModal, hideModal, showConfirm, showSuccess } = useTailTrackerModal();
+  const { modalConfig, hideModal, showConfirm, showSuccess } = useTailTrackerModal();
   const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({});
 
   const toggleCategory = (categoryId: string) => {

@@ -1,0 +1,49 @@
+{
+  "name": "tailtracker-mobile-performance",
+  "version": "1.0.0",
+  "description": "TailTracker - Performance Optimized Mobile App",
+  "main": "index.js",
+  "scripts": {
+    "start:performance": "EXPO_USE_METRO_CONFIG=metro.config.performance.js expo start",
+    "build:performance": "EXPO_USE_METRO_CONFIG=metro.config.performance.js expo build",
+    "test:performance": "npm run test:performance:all",
+    "test:performance:startup": "node -e \"require('./src/utils/PerformanceTesting').default.testAppLaunchTime().then(console.log)\"",
+    "test:performance:memory": "node -e \"require('./src/utils/PerformanceTesting').default.stressTestMemory()\"",
+    "test:performance:images": "node -e \"require('./src/utils/PerformanceTesting').default.stressTestImageLoading(25)\"",
+    "test:performance:all": "node -e \"require('./src/utils/PerformanceTesting').default.runFullPerformanceTest().then(r => console.log('Score:', r.overallScore + '%'))\"",
+    "analyze:bundle": "EXPO_USE_METRO_CONFIG=metro.config.performance.js npx expo export --platform web && npx webpack-bundle-analyzer dist/static/js/*.js",
+    "profile:startup": "EXPO_USE_METRO_CONFIG=metro.config.performance.js expo start --profile",
+    "benchmark": "./scripts/performance-benchmark.sh",
+    "optimize:images": "node scripts/optimize-assets.js",
+    "prebuild:performance": "EXPO_USE_METRO_CONFIG=metro.config.performance.js expo prebuild --clean",
+    "build:android:performance": "EXPO_USE_METRO_CONFIG=metro.config.performance.js eas build --platform android --profile production-performance",
+    "build:ios:performance": "EXPO_USE_METRO_CONFIG=metro.config.performance.js eas build --platform ios --profile production-performance"
+  },
+  "performance": {
+    "targets": {
+      "appLaunchTime": "1500ms",
+      "screenTransition": "200ms",
+      "imageLoading": "300ms",
+      "apiResponse": "400ms",
+      "memoryUsage": "150MB",
+      "bundleSize": "1.5MB",
+      "frameRate": "60fps"
+    },
+    "monitoring": {
+      "enabled": true,
+      "interval": 30000,
+      "alerts": {
+        "memoryThreshold": 150,
+        "performanceScore": 85
+      }
+    },
+    "optimizations": {
+      "imageOptimization": true,
+      "lazyLoading": true,
+      "codesplitting": true,
+      "memoryManagement": true,
+      "gpuAcceleration": true,
+      "advancedCaching": true
+    }
+  }
+}

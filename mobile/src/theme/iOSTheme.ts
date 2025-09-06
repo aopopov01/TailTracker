@@ -1,4 +1,4 @@
-import { Platform, useColorScheme } from 'react-native';
+import { useColorScheme } from 'react-native';
 
 /**
  * iOS-specific theme configuration following Apple's Human Interface Guidelines
@@ -297,7 +297,7 @@ export const iOSAnimations = {
 /**
  * Hook to get the current iOS theme based on appearance
  */
-export const useiOSTheme = () => {
+export const useIOSTheme = () => {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
 
@@ -322,8 +322,7 @@ export const useiOSTheme = () => {
 /**
  * Get platform-specific theme properties
  */
-export const getIOSThemeProps = () => {
-  const colorScheme = useColorScheme();
+export const getIOSThemeProps = (colorScheme: 'light' | 'dark' | null = null) => {
   const isDark = colorScheme === 'dark';
 
   return {

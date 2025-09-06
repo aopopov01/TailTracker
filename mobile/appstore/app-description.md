@@ -50,7 +50,7 @@ Your pet's data is protected with enterprise-grade security:
 • GDPR and privacy regulation compliant
 
 **✨ PREMIUM FEATURES**
-Upgrade to TailTracker Premium (€2.99/month) or Pro (€4.99/month):
+Upgrade to TailTracker Premium (€5.99/month) or Pro (€8.99/month):
 • Premium: 3 family members total + 2 pet profiles (vs 2 members + 1 pet free)
 • Pro: unlimited family members + unlimited pet profiles
 • Unlimited health record storage
@@ -69,7 +69,7 @@ Connect with other pet owners:
 **🏆 WHY CHOOSE TAILTRACKER?**
 ✅ Simple and easy to use
 ✅ Focus on essential features only
-✅ Affordable family coordination (€2.99/€4.99)
+✅ Affordable family coordination (€5.99/€8.99)
 ✅ Community-based lost pet support
 ✅ Privacy-first approach to your pet's data
 ✅ No complex features or overwhelming interfaces

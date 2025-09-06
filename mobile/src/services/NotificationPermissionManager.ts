@@ -7,8 +7,8 @@
 
 import React from 'react';
 import { Platform, Alert, Linking, AppState } from 'react-native';
-import * as Notifications from 'expo-notifications';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Notifications from 'expo-notifications';
 import { unifiedNotificationService, PermissionState } from './UnifiedNotificationService';
 
 // Storage key for permission flow state
@@ -188,7 +188,16 @@ export class NotificationPermissionManager {
   async openNotificationSettings(): Promise<void> {
     try {
       if (Platform.OS === 'ios') {
-        await Notifications.openSettingsAsync();
+        // Try to use openSettingsAsync if available, otherwise show alert
+        if (Notifications.openSettingsAsync) {
+          await Notifications.openSettingsAsync();
+        } else {
+          Alert.alert(
+            'Notification Settings',
+            'Please go to Settings > Notifications > TailTracker to enable notifications.',
+            [{ text: 'OK' }]
+          );
+        }
       } else {
         // For Android, try to open app notification settings
         const androidIntent = `package:com.tailtracker.app`;

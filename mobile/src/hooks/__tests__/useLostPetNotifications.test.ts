@@ -59,7 +59,7 @@ describe('useLostPetNotifications', () => {
     jest.mocked(Notifications.addNotificationResponseReceivedListener).mockReturnValue({
       remove: jest.fn(),
     });
-    jest.mocked(Notifications.getAllPresentedNotificationsAsync).mockResolvedValue([]);
+    jest.mocked(Notifications.getPresentedNotificationsAsync).mockResolvedValue([]);
   });
 
   describe('initialization', () => {
@@ -366,7 +366,7 @@ describe('useLostPetNotifications', () => {
         },
       ];
 
-      jest.mocked(Notifications.getAllPresentedNotificationsAsync)
+      jest.mocked(Notifications.getPresentedNotificationsAsync)
         .mockResolvedValue(mockNotifications as any);
 
       const { result } = renderHook(() => useLostPetNotifications());

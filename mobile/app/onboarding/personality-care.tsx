@@ -9,11 +9,9 @@ import {
   Dimensions,
   Platform,
 } from 'react-native';
-import { useTailTrackerModal } from '../../src/hooks/useTailTrackerModal';
-import { TailTrackerModal } from '../../src/components/UI/TailTrackerModal';
-import { useRouter, useLocalSearchParams } from 'expo-router';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -23,8 +21,10 @@ import Animated, {
   FadeIn,
   SlideInDown,
 } from 'react-native-reanimated';
+import { TailTrackerModal } from '../../src/components/UI/TailTrackerModal';
+import { useTailTrackerModal } from '../../src/hooks/useTailTrackerModal';
 
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 const COLORS = {
   lightCyan: '#5DD4DC',
@@ -82,10 +82,8 @@ const TraitButton: React.FC<TraitButtonProps> = ({
       <TouchableOpacity
         style={[
           styles.traitButton,
-          { 
-            borderColor: scheme.border,
-            borderWidth: selected ? 2 : 1,
-          }
+          { borderColor: scheme.border },
+          selected ? styles.traitButtonSelected : styles.traitButtonDefault
         ]}
         onPress={onPress}
         activeOpacity={0.8}
@@ -150,8 +148,8 @@ const ExerciseLevel: React.FC<ExerciseLevelProps> = ({
           {
             backgroundColor: selected ? COLORS.softGray : COLORS.white,
             borderColor: selected ? config.color : COLORS.lightGray,
-            borderWidth: selected ? 2 : 1,
-          }
+          },
+          selected ? styles.exerciseLevelButtonSelected : styles.exerciseLevelButtonDefault
         ]}
         onPress={onPress}
         activeOpacity={0.8}
@@ -198,7 +196,7 @@ const ExerciseLevel: React.FC<ExerciseLevelProps> = ({
 
 export default function PersonalityCareScreen() {
   const router = useRouter();
-  const { modalConfig, showModal, hideModal, showConfirm } = useTailTrackerModal();
+  const { modalConfig, hideModal, showConfirm } = useTailTrackerModal();
   const progressWidth = useSharedValue(0);
 
   const [personalityTraits, setPersonalityTraits] = useState<string[]>([]);
@@ -211,7 +209,7 @@ export default function PersonalityCareScreen() {
 
   // Get species from route params
   const params = useLocalSearchParams<{ species?: string }>();
-  const species = params.species || 'dog';
+  const species = params.species ?? 'dog';
 
   // Species-specific personality traits
   const getPersonalityOptions = () => {
@@ -319,7 +317,7 @@ export default function PersonalityCareScreen() {
         easing: Easing.out(Easing.ease),
       })
     );
-  }, []);
+  }, [progressWidth]);
 
   const progressStyle = useAnimatedStyle(() => ({
     width: progressWidth.value,
@@ -345,7 +343,7 @@ export default function PersonalityCareScreen() {
     router.push({
       pathname: '/onboarding/review-complete',
       params: { species }
-    });
+    } as any);
   };
 
   const handleBack = () => {
@@ -360,7 +358,7 @@ export default function PersonalityCareScreen() {
         router.push({
           pathname: '/onboarding/review-complete',
           params: { species }
-        });
+        } as any);
       },
       'Skip',
       'Cancel',
@@ -807,6 +805,12 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     marginBottom: 4,
   },
+  traitButtonSelected: {
+    borderWidth: 2,
+  },
+  traitButtonDefault: {
+    borderWidth: 1,
+  },
   traitButtonGradient: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -824,6 +828,12 @@ const styles = StyleSheet.create({
   exerciseLevelButton: {
     borderRadius: 16,
     padding: 16,
+  },
+  exerciseLevelButtonSelected: {
+    borderWidth: 2,
+  },
+  exerciseLevelButtonDefault: {
+    borderWidth: 1,
   },
   exerciseLevelContent: {
     flexDirection: 'row',

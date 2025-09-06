@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import NetInfo from '@react-native-community/netinfo';
-import { errorRecoveryService, QueuedOperation } from './ErrorRecoveryService';
+import { errorRecoveryService } from './ErrorRecoveryService';
 
 export interface OfflineAction {
   id: string;

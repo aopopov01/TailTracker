@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -9,10 +9,10 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-import { SharingService } from '../../services/sharingService';
 import { SharingToken, SharedAccess } from '../../../services/database';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTailTrackerModal } from '../../hooks/useTailTrackerModal';
+import { SharingService } from '../../services/sharingService';
 import { TailTrackerModal } from '../UI/TailTrackerModal';
 
 interface SharingManagerProps {
@@ -31,7 +31,7 @@ const SharingManager: React.FC<SharingManagerProps> = ({
   onGenerateNew
 }) => {
   const { user } = useAuth();
-  const { modalConfig, showModal, hideModal, showError, showSuccess, showConfirm } = useTailTrackerModal();
+  const { modalConfig, hideModal, showError, showSuccess, showConfirm } = useTailTrackerModal();
   const [activeTokens, setActiveTokens] = useState<SharingToken[]>([]);
   const [sharedAccess, setSharedAccess] = useState<ExtendedSharedAccess[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -39,9 +39,9 @@ const SharingManager: React.FC<SharingManagerProps> = ({
 
   useEffect(() => {
     loadSharingData();
-  }, []);
+  }, [loadSharingData]);
 
-  const loadSharingData = async () => {
+  const loadSharingData = useCallback(async () => {
     if (!user) return;
 
     try {
@@ -59,7 +59,7 @@ const SharingManager: React.FC<SharingManagerProps> = ({
       setIsLoading(false);
       setIsRefreshing(false);
     }
-  };
+  }, [user, showError]);
 
   const handleRefresh = () => {
     setIsRefreshing(true);

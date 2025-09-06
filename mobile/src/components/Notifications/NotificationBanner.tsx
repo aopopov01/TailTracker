@@ -5,23 +5,22 @@
  * providing consistent UX across platforms as identified in the QA report.
  */
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   Animated,
-  PanGestureHandler,
-  State,
   Dimensions,
   Platform,
   Image,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { PanGestureHandler, State } from 'react-native-gesture-handler';
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const BANNER_HEIGHT = 100;
@@ -36,11 +35,11 @@ export interface NotificationBannerData {
   icon?: keyof typeof Ionicons.glyphMap;
   priority: 'low' | 'default' | 'high' | 'critical';
   type: string;
-  actions?: Array<{
+  actions?: {
     id: string;
     title: string;
     style?: 'default' | 'destructive';
-  }>;
+  }[];
   onPress?: () => void;
   onDismiss?: () => void;
   onActionPress?: (actionId: string) => void;
@@ -74,9 +73,9 @@ export const NotificationBanner: React.FC<NotificationBannerProps> = ({
     } else if (!notification && isVisible) {
       hideNotification();
     }
-  }, [notification, isVisible]);
+  }, [notification, isVisible, showNotification, hideNotification]);
 
-  const showNotification = (notif: NotificationBannerData) => {
+  const showNotification = useCallback((notif: NotificationBannerData) => {
     setCurrentNotification(notif);
     setIsVisible(true);
     
@@ -116,9 +115,9 @@ export const NotificationBanner: React.FC<NotificationBannerProps> = ({
         handleDismiss();
       }, AUTO_DISMISS_DURATION);
     }
-  };
+  }, [slideAnim, opacityAnim, scaleAnim, handleDismiss]);
 
-  const hideNotification = () => {
+  const hideNotification = useCallback(() => {
     if (dismissTimer.current) {
       clearTimeout(dismissTimer.current);
       dismissTimer.current = null;
@@ -142,14 +141,14 @@ export const NotificationBanner: React.FC<NotificationBannerProps> = ({
       panAnim.setValue(0);
       scaleAnim.setValue(0.95);
     });
-  };
+  }, [slideAnim, opacityAnim, panAnim, scaleAnim, insets.top]);
 
-  const handleDismiss = () => {
+  const handleDismiss = useCallback(() => {
     if (currentNotification) {
       onDismiss(currentNotification.id);
       currentNotification.onDismiss?.();
     }
-  };
+  }, [currentNotification, onDismiss]);
 
   const handlePress = () => {
     if (currentNotification?.onPress) {

@@ -11,12 +11,12 @@ import {
   Alert,
   Image,
 } from 'react-native';
+
+import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { databaseService, StoredPetProfile } from '../../services/database';
-import { useAuth } from '../../src/contexts/AuthContext';
+import { PanGestureHandler } from 'react-native-gesture-handler';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -26,8 +26,11 @@ import Animated, {
   runOnJS,
   withSpring,
 } from 'react-native-reanimated';
-import { PanGestureHandler } from 'react-native-gesture-handler';
 import Svg, { Path, Circle, Ellipse, Polygon, Rect, LinearGradient as SvgLinearGradient, Stop, Defs, G, Line } from 'react-native-svg';
+
+import { databaseService, StoredPetProfile } from '../../services/database';
+import { useAuth } from '../../src/contexts/AuthContext';
+import { log } from '../../src/utils/Logger';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -179,14 +182,14 @@ const PetAvatar: React.FC<{ pet: StoredPetProfile; size?: number }> = ({ pet, si
           style={[styles.petImage, { width: size, height: size }]}
           onError={() => {
             // If image fails to load, fallback to default icon
-            console.log('Failed to load pet image, using default icon');
+            // Note: Consider using a logger service instead of console.log in production
           }}
         />
       </View>
     );
   }
 
-  return getPetIcon(pet.species || 'other', size);
+  return getPetIcon(pet.species ?? 'other', size);
 };
 
 // Swipeable Pet Card Component
@@ -222,7 +225,7 @@ const SwipeablePetCard: React.FC<SwipeablePetCardProps> = ({
       if (event.translationX < SWIPE_THRESHOLD) {
         if (event.translationX < DELETE_THRESHOLD) {
           // Delete action
-          runOnJS(onDelete)(pet.id, pet.name || 'Pet');
+          runOnJS(onDelete)(pet.id, pet.name ?? 'Pet');
         }
         // Show delete button
         translateX.value = withSpring(SWIPE_THRESHOLD);
@@ -249,7 +252,7 @@ const SwipeablePetCard: React.FC<SwipeablePetCardProps> = ({
         style={[
           styles.deleteBackground, 
           backgroundStyle,
-          { height: '100%' }
+          styles.deleteBackgroundFull
         ]}
       >
         <LinearGradient
@@ -283,14 +286,14 @@ const SwipeablePetCard: React.FC<SwipeablePetCardProps> = ({
               
               <View style={styles.petInfo}>
                 <View style={styles.petNameContainer}>
-                  <Text style={styles.petName}>{pet.name || 'Unnamed Pet'}</Text>
+                  <Text style={styles.petName}>{pet.name ?? 'Unnamed Pet'}</Text>
                   {isNewlyCreated && (
                     <View style={styles.newBadge}>
                       <Text style={styles.newBadgeText}>NEW</Text>
                     </View>
                   )}
                 </View>
-                <Text style={styles.petBreed}>{pet.breed || 'Mixed breed'}</Text>
+                <Text style={styles.petBreed}>{pet.breed ?? 'Mixed breed'}</Text>
                 <Text style={styles.petAge}>
                   {calculateAge(pet.dateOfBirth, pet.approximateAge, pet.useApproximateAge)} old
                 </Text>
@@ -323,7 +326,7 @@ const SwipeablePetCard: React.FC<SwipeablePetCardProps> = ({
               <View style={styles.footerItem}>
                 <Text style={styles.footerLabel}>Weight:</Text>
                 <Text style={styles.footerValue}>
-                  {pet.weight ? `${pet.weight} ${pet.weightUnit || 'kg'}` : 'Not specified'}
+                  {pet.weight ? `${pet.weight} ${pet.weightUnit ?? 'kg'}` : 'Not specified'}
                 </Text>
               </View>
               <View style={styles.footerItem}>
@@ -363,16 +366,16 @@ function DashboardScreen() {
     }, 0)
   };
 
-  const loadPets = async () => {
+  const loadPets = useCallback(async () => {
     if (!user) {
       setLoading(false);
       return;
     }
     
     try {
-      console.log('Loading pets for user:', user.id);
-      const petProfiles = await databaseService.getAllPets(user.id);
-      console.log('Retrieved pet profiles:', JSON.stringify(petProfiles, null, 2));
+      // Loading pets for user
+      const petProfiles = await databaseService.getAllPets(parseInt(user.id, 10));
+      // Retrieved pet profiles successfully
       setPets(petProfiles);
       
       // Check if there's a newly created pet (within last 5 minutes)
@@ -389,11 +392,11 @@ function DashboardScreen() {
         }, 30000);
       }
     } catch (error) {
-      console.error('Error loading pets:', error);
+      log.error('Error loading pets:', error);
     } finally {
       setLoading(false);
     }
-  };
+  }, [user, newlyCreatedPetId]);
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -402,7 +405,7 @@ function DashboardScreen() {
   };
 
   const handleAddPet = () => {
-    router.push('/onboarding/welcome');
+    router.push('/onboarding/welcome' as any);
   };
 
   const isNewlyCreated = (pet: StoredPetProfile) => {
@@ -424,11 +427,11 @@ function DashboardScreen() {
           onPress: async () => {
             try {
               if (user) {
-                await databaseService.deletePet(petId, user.id);
+                await databaseService.deletePet(petId, parseInt(user.id, 10));
                 await loadPets(); // Reload the pet list
               }
             } catch (error) {
-              console.error('Error deleting pet:', error);
+              log.error('Error deleting pet:', error);
               Alert.alert('Error', 'Failed to delete pet. Please try again.');
             }
           },
@@ -439,13 +442,13 @@ function DashboardScreen() {
 
   useEffect(() => {
     loadPets();
-  }, []);
+  }, [loadPets]);
 
   // Auto-refresh when screen comes into focus (e.g., after creating a pet)
   useFocusEffect(
     useCallback(() => {
       loadPets();
-    }, [user])
+    }, [loadPets])
   );
 
   if (loading) {
@@ -594,7 +597,7 @@ function DashboardScreen() {
                 pet={pet}
                 onDelete={handleDeletePet}
                 isNewlyCreated={isNewlyCreated(pet)}
-                onPress={() => router.push(`/(tabs)/pet-detail?petId=${pet.id}`)}
+                onPress={() => router.push(`/(tabs)/pet-detail?petId=${parseInt(pet.id.toString(), 10)}` as any)}
               />
             </Animated.View>
           ))}
@@ -983,6 +986,9 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     marginTop: 4,
+  },
+  deleteBackgroundFull: {
+    height: '100%',
   },
 });
 

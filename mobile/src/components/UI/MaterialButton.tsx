@@ -1,10 +1,10 @@
 import React from 'react';
-import { Button } from 'react-native-paper';
 import type { ComponentProps } from 'react';
 import { StyleSheet, Platform } from 'react-native';
+import { Button } from 'react-native-paper';
 import { useTheme } from 'react-native-paper';
-import { useMaterialTheme, useThemeAwareStyles } from '../../theme/MaterialThemeProvider';
 import { MaterialComponentStyles, StateLayerOpacity } from '../../theme/materialDesign3Theme';
+import { useMaterialTheme, useThemeAwareStyles } from '../../theme/MaterialThemeProvider';
 
 type ButtonProps = ComponentProps<typeof Button>;
 

@@ -27,23 +27,23 @@ export interface Pet {
   
   // Health Profile (Screen 6)
   medicalConditions?: string[];
-  currentMedications?: Array<{
+  currentMedications?: {
     name: string;
     dosage?: string;
     frequency?: string;
-  }>;
+  }[];
   allergies?: string[];
   lastVetVisit?: Date;
-  testResults?: Array<{
+  testResults?: {
     date: Date;
     type: string;
     fileUrl?: string;
-  }>;
-  vaccinationStatus?: Array<{
+  }[];
+  vaccinationStatus?: {
     vaccine: string;
     date: Date;
     nextDue?: Date;
-  }>;
+  }[];
   
   // Personality & Care (Screen 7)
   personalityTraits?: string[];

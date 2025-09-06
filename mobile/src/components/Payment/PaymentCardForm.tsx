@@ -6,19 +6,17 @@ import {
   Platform,
 } from 'react-native';
 import {
-  Card,
-  Title,
-  Button,
-  Text,
-  ActivityIndicator,
-  Divider,
-} from 'react-native-paper';
-import {
   CardField,
   CardFieldInput,
   PaymentMethod,
   StripeError,
 } from '@stripe/stripe-react-native';
+import {
+  Card,
+  Title,
+  Button,
+  Text,
+} from 'react-native-paper';
 import { StripePaymentService } from '../../services/StripePaymentService';
 
 interface PaymentCardFormProps {

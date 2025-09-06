@@ -8,11 +8,11 @@ import {
   Alert,
   ScrollView,
   Image,
+  Modal,
 } from 'react-native';
-import { Modal } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import * as ImagePicker from 'expo-image-picker';
 import { Picker } from '@react-native-picker/picker';
+import * as ImagePicker from 'expo-image-picker';
 import { healthRecordsService, Veterinarian, HealthRecord } from '@/services/HealthRecordsService';
 
 interface AddHealthRecordModalProps {
@@ -134,7 +134,7 @@ export const AddHealthRecordModal: React.FC<AddHealthRecordModalProps> = ({
       }
 
       if (!result.success) {
-        Alert.alert('Error', result.error || 'Failed to save health record');
+        Alert.alert('Error', 'Failed to save health record');
         return;
       }
 

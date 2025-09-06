@@ -54,14 +54,12 @@ TailTracker is a comprehensive pet management platform that provides:
 ### Premium Subscription Plans
 
 **TailTracker Premium:**
-- Monthly Plan: $8.99/month
-- Annual Plan: $89.99/year (17% savings)
-- 7-day free trial for new subscribers
+- Monthly Plan: €5.99/month
+- Annual Plan: €50.00/year (30% savings)
 
 **TailTracker Pro:**
-- Monthly Plan: $19.99/month  
-- Annual Plan: $199.99/year (17% savings)
-- 14-day free trial for new subscribers
+- Monthly Plan: €8.99/month  
+- Annual Plan: €80.00/year (26% savings)
 
 ### Billing Terms
 - Subscription fees are billed in advance on a monthly or annual basis
@@ -70,11 +68,6 @@ TailTracker is a comprehensive pet management platform that provides:
 - You will be charged for renewal within 24 hours prior to the end of the current period
 - Subscription management is available through your device's app store settings
 
-### Free Trial Terms
-- Free trials automatically convert to paid subscriptions unless canceled
-- You may cancel during the trial period without charge
-- Cancellation takes effect at the end of the trial period
-- Previous trial users are not eligible for additional free trials
 
 ### Price Changes
 - We reserve the right to modify subscription prices with 30 days' notice

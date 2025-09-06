@@ -3,8 +3,8 @@
 // This service provides basic push notification functionality only
 
 import { Platform, Alert } from 'react-native';
-import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
+import * as Notifications from 'expo-notifications';
 import { supabase } from './supabase';
 
 export interface PushNotificationData {
@@ -120,7 +120,7 @@ class NotificationService {
       }
 
       return true;
-    } catch (error) {
+    } catch (_error) {
       console.error('Error requesting notification permissions:', error);
       return false;
     }
@@ -147,7 +147,7 @@ class NotificationService {
 
       this.pushToken = token.data;
       return token.data;
-    } catch (error) {
+    } catch (_error) {
       console.error('Error getting push token:', error);
       return null;
     }
@@ -173,7 +173,7 @@ class NotificationService {
       if (error) {
         console.error('Error updating push token:', error);
       }
-    } catch (error) {
+    } catch (_error) {
       console.error('Error updating user push token:', error);
     }
   }
@@ -207,7 +207,7 @@ class NotificationService {
       });
 
       return notificationId;
-    } catch (error) {
+    } catch (_error) {
       console.error('Error scheduling user event reminder:', error);
       return null;
     }
@@ -229,7 +229,7 @@ class NotificationService {
       });
 
       return notificationId;
-    } catch (error) {
+    } catch (_error) {
       console.error('Error scheduling local notification:', error);
       return null;
     }
@@ -381,7 +381,7 @@ class NotificationService {
       if (error) {
         console.error('Error disabling push notifications:', error);
       }
-    } catch (error) {
+    } catch (_error) {
       console.error('Error disabling push notifications:', error);
     }
   }
@@ -399,7 +399,7 @@ class NotificationService {
   async clearAllNotifications(): Promise<void> {
     try {
       await Notifications.dismissAllNotificationsAsync();
-    } catch (error) {
+    } catch (_error) {
       console.error('Error clearing notifications:', error);
     }
   }
@@ -445,16 +445,34 @@ export const NotificationHelpers = {
    * Open device notification settings
    */
   async openNotificationSettings(): Promise<void> {
-    if (Platform.OS === 'ios') {
-      await Notifications.openSettingsAsync();
-    } else {
-      // For Android, we'd need to open the app's notification settings
+    try {
+      if (Platform.OS === 'ios') {
+        // Try to use openSettingsAsync if available, otherwise show alert
+        if (Notifications.openSettingsAsync) {
+          await Notifications.openSettingsAsync();
+        } else {
+          Alert.alert(
+            'Notification Settings',
+            'Please enable notifications for TailTracker in Settings > Notifications to receive lost pet alerts.',
+            [{ text: 'OK' }]
+          );
+        }
+      } else {
+        // For Android, show instructions to open settings manually
+        Alert.alert(
+          'Notification Settings',
+          'Please enable notifications for TailTracker in your device settings to receive lost pet alerts.',
+          [
+            { text: 'OK' }
+          ]
+        );
+      }
+    } catch (_error) {
+      console.warn('Could not open notification settings:', error);
       Alert.alert(
         'Notification Settings',
         'Please enable notifications for TailTracker in your device settings to receive lost pet alerts.',
-        [
-          { text: 'OK' }
-        ]
+        [{ text: 'OK' }]
       );
     }
   },

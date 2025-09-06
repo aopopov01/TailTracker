@@ -2,10 +2,10 @@
 // Family coordination is now limited to basic view/edit permissions only
 // This service is not used in the simplified app
 
-/*
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { format, isToday, isYesterday } from 'date-fns';
 import { FamilyMember, CareTask, WellnessAlert, Permission, FamilyRole } from '../types/Wellness';
+
+/*
 
 interface FamilyMessage {
   id: string;
@@ -435,6 +435,7 @@ class FamilyCoordinationService {
     };
   }
 }
+*/
 
 // Export singleton instance
 export const familyCoordinationService = new FamilyCoordinationService();

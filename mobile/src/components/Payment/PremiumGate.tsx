@@ -3,6 +3,7 @@ import {
   View,
   StyleSheet,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import {
   Card,
   Title,
@@ -10,7 +11,7 @@ import {
   Button,
   List,
 } from 'react-native-paper';
-import { useNavigation } from '@react-navigation/native';
+import { tailTrackerColors } from '../../design-system/core/colors';
 
 interface PremiumGateProps {
   feature: string;
@@ -137,7 +138,7 @@ export const PremiumGate: React.FC<PremiumGateProps> = ({
                     <List.Icon 
                       {...props} 
                       icon="check-circle" 
-                      color="#6200EE" 
+                      color={tailTrackerColors.semantic.successPrimary} 
                     />
                   )}
                   titleStyle={styles.benefitText}
@@ -201,11 +202,11 @@ const styles = StyleSheet.create({
   title: {
     textAlign: 'center',
     marginBottom: 12,
-    color: '#6200EE',
+    color: tailTrackerColors.primary.trustBlue, // WCAG AA: 7.63:1
   },
   description: {
     textAlign: 'center',
-    color: '#666',
+    color: tailTrackerColors.light.textSecondary, // WCAG AA: 7.24:1
     marginBottom: 20,
     lineHeight: 20,
   },
@@ -216,7 +217,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     marginBottom: 8,
-    color: '#333',
+    color: tailTrackerColors.light.textPrimary, // WCAG AA: 16.05:1
   },
   benefitItem: {
     paddingVertical: 2,
@@ -228,7 +229,7 @@ const styles = StyleSheet.create({
   },
   upgradeButton: {
     marginVertical: 16,
-    backgroundColor: '#6200EE',
+    backgroundColor: tailTrackerColors.primary.trustBlue, // WCAG AA compliant
   },
   upgradeButtonContent: {
     height: 48,
@@ -236,7 +237,7 @@ const styles = StyleSheet.create({
   trialInfo: {
     textAlign: 'center',
     fontSize: 12,
-    color: '#666',
+    color: tailTrackerColors.light.textSecondary, // WCAG AA: 7.24:1
     fontStyle: 'italic',
   },
 });

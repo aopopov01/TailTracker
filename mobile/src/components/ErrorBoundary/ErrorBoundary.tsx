@@ -22,7 +22,7 @@ export interface ErrorBoundaryProps {
   fallback?: (error: Error, retry: () => void) => ReactNode;
   onError?: (error: Error, errorInfo: ErrorInfo) => void;
   resetOnPropsChange?: boolean;
-  resetKeys?: Array<string | number>;
+  resetKeys?: (string | number)[];
   enableRetry?: boolean;
   maxRetries?: number;
   showNetworkStatus?: boolean;

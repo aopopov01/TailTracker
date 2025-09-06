@@ -1,9 +1,9 @@
 import React from 'react';
 import { Platform, Alert, Linking } from 'react-native';
-import * as Notifications from 'expo-notifications';
-import * as Device from 'expo-device';
-import Constants from 'expo-constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Constants from 'expo-constants';
+import * as Device from 'expo-device';
+import * as Notifications from 'expo-notifications';
 import { androidPermissions } from './AndroidPermissions';
 
 const NOTIFICATION_STORAGE_KEY = '@TailTracker:notification_settings';

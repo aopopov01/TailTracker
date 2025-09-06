@@ -10,11 +10,9 @@ import {
   Platform,
   KeyboardAvoidingView,
 } from 'react-native';
-import { useTailTrackerModal } from '../../src/hooks/useTailTrackerModal';
-import { TailTrackerModal } from '../../src/components/UI/TailTrackerModal';
-import { useRouter, useLocalSearchParams } from 'expo-router';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -24,8 +22,10 @@ import Animated, {
   FadeIn,
   SlideInDown,
 } from 'react-native-reanimated';
+import { TailTrackerModal } from '../../src/components/UI/TailTrackerModal';
+import { useTailTrackerModal } from '../../src/hooks/useTailTrackerModal';
 
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 const COLORS = {
   lightCyan: '#5DD4DC',
@@ -100,12 +100,12 @@ const InputField: React.FC<InputFieldProps> = ({
 
 export default function OfficialRecordsScreen() {
   const router = useRouter();
-  const { modalConfig, showModal, hideModal, showConfirm } = useTailTrackerModal();
+  const { modalConfig, hideModal, showConfirm } = useTailTrackerModal();
   const progressWidth = useSharedValue(0);
   
   // Get species from route params
   const params = useLocalSearchParams<{ species?: string }>();
-  const species = params.species || 'dog';
+  const species = params.species ?? 'dog';
 
   const [registrationNumber, setRegistrationNumber] = useState('');
 
@@ -118,7 +118,7 @@ export default function OfficialRecordsScreen() {
         easing: Easing.out(Easing.ease),
       })
     );
-  }, []);
+  }, [progressWidth]);
 
   const progressStyle = useAnimatedStyle(() => ({
     width: progressWidth.value,
@@ -129,7 +129,7 @@ export default function OfficialRecordsScreen() {
     router.push({
       pathname: '/onboarding/health-profile',
       params: { species }
-    });
+    } as any);
   };
 
   const handleBack = () => {
@@ -144,7 +144,7 @@ export default function OfficialRecordsScreen() {
         router.push({
           pathname: '/onboarding/health-profile',
           params: { species }
-        });
+        } as any);
       },
       'Skip',
       'Cancel',

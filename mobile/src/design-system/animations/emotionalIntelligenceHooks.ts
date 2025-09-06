@@ -14,6 +14,9 @@
  */
 
 import React, { useEffect, useState, useCallback, useRef } from 'react';
+import { AccessibilityInfo, AppState, Dimensions } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Haptics } from 'expo-haptics';
 import {
   useSharedValue,
   useAnimatedStyle,
@@ -22,9 +25,6 @@ import {
   cancelAnimation,
   runOnJS,
 } from 'react-native-reanimated';
-import { Haptics } from 'expo-haptics';
-import { AccessibilityInfo, AppState, Dimensions } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { tailTrackerMotions } from './motionSystem';
 
 // ====================================
@@ -305,7 +305,7 @@ export const useContextualSuccessAnimation = (
         });
       });
     }
-  }, [achievementLevel, inferEmotionalState, getOptimalAnimationConfig]);
+  }, [achievementLevel, inferEmotionalState, getOptimalAnimationConfig, rotation, scale]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [
@@ -361,7 +361,7 @@ export const useAdaptiveLoadingAnimation = (
         easing: config.easing,
       });
     });
-  }, [estimatedDuration, userState]);
+  }, [estimatedDuration, userState, animationValue, getOptimalAnimationConfig]);
 
   const animatedStyle = useAnimatedStyle(() => {
     switch (currentAnimation) {
@@ -446,7 +446,7 @@ export const useMoodResponsivePetAnimation = () => {
           easing: tailTrackerMotions.easing.natural,
         });
     }
-  }, [userState.primary]);
+  }, [userState.primary, animationValue]);
 
   const animatedStyle = useAnimatedStyle(() => {
     switch (currentMoodAnimation) {

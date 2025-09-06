@@ -5,7 +5,6 @@
  * This script runs database migrations using direct SQL execution
  */
 
-const { createClient } = require('@supabase/supabase-js');
 const fs = require('fs');
 const path = require('path');
 
@@ -28,7 +27,7 @@ console.log('⚠️  Note: Migrations require service_role key, not anon key');
 console.log('   Please run migrations through Supabase Dashboard SQL Editor');
 console.log('   or provide SUPABASE_SERVICE_ROLE_KEY environment variable');
 
-const supabase = createClient(supabaseUrl, supabaseKey);
+// const supabase = createClient(supabaseUrl, supabaseKey);
 
 async function runMigrations() {
   const migrationsDir = path.join(__dirname, '..', 'supabase', 'migrations');

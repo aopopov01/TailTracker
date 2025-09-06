@@ -13,12 +13,12 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation, useRoute } from '@react-navigation/native';
-import { LinearGradient } from 'expo-linear-gradient';
-import * as ImagePicker from 'expo-image-picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import * as ImagePicker from 'expo-image-picker';
+import { LinearGradient } from 'expo-linear-gradient';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { colors } from '@/constants/colors';
 import { fonts } from '@/constants/fonts';
@@ -81,9 +81,9 @@ export default function EditPetScreen() {
     if (isEditing) {
       loadPetData();
     }
-  }, [isEditing, petId]);
+  }, [isEditing, petId, loadPetData]);
 
-  const loadPetData = async () => {
+  const loadPetData = useCallback(async () => {
     try {
       setLoading(true);
       const { data, error } = await supabase
@@ -113,7 +113,7 @@ export default function EditPetScreen() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [petId]);
 
   const updateField = (field: keyof Pet, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));

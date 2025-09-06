@@ -1,6 +1,6 @@
-import { createClient, SupabaseClient, PostgrestError, AuthError } from '@supabase/supabase-js';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import NetInfo from '@react-native-community/netinfo';
+import { createClient, SupabaseClient, PostgrestError } from '@supabase/supabase-js';
 import { errorRecoveryService, RetryConfig } from './ErrorRecoveryService';
 import { offlineQueueManager } from './OfflineQueueManager';
 
@@ -67,7 +67,7 @@ export class EnhancedSupabaseClient {
   ): Promise<{ data: T[] | null; error: PostgrestError | null }> {
     const operationKey = options.circuitBreaker || `select_${tableName}`;
     
-    const operation = async () => {
+    const operation = async (): Promise<{ data: T[] | null; error: PostgrestError | null }> => {
       let queryBuilder = this.client.from(tableName).select(query || '*');
       
       if (options.timeout) {
@@ -81,7 +81,7 @@ export class EnhancedSupabaseClient {
       }
 
       this.recordSuccessfulRequest();
-      return result;
+      return result as unknown as { data: T[] | null; error: PostgrestError | null };
     };
 
     if (options.deduplicate) {
@@ -517,13 +517,16 @@ export class EnhancedSupabaseClient {
    */
   private initializeAuthStateChanges(): void {
     this.client.auth.onAuthStateChange((event, session) => {
-      this.authListeners.forEach(listener => {
-        try {
-          listener(event, session);
-        } catch (error) {
-          console.error('Error in auth listener:', error);
-        }
-      });
+      // Filter out INITIAL_SESSION event as it's not in our listener type
+      if (event !== 'INITIAL_SESSION') {
+        this.authListeners.forEach(listener => {
+          try {
+            listener(event as 'SIGNED_IN' | 'SIGNED_OUT' | 'TOKEN_REFRESHED' | 'USER_UPDATED', session);
+          } catch (error) {
+            console.error('Error in auth listener:', error);
+          }
+        });
+      }
 
       // Cache session on auth state changes
       if (session && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED')) {

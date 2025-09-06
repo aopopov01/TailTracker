@@ -7,9 +7,9 @@ import {
   Dimensions,
   Platform,
 } from 'react-native';
-import { useRouter } from 'expo-router';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useRouter } from 'expo-router';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -20,7 +20,7 @@ import Animated, {
   SlideInDown,
 } from 'react-native-reanimated';
 
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 const COLORS = {
   lightCyan: '#5DD4DC',
@@ -67,18 +67,18 @@ export default function OnboardingWelcome() {
         easing: Easing.out(Easing.ease),
       })
     );
-  }, []);
+  }, [progressWidth]);
 
   const progressStyle = useAnimatedStyle(() => ({
     width: progressWidth.value,
   }));
 
   const handleGetStarted = () => {
-    router.push('/onboarding/basic-info');
+    router.push('/onboarding/basic-info' as any);
   };
 
   const handleSkip = () => {
-    router.push('/(tabs)/dashboard');
+    router.push('/(tabs)/dashboard' as any);
   };
 
   return (
@@ -292,15 +292,6 @@ const styles = StyleSheet.create({
     color: COLORS.deepNavy,
     textAlign: 'center',
     fontWeight: '500',
-  },
-  additionalInfo: {
-    fontSize: 15,
-    color: COLORS.mediumGray,
-    textAlign: 'center',
-    lineHeight: 22,
-    marginBottom: 30,
-    paddingHorizontal: 15,
-    fontWeight: '400',
   },
   buttonContainer: {
     width: '100%',

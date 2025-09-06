@@ -13,11 +13,10 @@ import {
   Dimensions,
   Modal,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
-import { LinearGradient } from 'expo-linear-gradient';
 import * as ImagePicker from 'expo-image-picker';
+import { LinearGradient } from 'expo-linear-gradient';
 import * as MediaLibrary from 'expo-media-library';
 import { PinchGestureHandler, State } from 'react-native-gesture-handler';
 import Animated, {
@@ -26,6 +25,7 @@ import Animated, {
   useSharedValue,
   withSpring,
 } from 'react-native-reanimated';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { colors } from '@/constants/colors';
 import { fonts } from '@/constants/fonts';
@@ -61,7 +61,7 @@ export default function PhotoGalleryScreen() {
   const translateX = useSharedValue(0);
   const translateY = useSharedValue(0);
 
-  const loadPhotos = async () => {
+  const loadPhotos = useCallback(async () => {
     try {
       const { data: photoList, error } = await supabase.storage
         .from('pet-photos')
@@ -96,7 +96,7 @@ export default function PhotoGalleryScreen() {
       setLoading(false);
       setRefreshing(false);
     }
-  };
+  }, [petId]);
 
   const onRefresh = () => {
     setRefreshing(true);
@@ -106,7 +106,7 @@ export default function PhotoGalleryScreen() {
   useFocusEffect(
     useCallback(() => {
       loadPhotos();
-    }, [petId])
+    }, [loadPhotos])
   );
 
   const addPhotos = async () => {

@@ -7,8 +7,8 @@
  */
 
 import { Platform, Vibration } from 'react-native';
-import { tailTrackerColors } from '../core/colors';
 import { tailTrackerMotions } from '../animations/motionSystem';
+import { tailTrackerColors } from '../core/colors';
 
 // ====================================
 // HAPTIC FEEDBACK SYSTEM

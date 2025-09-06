@@ -34,7 +34,7 @@ export const DataConsentFlow: React.FC<DataConsentFlowProps> = ({
   onSkip,
   initialConsents = {}
 }) => {
-  const { modalConfig, showModal, hideModal, showConfirm } = useTailTrackerModal();
+  const { modalConfig, hideModal, showConfirm } = useTailTrackerModal();
   const [consents, setConsents] = useState<ConsentSettings>({
     essential: true, // Always required
     analytics: initialConsents.analytics ?? true,

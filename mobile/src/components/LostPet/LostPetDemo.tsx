@@ -13,8 +13,8 @@ import {
   Divider,
 } from 'react-native-paper';
 
-import { premiumLostPetService, LostPetHelpers } from '../../services/PremiumLostPetService';
 import { notificationService } from '../../services/NotificationService';
+import { premiumLostPetService, LostPetHelpers } from '../../services/PremiumLostPetService';
 import { LostPetCard, LostPetStatus, LostPetNotificationSettings } from './';
 
 // Demo data

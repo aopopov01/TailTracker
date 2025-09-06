@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -13,13 +13,14 @@ import {
   ActivityIndicator,
   Modal,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { LinearGradient } from 'expo-linear-gradient';
 import * as ImagePicker from 'expo-image-picker';
+import { LinearGradient } from 'expo-linear-gradient';
 import * as Location from 'expo-location';
+// eslint-disable-next-line import/no-unresolved
 import QRCode from 'react-native-qr-code-svg';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { captureRef } from 'react-native-view-shot';
 
 import { colors } from '@/constants/colors';
@@ -27,7 +28,7 @@ import { fonts } from '@/constants/fonts';
 import { spacing } from '@/constants/spacing';
 import { supabase } from '@/services/supabase';
 
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 interface Pet {
   id: string;
@@ -99,18 +100,18 @@ export default function PetProfileScreen() {
       loadPetData();
       requestLocationPermission();
     }
-  }, [petId]);
+  }, [petId, loadPetData, requestLocationPermission]);
 
-  const requestLocationPermission = async () => {
+  const requestLocationPermission = useCallback(async () => {
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
       setLocationPermission(status === 'granted');
     } catch (error) {
       console.error('Error requesting location permission:', error);
     }
-  };
+  }, []);
 
-  const loadPetData = async () => {
+  const loadPetData = useCallback(async () => {
     try {
       setLoading(true);
       
@@ -169,7 +170,7 @@ export default function PetProfileScreen() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [petId]);
 
   const calculateAge = (birthDate?: string) => {
     if (!birthDate) return 'Unknown';

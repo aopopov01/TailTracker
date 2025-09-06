@@ -1,8 +1,8 @@
 import React, { useEffect, useCallback, useRef } from 'react';
 import { BackHandler, Platform, ToastAndroid } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation, NavigationState, useFocusEffect } from '@react-navigation/native';
 import { CommonActions } from '@react-navigation/native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { modalService } from '../services/modalService';
 
 const DOUBLE_BACK_EXIT_KEY = '@TailTracker:double_back_exit_enabled';

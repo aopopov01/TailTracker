@@ -1,6 +1,6 @@
 import { StripeError } from '@stripe/stripe-react-native';
-import { PaymentError, StripePaymentService } from '../services/StripePaymentService';
 import { modalService } from '../services/modalService';
+import { PaymentError, StripePaymentService } from '../services/StripePaymentService';
 
 /**
  * Utility functions for handling payment errors throughout the app
@@ -34,8 +34,7 @@ export class PaymentErrorUtils {
         onRetry,
         'Try Again',
         'Cancel',
-        true,
-        'card-outline'
+        true
       );
     } else {
       modalService.showError(
@@ -107,8 +106,7 @@ export class PaymentErrorUtils {
         onRetry || (() => {}),
         'Try Different Method',
         'Cancel',
-        true,
-        'shield-alert-outline'
+        true
       );
       return;
     }
@@ -120,8 +118,7 @@ export class PaymentErrorUtils {
         onRetry || (() => {}),
         'Try Again',
         'Cancel',
-        true,
-        'shield-alert-outline'
+        true
       );
       return;
     }
@@ -140,8 +137,7 @@ export class PaymentErrorUtils {
         onRetry || (() => {}),
         'Try Different Card',
         'Cancel',
-        true,
-        'card-outline'
+        true
       );
       return;
     }
@@ -171,8 +167,7 @@ export class PaymentErrorUtils {
         onRetry,
         'Try Again',
         'Cancel',
-        true,
-        'wifi-outline'
+        true
       );
     } else {
       modalService.showError(

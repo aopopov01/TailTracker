@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { format, isToday, isPast, addDays, differenceInDays } from 'date-fns';
+import { format, isToday, isPast, differenceInDays } from 'date-fns';
 import {
   WellnessMetrics,
   CareTask,
@@ -10,8 +10,8 @@ import {
   TaskPriority,
   AlertSeverity,
   CareTaskType,
+  ActivityLevel,
 } from '../types/Wellness';
-import { Pet } from '../types/Pet';
 
 class WellnessService {
   private wellnessData: Map<string, WellnessMetrics[]> = new Map();
@@ -475,6 +475,138 @@ class WellnessService {
       return true;
     }
     return false;
+  }
+
+  /**
+   * Calculate overall wellness score for a pet
+   */
+  getWellnessScore(petId: string): number {
+    const metrics = this.getLatestWellnessMetrics(petId);
+    if (!metrics) return 5; // Default score if no metrics
+
+    // Weight different factors for overall score
+    const weights = {
+      activity: 0.25,
+      sleep: 0.2,
+      appetite: 0.2,
+      mood: 0.15,
+      health: 0.2,
+    };
+
+    // Convert activity level to numeric value
+    const activityValue = this.getActivityLevelValue(metrics.activityLevel);
+    
+    const score = 
+      (activityValue * weights.activity) +
+      ((metrics.sleepHours / 24) * 10 * weights.sleep) +
+      (metrics.appetiteScore * weights.appetite) +
+      (metrics.moodScore * weights.mood) +
+      (metrics.energyLevel * weights.health);
+
+    return Math.round(score * 10) / 10; // Round to 1 decimal place
+  }
+
+  /**
+   * Convert activity level to numeric value
+   */
+  private getActivityLevelValue(level: ActivityLevel): number {
+    const values = {
+      'very_low': 2,
+      'low': 4,
+      'moderate': 6,
+      'high': 8,
+      'very_high': 10
+    };
+    return values[level] || 5;
+  }
+
+  /**
+   * Get tasks for a specific date
+   */
+  getTasksForDate(petId: string, date: Date): CareTask[] {
+    const petTasks = this.careTasks.get(petId) || [];
+    const targetDate = format(date, 'yyyy-MM-dd');
+    
+    return petTasks.filter(task => 
+      format(new Date(task.dueDate), 'yyyy-MM-dd') === targetDate
+    );
+  }
+
+  /**
+   * Check if task is overdue
+   */
+  private isTaskOverdue(task: CareTask): boolean {
+    return !task.completedAt && isPast(new Date(task.dueDate));
+  }
+
+  /**
+   * Create wellness alert
+   */
+  private async createAlert(alertData: {
+    petId: string;
+    type: string;
+    severity: AlertSeverity;
+    title: string;
+    message: string;
+    data?: any;
+  }): Promise<void> {
+    const alert: WellnessAlert = {
+      id: `alert_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      petId: alertData.petId,
+      type: alertData.type as any,
+      severity: alertData.severity,
+      title: alertData.title,
+      message: alertData.message,
+      triggeredBy: 'system' as any,
+      createdAt: new Date().toISOString(),
+    };
+
+    this.wellnessAlerts.push(alert);
+    await this.saveData();
+  }
+
+  /**
+   * Generate daily wellness insights for all pets
+   */
+  private async generateDailyInsights(): Promise<void> {
+    try {
+      // Get all pets with recent activity
+      const allPetIds = Array.from(this.wellnessData.keys());
+      
+      for (const petId of allPetIds) {
+        const todayTasks = this.getTasksForDate(petId, new Date());
+        const overdueTasks = todayTasks.filter(task => this.isTaskOverdue(task));
+        
+        if (overdueTasks.length > 0) {
+          await this.createAlert({
+            petId,
+            type: 'overdue_tasks',
+            severity: 'medium' as AlertSeverity,
+            title: 'Overdue Care Tasks',
+            message: `You have ${overdueTasks.length} overdue tasks for your pet.`,
+            data: { tasks: overdueTasks },
+          });
+        }
+
+        // Check wellness trends
+        const recentMetrics = this.getWellnessMetrics(petId, 7);
+        if (recentMetrics.length >= 3) {
+          const avgScore = recentMetrics.reduce((sum, m) => sum + this.getWellnessScore(petId), 0) / recentMetrics.length;
+          if (avgScore < 6) {
+            await this.createAlert({
+              petId,
+              type: 'wellness_concern',
+              severity: 'high' as AlertSeverity,
+              title: 'Wellness Concern',
+              message: 'Your pet\'s wellness score has been declining. Consider consulting a veterinarian.',
+              data: { averageScore: avgScore },
+            });
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error generating daily insights:', error);
+    }
   }
 }
 

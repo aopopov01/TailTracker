@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { View, ActivityIndicator, StyleSheet, Text } from 'react-native';
 import { useAuth } from '../../contexts/AuthContext';
-import { AuthNavigator } from './AuthNavigator';
 import { MigrationService } from '../../services/migrationService';
+import { log } from '../../utils/Logger';
+import { AuthNavigator } from './AuthNavigator';
 
 interface AuthGuardProps {
   children: React.ReactNode;
@@ -28,7 +29,7 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
         
         setMigrationChecked(true);
       } catch (error) {
-        console.error('Migration check error:', error);
+        log.error('Migration check error:', error);
         setMigrationChecked(true);
       } finally {
         setMigrationInProgress(false);
@@ -47,7 +48,7 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
         try {
           await MigrationService.performPostAuthMigration();
         } catch (error) {
-          console.error('Post-auth migration error:', error);
+          log.error('Post-auth migration error:', error);
         }
       }
     };

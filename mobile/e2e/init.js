@@ -1,6 +1,6 @@
 const detox = require('detox');
-const config = require('../.detoxrc.json');
 const adapter = require('detox/runners/jest/adapter');
+const config = require('../.detoxrc.json');
 
 // Set the default timeout for all tests
 jest.setTimeout(120000);
@@ -197,7 +197,7 @@ global.NotificationHelpers = {
     // Grant permissions if prompted
     try {
       await element(by.text('Allow')).tap();
-    } catch (error) {
+    } catch (_error) {
       // Permission might already be granted
     }
   },
@@ -233,7 +233,7 @@ global.DeviceHelpers = {
       } else {
         await element(by.text('ALLOW')).tap();
       }
-    } catch (error) {
+    } catch (_error) {
       // Permission dialog might not appear if already granted
       console.log(`Permission dialog not found for ${permissionType}`);
     }
@@ -246,7 +246,7 @@ global.DeviceHelpers = {
       } else {
         await element(by.text('DENY')).tap();
       }
-    } catch (error) {
+    } catch (_error) {
       console.log(`Permission dialog not found for ${permissionType}`);
     }
   },

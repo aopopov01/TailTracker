@@ -14,6 +14,7 @@
  */
 
 import React, { useEffect, useRef, useState, useCallback } from 'react';
+import { DeviceEventEmitter, InteractionManager, View, Text } from 'react-native';
 import {
   useFrameCallback,
   useDerivedValue,
@@ -21,8 +22,7 @@ import {
   runOnJS,
   cancelAnimation,
 } from 'react-native-reanimated';
-import { DeviceEventEmitter, InteractionManager, View, Text } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+// AsyncStorage import removed - unused
 
 // ====================================
 // PERFORMANCE MONITORING TYPES

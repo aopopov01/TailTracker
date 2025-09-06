@@ -15,11 +15,10 @@ import {
   Switch,
   TouchableOpacity,
   Alert,
-  Platform,
   ActivityIndicator,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { 
   useNotificationService,
   useNotificationPermissions,
@@ -121,11 +120,11 @@ const NOTIFICATION_TYPES: NotificationTypeInfo[] = [
   },
 ];
 
-const DELIVERY_CHANNELS: Array<{ 
+const DELIVERY_CHANNELS: { 
   channel: DeliveryChannel; 
   title: string; 
   icon: keyof typeof Ionicons.glyphMap 
-}> = [
+}[] = [
   { channel: 'push', title: 'Push Notifications', icon: 'notifications' },
   { channel: 'sound', title: 'Sound', icon: 'volume-high' },
   { channel: 'vibration', title: 'Vibration', icon: 'phone-portrait' },

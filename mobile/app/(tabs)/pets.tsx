@@ -11,7 +11,7 @@ export default function PetsScreen() {
         <View style={styles.headerActions}>
           <TouchableOpacity 
             style={styles.shareButton}
-            onPress={() => router.push('/sharing')}
+            onPress={() => router.push('/sharing' as any)}
           >
             <MaterialIcons name="qr-code" size={18} color="#007AFF" />
             <Text style={styles.shareButtonText}>Share</Text>
@@ -29,7 +29,7 @@ export default function PetsScreen() {
             <Text style={styles.petName}>Max</Text>
             <Text style={styles.petBreed}>Golden Retriever • 3 years</Text>
           </View>
-          <View style={[styles.statusBadge, { backgroundColor: '#4CAF50' }]}>
+          <View style={[styles.statusBadge, styles.statusActiveBackground]}>
             <Text style={styles.statusText}>Active</Text>
           </View>
         </View>
@@ -56,7 +56,7 @@ export default function PetsScreen() {
             <Text style={styles.petName}>Luna</Text>
             <Text style={styles.petBreed}>Persian Cat • 2 years</Text>
           </View>
-          <View style={[styles.statusBadge, { backgroundColor: '#FF9800' }]}>
+          <View style={[styles.statusBadge, styles.statusExploringBackground]}>
             <Text style={styles.statusText}>Exploring</Text>
           </View>
         </View>
@@ -83,7 +83,7 @@ export default function PetsScreen() {
             <Text style={styles.petName}>Buddy</Text>
             <Text style={styles.petBreed}>Labrador Mix • 5 years</Text>
           </View>
-          <View style={[styles.statusBadge, { backgroundColor: '#9E9E9E' }]}>
+          <View style={[styles.statusBadge, styles.statusRestingBackground]}>
             <Text style={styles.statusText}>Resting</Text>
           </View>
         </View>
@@ -216,5 +216,14 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#666',
     marginTop: 2,
+  },
+  statusActiveBackground: {
+    backgroundColor: '#4CAF50',
+  },
+  statusExploringBackground: {
+    backgroundColor: '#FF9800',
+  },
+  statusRestingBackground: {
+    backgroundColor: '#9E9E9E',
   },
 });

@@ -11,6 +11,7 @@ import {
   Chip,
   List,
 } from 'react-native-paper';
+import { tailTrackerColors } from '../../design-system/core/colors';
 import { SubscriptionPlan } from '../../services/StripePaymentService';
 
 interface SubscriptionPlanCardProps {
@@ -122,7 +123,7 @@ export const SubscriptionPlanCard: React.FC<SubscriptionPlanCardProps> = ({
                 <List.Icon 
                   {...props} 
                   icon="check" 
-                  color={isPopular ? '#6200EE' : '#4CAF50'} 
+                  color={isPopular ? tailTrackerColors.primary.trustBlue : tailTrackerColors.semantic.successPrimary} 
                 />
               )}
               titleStyle={styles.featureText}
@@ -167,12 +168,12 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   popularPlan: {
-    borderColor: '#6200EE',
+    borderColor: tailTrackerColors.primary.trustBlue, // WCAG AA compliant
     borderWidth: 2,
     elevation: 8,
   },
   currentPlan: {
-    borderColor: '#4CAF50',
+    borderColor: tailTrackerColors.semantic.successPrimary, // WCAG AA compliant
     borderWidth: 2,
   },
   popularBadge: {
@@ -182,7 +183,7 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   popularChip: {
-    backgroundColor: '#6200EE',
+    backgroundColor: tailTrackerColors.primary.trustBlue, // WCAG AA compliant
   },
   popularChipText: {
     color: 'white',
@@ -201,7 +202,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   popularPlanName: {
-    color: '#6200EE',
+    color: tailTrackerColors.primary.trustBlue, // WCAG AA: 7.63:1
   },
   priceContainer: {
     flexDirection: 'row',
@@ -210,19 +211,19 @@ const styles = StyleSheet.create({
   price: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#333',
+    color: tailTrackerColors.light.textPrimary, // WCAG AA: 16.05:1
   },
   popularPrice: {
-    color: '#6200EE',
+    color: tailTrackerColors.primary.trustBlue, // WCAG AA: 7.63:1
   },
   interval: {
     fontSize: 16,
-    color: '#666',
+    color: tailTrackerColors.light.textSecondary, // WCAG AA: 7.24:1
     marginLeft: 4,
   },
   description: {
     textAlign: 'center',
-    color: '#666',
+    color: tailTrackerColors.light.textSecondary, // WCAG AA: 7.24:1
     marginBottom: 24,
     lineHeight: 20,
   },
@@ -233,7 +234,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     marginBottom: 8,
-    color: '#333',
+    color: tailTrackerColors.light.textPrimary, // WCAG AA: 16.05:1
   },
   featureItem: {
     paddingVertical: 2,
@@ -248,10 +249,10 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   popularSelectButton: {
-    backgroundColor: '#6200EE',
+    backgroundColor: tailTrackerColors.primary.trustBlue, // WCAG AA compliant
   },
   currentPlanButton: {
-    borderColor: '#4CAF50',
+    borderColor: tailTrackerColors.semantic.successPrimary, // WCAG AA compliant
   },
   selectButtonContent: {
     height: 48,
@@ -261,12 +262,12 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   currentPlanButtonLabel: {
-    color: '#4CAF50',
+    color: tailTrackerColors.semantic.successPrimary, // WCAG AA: 4.8:1
   },
   trialNote: {
     textAlign: 'center',
     fontSize: 12,
-    color: '#666',
+    color: tailTrackerColors.light.textSecondary, // WCAG AA: 7.24:1
     marginTop: 8,
     fontStyle: 'italic',
   },

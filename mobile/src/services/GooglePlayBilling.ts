@@ -38,6 +38,8 @@ export type PurchaseResult = {
 export const PRODUCT_IDS = {
   PREMIUM_MONTHLY: 'premium_monthly',
   PREMIUM_YEARLY: 'premium_yearly',
+  PRO_MONTHLY: 'pro_monthly',
+  PRO_YEARLY: 'pro_yearly',
   REMOVE_ADS: 'remove_ads',
   EXTRA_PETS: 'extra_pets_pack',
   PREMIUM_FEATURES: 'premium_features_pack',
@@ -46,6 +48,8 @@ export const PRODUCT_IDS = {
 export const SUBSCRIPTION_IDS = {
   PREMIUM_MONTHLY: 'premium_monthly',
   PREMIUM_YEARLY: 'premium_yearly',
+  PRO_MONTHLY: 'pro_monthly',
+  PRO_YEARLY: 'pro_yearly',
 } as const;
 
 class GooglePlayBillingService {
@@ -106,30 +110,39 @@ class GooglePlayBillingService {
       const products: Product[] = [
         {
           productId: PRODUCT_IDS.PREMIUM_MONTHLY,
-          price: '4.99',
-          currency: 'USD',
-          localizedPrice: '$4.99',
+          price: '5.99',
+          currency: 'EUR',
+          localizedPrice: '€5.99',
           title: 'Premium Monthly',
           description: 'Premium features for one month',
           type: 'subs',
         },
         {
           productId: PRODUCT_IDS.PREMIUM_YEARLY,
-          price: '49.99',
-          currency: 'USD',
-          localizedPrice: '$49.99',
+          price: '50.00',
+          currency: 'EUR',
+          localizedPrice: '€50.00',
           title: 'Premium Yearly',
-          description: 'Premium features for one year (Save 17%!)',
+          description: 'Premium features for one year (Save 30%!)',
           type: 'subs',
         },
         {
-          productId: PRODUCT_IDS.REMOVE_ADS,
-          price: '2.99',
-          currency: 'USD',
-          localizedPrice: '$2.99',
-          title: 'Remove Ads',
-          description: 'Remove all advertisements',
-          type: 'inapp',
+          productId: PRODUCT_IDS.PRO_MONTHLY,
+          price: '8.99',
+          currency: 'EUR',
+          localizedPrice: '€8.99',
+          title: 'Pro Monthly',
+          description: 'Pro features for one month',
+          type: 'subs',
+        },
+        {
+          productId: PRODUCT_IDS.PRO_YEARLY,
+          price: '80.00',
+          currency: 'EUR',
+          localizedPrice: '€80.00',
+          title: 'Pro Yearly',
+          description: 'Pro features for one year (Save 26%!)',
+          type: 'subs',
         },
         {
           productId: PRODUCT_IDS.EXTRA_PETS,

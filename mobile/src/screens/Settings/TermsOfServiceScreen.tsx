@@ -82,14 +82,12 @@ Account Termination:
         content: `Premium Subscription Plans:
 
 TailTracker Premium:
-• Monthly Plan: $8.99/month
-• Annual Plan: $89.99/year (17% savings)
-• 7-day free trial for new subscribers
+• Monthly Plan: €5.99/month
+• Annual Plan: €50.00/year (30% savings)
 
 TailTracker Pro:
-• Monthly Plan: $19.99/month
-• Annual Plan: $199.99/year (17% savings)
-• 14-day free trial for new subscribers
+• Monthly Plan: €8.99/month
+• Annual Plan: €80.00/year (26% savings)
 
 Billing Terms:
 • Subscription fees are billed in advance on a monthly or annual basis

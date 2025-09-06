@@ -96,7 +96,7 @@ class TailTrackerPerformanceReporter {
               logEntry.message.replace('Performance Metric:', '').trim()
             );
             metrics.push(metricData);
-          } catch (e) {
+          } catch (_e) {
             // Ignore invalid JSON
           }
         }
@@ -462,7 +462,7 @@ class TailTrackerPerformanceReporter {
     if (fs.existsSync(trendsPath)) {
       try {
         trends = JSON.parse(fs.readFileSync(trendsPath, 'utf8'));
-      } catch (e) {
+      } catch (_e) {
         trends = [];
       }
     }

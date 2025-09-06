@@ -1,7 +1,7 @@
 import { Platform } from 'react-native';
-import { iOSBiometricsService, BiometricAuthResult, KeychainOptions } from './iOSBiometricsService';
-import { AndroidBiometricsService } from './AndroidBiometricsService';
 import * as LocalAuthentication from 'expo-local-authentication';
+import { AndroidBiometricsService } from './AndroidBiometricsService';
+import { iOSBiometricsService, BiometricAuthResult, KeychainOptions } from './iOSBiometricsService';
 
 /**
  * Unified Biometric Authentication Service

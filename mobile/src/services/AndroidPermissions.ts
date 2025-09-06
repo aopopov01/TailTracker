@@ -1,6 +1,5 @@
 import React from 'react';
 import { Platform, Linking } from 'react-native';
-import { modalService } from './modalService';
 import { 
   PERMISSIONS, 
   RESULTS, 
@@ -11,6 +10,7 @@ import {
   check,
   openSettings,
 } from 'react-native-permissions';
+import { modalService } from './modalService';
 
 // Permission types for Android
 export type PermissionType = 

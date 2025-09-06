@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, Dimensions } from 'react-native';
-import { LineChart, BarChart, PieChart } from 'react-native-chart-kit';
 import { format, parseISO } from 'date-fns';
+import { LineChart, BarChart, PieChart } from 'react-native-chart-kit';
 
 const { width: screenWidth } = Dimensions.get('window');
 

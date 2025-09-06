@@ -18,10 +18,10 @@ import {
   ImageSourcePropType,
   Platform,
 } from 'react-native';
+import { tailTrackerMotions } from '../../animations/motionSystem';
 import { tailTrackerColors, colorUtils } from '../../core/colors';
-import { tailTrackerTypography } from '../../core/typography';
 import { tailTrackerSpacing } from '../../core/spacing';
-import { tailTrackerMotions } from '../animations/motionSystem';
+import { tailTrackerTypography } from '../../core/typography';
 
 // ====================================
 // COMPONENT TYPES

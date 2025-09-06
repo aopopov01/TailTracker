@@ -1,8 +1,8 @@
 import React from 'react';
 import { Platform, Dimensions, Image } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as FileSystem from 'expo-file-system';
 import * as ImageManipulator from 'expo-image-manipulator';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const MEMORY_CACHE_KEY = '@TailTracker:memory_cache';
 const MAX_CACHE_SIZE = 50 * 1024 * 1024; // 50MB
@@ -524,12 +524,8 @@ class AndroidMemoryOptimizationService {
   }
 
   private async getAvailableMemory(): Promise<number> {
-    try {
-      // Mock implementation - would use native module in real app
-      return 200 * 1024 * 1024; // 200MB
-    } catch (error) {
-      return 0;
-    }
+    // Mock implementation - would use native module in real app
+    return 200 * 1024 * 1024; // 200MB
   }
 
   private isValidImageUri(uri: string): boolean {
@@ -691,7 +687,7 @@ export const TailTrackerMemoryOptimization = {
   /**
    * Preload pet images
    */
-  async preloadPetImages(pets: Array<{ profileImage?: string; galleryImages?: string[] }>): Promise<void> {
+  async preloadPetImages(pets: { profileImage?: string; galleryImages?: string[] }[]): Promise<void> {
     const imageUris: string[] = [];
     
     pets.forEach(pet => {

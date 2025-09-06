@@ -12,15 +12,16 @@ import {
   ActivityIndicator,
   Dimensions,
 } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-import QRCode from 'react-native-qr-code-svg';
-import * as MediaLibrary from 'expo-media-library';
 import * as FileSystem from 'expo-file-system';
+import { LinearGradient } from 'expo-linear-gradient';
+import * as MediaLibrary from 'expo-media-library';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+// eslint-disable-next-line import/no-unresolved
+import QRCode from 'react-native-qr-code-svg';
 import ViewShot from 'react-native-view-shot';
-import { databaseService } from '../../services/databaseService';
 import { PremiumFeatureWrapper } from '../../components/Payment/PremiumFeatureWrapper';
+import { databaseService } from '../../services/databaseService';
 
 const { width: screenWidth } = Dimensions.get('window');
 const QR_SIZE = Math.min(screenWidth * 0.7, 300);
@@ -65,9 +66,9 @@ export default function QRCodeShareScreen() {
 
   React.useEffect(() => {
     loadPetData();
-  }, [petId]);
+  }, [petId, loadPetData]);
 
-  const loadPetData = async () => {
+  const loadPetData = useCallback(async () => {
     if (!petId) return;
     
     try {
@@ -97,7 +98,7 @@ export default function QRCodeShareScreen() {
       console.error('Error loading pet data:', error);
       Alert.alert('Error', 'Failed to load pet information');
     }
-  };
+  }, [petId, shareData]);
 
   const generateQRData = (data: ShareableData) => {
     const qrInfo: any = {

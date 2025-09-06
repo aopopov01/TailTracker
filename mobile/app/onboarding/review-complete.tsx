@@ -9,14 +9,9 @@ import {
   Platform,
   Modal,
 } from 'react-native';
-import { useRouter } from 'expo-router';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-import { usePetProfile } from '../../contexts/PetProfileContext';
-import { databaseService } from '../../services/database';
-import { useAuth } from '../../src/contexts/AuthContext';
-import { useTailTrackerModal } from '../../src/hooks/useTailTrackerModal';
-import { TailTrackerModal } from '../../src/components/UI/TailTrackerModal';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useRouter } from 'expo-router';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -29,8 +24,14 @@ import Animated, {
   SlideInDown,
   SlideInUp,
 } from 'react-native-reanimated';
+import { usePetProfile } from '../../contexts/PetProfileContext';
+import { databaseService } from '../../services/database';
+import { TailTrackerModal } from '../../src/components/UI/TailTrackerModal';
+import { useAuth } from '../../src/contexts/AuthContext';
+import { useTailTrackerModal } from '../../src/hooks/useTailTrackerModal';
+import { log } from '../../src/utils/Logger';
 
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 const COLORS = {
   lightCyan: '#5DD4DC',
@@ -80,7 +81,7 @@ const ProgressStep: React.FC<ProgressStepProps> = ({
         )
       );
     }
-  }, [completed, delay]);
+  }, [completed, delay, scale, checkScale]);
 
   const stepStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
@@ -128,7 +129,7 @@ const ProgressStep: React.FC<ProgressStepProps> = ({
 function ReviewCompleteScreen() {
   const router = useRouter();
   const { user } = useAuth();
-  const { modalConfig, showModal, hideModal, showError, showSuccess } = useTailTrackerModal();
+  const { modalConfig, showModal, hideModal, showError } = useTailTrackerModal();
   const { profile, resetProfile } = usePetProfile();
   const [isCreating, setIsCreating] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -171,7 +172,7 @@ function ReviewCompleteScreen() {
       -1,
       false
     );
-  }, []);
+  }, [celebrationScale, progressWidth, sparkleRotation]);
 
   const progressStyle = useAnimatedStyle(() => ({
     width: progressWidth.value,
@@ -190,13 +191,13 @@ function ReviewCompleteScreen() {
     
     try {
       // Debug: Log the profile data being saved
-      console.log('Saving pet profile:', JSON.stringify(profile, null, 2));
+      log.debug('Saving pet profile:', JSON.stringify(profile, null, 2));
       
       // Save pet profile to database
-      const petId = await databaseService.savePetProfile(profile, user?.id || 0);
+      const petId = await databaseService.savePetProfile(profile, parseInt(user?.id || '0', 10));
       
       if (petId) {
-        console.log('Pet profile saved with ID:', petId);
+        log.debug('Pet profile saved with ID:', petId);
         
         // Reset the profile context for next use
         resetProfile();
@@ -213,7 +214,7 @@ function ReviewCompleteScreen() {
               onPress: () => {
                 hideModal();
                 setIsCreating(false);
-                router.push('/(tabs)/dashboard');
+                router.push('/(tabs)/dashboard' as any);
               }
             }
           ],
@@ -223,7 +224,7 @@ function ReviewCompleteScreen() {
         throw new Error('Failed to save profile');
       }
     } catch (error) {
-      console.error('Error saving pet profile:', error);
+      log.error('Error saving pet profile:', error);
       setIsCreating(false);
       showError(
         'Error',
@@ -381,7 +382,7 @@ function ReviewCompleteScreen() {
               <TouchableOpacity
                 style={[
                   styles.createButton,
-                  { opacity: isCreating ? 0.7 : 1 }
+                  isCreating ? styles.createButtonDisabled : styles.createButtonEnabled
                 ]}
                 onPress={handleCreateProfile}
                 activeOpacity={0.9}
@@ -706,6 +707,12 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.15,
     shadowRadius: 12,
     elevation: 8,
+  },
+  createButtonEnabled: {
+    opacity: 1,
+  },
+  createButtonDisabled: {
+    opacity: 0.7,
   },
   createButtonGradient: {
     flexDirection: 'row',

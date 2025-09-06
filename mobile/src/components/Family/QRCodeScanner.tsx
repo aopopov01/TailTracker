@@ -1,8 +1,8 @@
 // QR Code Scanner Component for Joining Families
 import React, { useState, useEffect } from 'react';
-import { View, Text, Alert, StyleSheet, Dimensions } from 'react-native';
-import { Button, VStack, HStack, Box, useColorModeValue, Modal, Radio } from 'native-base';
+import { View, Alert, StyleSheet, Dimensions } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
+import { Button, Text, Modal, RadioButton, Card, useTheme, Portal } from 'react-native-paper';
 import { familyAccessService, type FamilyInviteData, type AccessLevel } from '@/services/FamilyAccessService';
 
 interface QRCodeScannerProps {
@@ -22,9 +22,7 @@ export const QRCodeScanner: React.FC<QRCodeScannerProps> = ({
   const [showAccessLevelModal, setShowAccessLevelModal] = useState(false);
   const [selectedAccessLevel, setSelectedAccessLevel] = useState<AccessLevel>('read');
   const [processing, setProcessing] = useState(false);
-
-  const bgColor = useColorModeValue('white', 'gray.800');
-  const overlayColor = useColorModeValue('rgba(0,0,0,0.6)', 'rgba(0,0,0,0.8)');
+  const theme = useTheme();
 
   useEffect(() => {
     if (isOpen) {
@@ -107,32 +105,34 @@ export const QRCodeScanner: React.FC<QRCodeScannerProps> = ({
   if (!permission.granted) {
     // Camera permissions are not granted yet
     return (
-      <Modal isOpen={isOpen} onClose={onClose} size="lg">
-        <Modal.Content>
-          <Modal.CloseButton />
-          <Modal.Header>Camera Permission Required</Modal.Header>
-          <Modal.Body>
-            <VStack space={4}>
-              <Text>
-                TailTracker needs camera access to scan QR codes for family invitations.
-              </Text>
-              <Button onPress={requestPermission}>
-                Grant Camera Permission
-              </Button>
-            </VStack>
-          </Modal.Body>
-        </Modal.Content>
-      </Modal>
+      <Portal>
+        <Modal visible={isOpen} onDismiss={onClose} contentContainerStyle={styles.modalContainer}>
+          <Card style={styles.permissionCard}>
+            <Card.Title title="Camera Permission Required" />
+            <Card.Content>
+              <View style={styles.verticalStack}>
+                <Text style={styles.permissionText}>
+                  TailTracker needs camera access to scan QR codes for family invitations.
+                </Text>
+                <Button mode="contained" onPress={requestPermission} style={styles.permissionButton}>
+                  Grant Camera Permission
+                </Button>
+              </View>
+            </Card.Content>
+          </Card>
+        </Modal>
+      </Portal>
     );
   }
 
   const screenWidth = Dimensions.get('window').width;
   const scannerSize = screenWidth * 0.7;
+  const overlayColor = 'rgba(0, 0, 0, 0.6)';
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="full">
-      <Modal.Content flex={1} bg="black">
-        <Modal.CloseButton color="white" />
+    <Portal>
+      <Modal visible={isOpen} onDismiss={onClose} contentContainerStyle={styles.fullScreenModal}>
+        <View style={styles.scannerContainer}>
         
         {/* Camera View */}
         <CameraView
@@ -164,38 +164,40 @@ export const QRCodeScanner: React.FC<QRCodeScannerProps> = ({
             </View>
             
             {/* Bottom overlay with instructions */}
-            <View style={[styles.overlaySection, styles.instructionsArea, { backgroundColor: overlayColor }]}>
-              <VStack space={4} alignItems="center" px={6}>
-                <Text color="white" fontSize="lg" fontWeight="semibold" textAlign="center">
+            <View style={[styles.overlaySection, styles.instructionsArea, { backgroundColor: 'rgba(0, 0, 0, 0.6)' }]}>
+              <View style={styles.verticalStack}>
+                <Text style={styles.instructionTitle}>
                   Scan Family Invite QR Code
                 </Text>
-                <Text color="gray.200" fontSize="sm" textAlign="center">
+                <Text style={styles.instructionSubtitle}>
                   Position the QR code within the frame to join a family
                 </Text>
                 
                 {processing && (
-                  <Box bg="blue.600" px={4} py={2} rounded="full">
-                    <Text color="white" fontSize="sm">
+                  <View style={styles.processingBox}>
+                    <Text style={styles.processingText}>
                       Processing invite...
                     </Text>
-                  </Box>
+                  </View>
                 )}
                 
                 {scanned && !processing && (
                   <Button
-                    variant="outline"
-                    colorScheme="white"
+                    mode="outlined"
                     onPress={() => setScanned(false)}
+                    style={styles.scanAgainButton}
+                    labelStyle={styles.scanAgainButtonText}
                   >
                     Scan Again
                   </Button>
                 )}
-              </VStack>
+              </View>
             </View>
           </View>
         </CameraView>
-      </Modal.Content>
-    </Modal>
+        </View>
+      </Modal>
+    </Portal>
   );
 };
 
@@ -249,5 +251,60 @@ const styles = StyleSheet.create({
   instructionsArea: {
     justifyContent: 'center',
     minHeight: 150,
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+  },
+  permissionCard: {
+    minWidth: 300,
+  },
+  verticalStack: {
+    gap: 16,
+    alignItems: 'center',
+  },
+  permissionText: {
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  permissionButton: {
+    marginTop: 8,
+  },
+  fullScreenModal: {
+    flex: 1,
+    margin: 0,
+  },
+  scannerContainer: {
+    flex: 1,
+    backgroundColor: 'black',
+  },
+  instructionTitle: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  instructionSubtitle: {
+    color: '#e0e0e0',
+    fontSize: 14,
+    textAlign: 'center',
+  },
+  processingBox: {
+    backgroundColor: '#1976d2',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+  },
+  processingText: {
+    color: 'white',
+    fontSize: 14,
+  },
+  scanAgainButton: {
+    borderColor: 'white',
+  },
+  scanAgainButtonText: {
+    color: 'white',
   },
 });

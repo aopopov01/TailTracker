@@ -1,7 +1,7 @@
-import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { format, addMinutes, isBefore, isAfter } from 'date-fns';
+import * as Notifications from 'expo-notifications';
 import { CareTask, ReminderSettings, WellnessAlert } from '../types/Wellness';
 
 // Configure notification behavior

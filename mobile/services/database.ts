@@ -259,9 +259,9 @@ class DatabaseService {
       `);
 
       this.initialized = true;
-    } catch (error) {
-      console.error('Database initialization error:', error);
-      throw error;
+    } catch (_error) {
+      console.error('Database initialization error:', _error);
+      throw _error;
     }
   }
 
@@ -277,8 +277,8 @@ class DatabaseService {
       );
 
       return result.lastInsertRowId;
-    } catch (error) {
-      throw error;
+    } catch (_error) {
+      throw _error;
     }
   }
 
@@ -304,8 +304,8 @@ class DatabaseService {
         passwordHash: result.passwordHash,
         passwordSalt: result.passwordSalt
       };
-    } catch (error) {
-      throw error;
+    } catch (_error) {
+      throw _error;
     }
   }
 
@@ -329,8 +329,8 @@ class DatabaseService {
         createdAt: result.createdAt,
         updatedAt: result.updatedAt
       };
-    } catch (error) {
-      throw error;
+    } catch (_error) {
+      throw _error;
     }
   }
 
@@ -349,8 +349,8 @@ class DatabaseService {
         passwordHash: result.passwordHash,
         passwordSalt: result.passwordSalt
       };
-    } catch (error) {
-      throw error;
+    } catch (_error) {
+      throw _error;
     }
   }
 
@@ -363,8 +363,8 @@ class DatabaseService {
         'UPDATE users SET lastLoginAt = ?, updatedAt = ? WHERE id = ?',
         [now, now, userId]
       );
-    } catch (error) {
-      throw error;
+    } catch (_error) {
+      throw _error;
     }
   }
 
@@ -377,8 +377,8 @@ class DatabaseService {
         'UPDATE users SET passwordHash = ?, passwordSalt = ?, updatedAt = ? WHERE id = ?',
         [passwordHash, passwordSalt, now, userId]
       );
-    } catch (error) {
-      throw error;
+    } catch (_error) {
+      throw _error;
     }
   }
 
@@ -440,8 +440,8 @@ class DatabaseService {
       );
 
       return result.lastInsertRowId;
-    } catch (error) {
-      throw error;
+    } catch (_error) {
+      throw _error;
     }
   }
 
@@ -456,8 +456,8 @@ class DatabaseService {
       
 
       return results.map(row => this.mapRowToPetProfile(row));
-    } catch (error) {
-      throw error;
+    } catch (_error) {
+      throw _error;
     }
   }
 
@@ -473,8 +473,8 @@ class DatabaseService {
       if (!result) return null;
 
       return this.mapRowToPetProfile(result);
-    } catch (error) {
-      throw error;
+    } catch (_error) {
+      throw _error;
     }
   }
 
@@ -503,8 +503,8 @@ class DatabaseService {
         `UPDATE pets SET ${setClause}, updatedAt = ? WHERE id = ? AND userId = ?`,
         [...values, now, id, userId] as (string | number)[]
       );
-    } catch (error) {
-      throw error;
+    } catch (_error) {
+      throw _error;
     }
   }
 
@@ -516,8 +516,8 @@ class DatabaseService {
         'DELETE FROM pets WHERE id = ? AND userId = ?',
         [id, userId]
       );
-    } catch (error) {
-      throw error;
+    } catch (_error) {
+      throw _error;
     }
   }
 
@@ -538,8 +538,8 @@ class DatabaseService {
       );
 
       return token;
-    } catch (error) {
-      throw error;
+    } catch (_error) {
+      throw _error;
     }
   }
 
@@ -564,8 +564,8 @@ class DatabaseService {
         createdAt: result.createdAt,
         lastUsedAt: result.lastUsedAt
       };
-    } catch (error) {
-      throw error;
+    } catch (_error) {
+      throw _error;
     }
   }
 
@@ -584,8 +584,8 @@ class DatabaseService {
         `UPDATE sharing_tokens SET lastUsedAt = CURRENT_TIMESTAMP WHERE id = ?`,
         [tokenId]
       );
-    } catch (error) {
-      throw error;
+    } catch (_error) {
+      throw _error;
     }
   }
 
@@ -615,8 +615,8 @@ class DatabaseService {
         species: row.species,
         breed: row.breed
       }));
-    } catch (error) {
-      throw error;
+    } catch (_error) {
+      throw _error;
     }
   }
 
@@ -643,8 +643,8 @@ class DatabaseService {
       );
 
       return this.mapRowToPetProfile(result);
-    } catch (error) {
-      throw error;
+    } catch (_error) {
+      throw _error;
     }
   }
 
@@ -668,8 +668,8 @@ class DatabaseService {
         createdAt: row.createdAt,
         lastUsedAt: row.lastUsedAt
       }));
-    } catch (error) {
-      throw error;
+    } catch (_error) {
+      throw _error;
     }
   }
 
@@ -686,8 +686,8 @@ class DatabaseService {
         `UPDATE shared_access SET isActive = 0 WHERE tokenId = ?`,
         [tokenId]
       );
-    } catch (error) {
-      throw error;
+    } catch (_error) {
+      throw _error;
     }
   }
 
@@ -715,8 +715,8 @@ class DatabaseService {
         lastAccessedAt: row.lastAccessedAt,
         isActive: row.isActive === 1
       }));
-    } catch (error) {
-      throw error;
+    } catch (_error) {
+      throw _error;
     }
   }
 
@@ -729,8 +729,8 @@ class DatabaseService {
          WHERE id = ? AND ownerUserId = ?`,
         [accessId, ownerUserId]
       );
-    } catch (error) {
-      throw error;
+    } catch (_error) {
+      throw _error;
     }
   }
 
@@ -743,8 +743,8 @@ class DatabaseService {
          WHERE tokenId = ? AND guestUserId = ?`,
         [tokenId, guestUserId]
       );
-    } catch (error) {
-      throw error;
+    } catch (_error) {
+      throw _error;
     }
   }
 
@@ -759,8 +759,8 @@ class DatabaseService {
       ) as any[];
 
       return results.map(row => this.mapRowToPetProfile(row));
-    } catch (error) {
-      throw error;
+    } catch (_error) {
+      throw _error;
     }
   }
 
@@ -772,8 +772,8 @@ class DatabaseService {
         'UPDATE pets SET userId = ?, updatedAt = CURRENT_TIMESTAMP WHERE id = ?',
         [userId, petId]
       );
-    } catch (error) {
-      throw error;
+    } catch (_error) {
+      throw _error;
     }
   }
 
@@ -799,8 +799,8 @@ class DatabaseService {
         ]
       );
       return result.lastInsertRowId;
-    } catch (error) {
-      throw error;
+    } catch (_error) {
+      throw _error;
     }
   }
 
@@ -824,8 +824,8 @@ class DatabaseService {
         created_at: row.created_at,
         updated_at: row.updated_at
       }));
-    } catch (error) {
-      throw error;
+    } catch (_error) {
+      throw _error;
     }
   }
 
@@ -838,12 +838,13 @@ class DatabaseService {
       const values = fields.map(field => updates[field as keyof VaccinationRecord]);
       const setClause = fields.map(field => `${field} = ?`).join(', ');
       
+      const params: any[] = [...values, now, id];
       db.runSync(
         `UPDATE vaccination_records SET ${setClause}, updated_at = ? WHERE id = ?`,
-        [...values, now, id]
+        params
       );
-    } catch (error) {
-      throw error;
+    } catch (_error) {
+      throw _error;
     }
   }
 
@@ -852,8 +853,8 @@ class DatabaseService {
     
     try {
       db.runSync('DELETE FROM vaccination_records WHERE id = ?', [id]);
-    } catch (error) {
-      throw error;
+    } catch (_error) {
+      throw _error;
     }
   }
 
@@ -884,8 +885,8 @@ class DatabaseService {
         ]
       );
       return result.lastInsertRowId;
-    } catch (error) {
-      throw error;
+    } catch (_error) {
+      throw _error;
     }
   }
 
@@ -894,7 +895,7 @@ class DatabaseService {
     
     try {
       let query = 'SELECT * FROM medical_records WHERE pet_id = ?';
-      let params: any[] = [petId];
+      const params: any[] = [petId];
       
       if (recordType) {
         query += ' AND record_type = ?';
@@ -921,8 +922,8 @@ class DatabaseService {
         created_at: row.created_at,
         updated_at: row.updated_at
       }));
-    } catch (error) {
-      throw error;
+    } catch (_error) {
+      throw _error;
     }
   }
 
@@ -938,12 +939,13 @@ class DatabaseService {
       });
       const setClause = fields.map(field => `${field} = ?`).join(', ');
       
+      const params: any[] = [...values, now, id];
       db.runSync(
         `UPDATE medical_records SET ${setClause}, updated_at = ? WHERE id = ?`,
-        [...values, now, id]
+        params
       );
-    } catch (error) {
-      throw error;
+    } catch (_error) {
+      throw _error;
     }
   }
 
@@ -952,8 +954,8 @@ class DatabaseService {
     
     try {
       db.runSync('DELETE FROM medical_records WHERE id = ?', [id]);
-    } catch (error) {
-      throw error;
+    } catch (_error) {
+      throw _error;
     }
   }
 
@@ -990,8 +992,8 @@ class DatabaseService {
       ) as any;
       
       return this.mapRowToLostPetAlert(createdAlert);
-    } catch (error) {
-      throw error;
+    } catch (_error) {
+      throw _error;
     }
   }
 
@@ -1005,8 +1007,8 @@ class DatabaseService {
       ) as any;
       
       return result ? this.mapRowToLostPetAlert(result) : null;
-    } catch (error) {
-      throw error;
+    } catch (_error) {
+      throw _error;
     }
   }
 
@@ -1020,8 +1022,8 @@ class DatabaseService {
       ) as any;
       
       return result ? this.mapRowToLostPetAlert(result) : null;
-    } catch (error) {
-      throw error;
+    } catch (_error) {
+      throw _error;
     }
   }
 
@@ -1046,9 +1048,10 @@ class DatabaseService {
       });
       const setClause = fields.map(field => `${field} = ?`).join(', ');
       
+      const params: any[] = [...values, now, parseInt(id)];
       db.runSync(
         `UPDATE lost_pet_alerts SET ${setClause}, updated_at = ? WHERE id = ?`,
-        [...values, now, parseInt(id)]
+        params
       );
       
       const updatedAlert = db.getFirstSync(
@@ -1057,8 +1060,8 @@ class DatabaseService {
       ) as any;
       
       return this.mapRowToLostPetAlert(updatedAlert);
-    } catch (error) {
-      throw error;
+    } catch (_error) {
+      throw _error;
     }
   }
 
@@ -1071,8 +1074,8 @@ class DatabaseService {
       ) as any[];
       
       return results.map(row => this.mapRowToLostPetAlert(row));
-    } catch (error) {
-      throw error;
+    } catch (_error) {
+      throw _error;
     }
   }
 
@@ -1087,27 +1090,23 @@ class DatabaseService {
       ) as any;
       
       return result ? this.mapRowToPetProfile(result) : null;
-    } catch (error) {
-      throw error;
+    } catch (_error) {
+      throw _error;
     }
   }
 
   async getCurrentUser(): Promise<any> {
     await this.initialize();
     
-    try {
-      // This would typically get the current user from auth state
-      // For now, return a mock user - this should be implemented based on your auth system
-      return {
-        id: 1,
-        email: 'user@example.com',
-        display_name: 'User Name',
-        phone: '+1234567890',
-        emergency_contact: '+0987654321'
-      };
-    } catch (error) {
-      throw error;
-    }
+    // This would typically get the current user from auth state
+    // For now, return a mock user - this should be implemented based on your auth system
+    return {
+      id: 1,
+      email: 'user@example.com',
+      display_name: 'User Name',
+      phone: '+1234567890',
+      emergency_contact: '+0987654321'
+    };
   }
 
   private mapRowToLostPetAlert(row: any): LostPetAlert {

@@ -404,7 +404,7 @@ Deno.serve(async (req: Request) => {
       { status: 200, headers: corsHeaders }
     );
 
-  } catch (error) {
+  } catch (_error) {
     console.error('API middleware error:', error);
     return new Response(
       JSON.stringify({

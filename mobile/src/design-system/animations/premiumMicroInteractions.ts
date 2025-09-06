@@ -13,6 +13,14 @@
  */
 
 import React, { useEffect, useCallback } from 'react';
+import { Dimensions } from 'react-native';
+import { Haptics } from 'expo-haptics';
+import {
+  Gesture,
+  PanGestureHandler,
+  TapGestureHandler,
+  LongPressGestureHandler,
+} from 'react-native-gesture-handler';
 import {
   useSharedValue,
   useAnimatedStyle,
@@ -28,17 +36,9 @@ import {
   useDerivedValue,
   cancelAnimation,
 } from 'react-native-reanimated';
-import {
-  Gesture,
-  PanGestureHandler,
-  TapGestureHandler,
-  LongPressGestureHandler,
-} from 'react-native-gesture-handler';
-import { Haptics } from 'expo-haptics';
-import { Dimensions } from 'react-native';
 import { tailTrackerMotions } from './motionSystem';
 
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 // ====================================
 // PREMIUM BUTTON INTERACTIONS
@@ -135,7 +135,7 @@ export const usePremiumButtonAnimation = (
         easing: tailTrackerMotions.easing.natural,
       });
     }
-  }, [isLoading]);
+  }, [isLoading, iconRotation, scale]);
 
   // Success celebration animation
   useEffect(() => {
@@ -165,7 +165,7 @@ export const usePremiumButtonAnimation = (
         }))
       );
     }
-  }, [isSuccess]);
+  }, [isSuccess, backgroundProgress, scale]);
 
   // Error shake animation
   useEffect(() => {
@@ -188,7 +188,7 @@ export const usePremiumButtonAnimation = (
         })
       );
     }
-  }, [isError]);
+  }, [isError, scale]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [
@@ -410,7 +410,7 @@ export const useEmotionalTransition = (
     translateX.value = withTiming(to.translateX, { duration, easing });
     scale.value = withTiming(to.scale, { duration, easing });
     opacity.value = withTiming(to.opacity, { duration, easing });
-  }, [transitionType]);
+  }, [config.enter, opacity, scale, translateX]);
 
   const exit = useCallback(() => {
     const { to, duration, easing } = config.exit;
@@ -418,7 +418,7 @@ export const useEmotionalTransition = (
     translateX.value = withTiming(to.translateX, { duration, easing });
     scale.value = withTiming(to.scale, { duration, easing });
     opacity.value = withTiming(to.opacity, { duration, easing });
-  }, [transitionType]);
+  }, [config.exit, opacity, scale, translateX]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [
@@ -666,7 +666,7 @@ export const usePersonalizedLoadingAnimation = (
       cancelAnimation(scale);
       cancelAnimation(pawPosition);
     };
-  }, [loadingType]);
+  }, [loadingType, pawPosition, rotation, scale]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [

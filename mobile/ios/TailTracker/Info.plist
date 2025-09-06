@@ -4,8 +4,8 @@
   <dict>
     <key>BGTaskSchedulerPermittedIdentifiers</key>
     <array>
-      <string>$(PRODUCT_BUNDLE_IDENTIFIER).background-location</string>
       <string>$(PRODUCT_BUNDLE_IDENTIFIER).background-refresh</string>
+      <string>$(PRODUCT_BUNDLE_IDENTIFIER).background-notification-sync</string>
     </array>
     <key>CADisableMinimumFrameDurationOnPhone</key>
     <true/>
@@ -46,9 +46,6 @@
     <array>
       <string>tel</string>
       <string>mailto</string>
-      <string>maps</string>
-      <string>comgooglemaps</string>
-      <string>waze</string>
     </array>
     <key>LSRequiresIPhoneOS</key>
     <true/>
@@ -62,13 +59,15 @@
     <key>NSFaceIDUsageDescription</key>
     <string>TailTracker uses Face ID for secure authentication and to protect your pet's sensitive information.</string>
     <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-    <string>TailTracker requires location access to provide core pet safety features: real-time pet tracking, instant alerts when pets leave safe zones, and location-based emergency notifications to help reunite you with lost pets quickly.</string>
+    <string>TailTracker needs location access to help find lost pets and send location-based alerts to nearby users.</string>
     <key>NSLocationAlwaysUsageDescription</key>
     <string>Background location access is essential for TailTracker's primary safety features: monitoring your pet's location 24/7, sending immediate alerts if they leave designated safe zones, and automatically tracking their whereabouts to help locate them if they go missing. This background monitoring provides peace of mind and faster emergency response.</string>
     <key>NSLocationWhenInUseUsageDescription</key>
-    <string>Location access enables TailTracker to show your pet's current location, help you navigate to them when they're lost, display nearby veterinarians and pet services, and set up personalized safe zones around your home and favorite pet areas.</string>
+    <string>TailTracker needs location access to help find lost pets and send location-based alerts to nearby users.</string>
     <key>NSMicrophoneUsageDescription</key>
     <string>TailTracker may need microphone access for video recording features.</string>
+    <key>NSMotionUsageDescription</key>
+    <string>Allow $(PRODUCT_NAME) to access your device motion</string>
     <key>NSPhotoLibraryAddUsageDescription</key>
     <string>TailTracker needs permission to save photos of your pets to your photo library.</string>
     <key>NSPhotoLibraryUsageDescription</key>
@@ -83,7 +82,6 @@
     </array>
     <key>UIBackgroundModes</key>
     <array>
-      <string>location</string>
       <string>background-processing</string>
       <string>background-fetch</string>
       <string>remote-notification</string>

@@ -11,22 +11,22 @@ import {
   ScrollView,
   Image,
 } from 'react-native';
-import { useRouter } from 'expo-router';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-import Svg, { Path, Circle, Ellipse, Polygon, Rect, LinearGradient as SvgLinearGradient, Stop, Defs, G, Line } from 'react-native-svg';
 import * as ImagePicker from 'expo-image-picker';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useRouter } from 'expo-router';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withTiming,
-  withDelay,
   Easing,
   FadeIn,
 } from 'react-native-reanimated';
-import { useTailTrackerModal } from '../../src/hooks/useTailTrackerModal';
-import { TailTrackerModal } from '../../src/components/UI/TailTrackerModal';
+import Svg, { Path, Circle, Ellipse, Polygon, Rect, LinearGradient as SvgLinearGradient, Stop, Defs, G, Line } from 'react-native-svg';
 import { usePetProfile } from '../../contexts/PetProfileContext';
+import { TailTrackerModal } from '../../src/components/UI/TailTrackerModal';
+import { useTailTrackerModal } from '../../src/hooks/useTailTrackerModal';
+import { log } from '../../src/utils/Logger';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -143,9 +143,9 @@ export default function BasicInfoScreen() {
   const router = useRouter();
   const { modalConfig, showWarning } = useTailTrackerModal();
   const { profile, updateBasicInfo } = usePetProfile();
-  const [petName, setPetName] = useState(profile.name || '');
-  const [species, setSpecies] = useState(profile.species || '');
-  const [petPhoto, setPetPhoto] = useState<string | null>(profile.photos?.[0] || null);
+  const [petName, setPetName] = useState(profile.name ?? '');
+  const [species, setSpecies] = useState(profile.species ?? '');
+  const [petPhoto, setPetPhoto] = useState<string | null>(profile.photos?.[0] ?? null);
   const [nameError, setNameError] = useState('');
   
   const progressWidth = useSharedValue((SCREEN_WIDTH - 40) * (1 / 7));
@@ -155,7 +155,7 @@ export default function BasicInfoScreen() {
       duration: 600,
       easing: Easing.out(Easing.ease),
     });
-  }, []);
+  }, [progressWidth]);
 
   const progressStyle = useAnimatedStyle(() => ({
     width: progressWidth.value,
@@ -175,7 +175,7 @@ export default function BasicInfoScreen() {
   };
 
   const pickImage = async () => {
-    console.log('Attempting to pick image...');
+    // Attempting to pick image from gallery
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -184,21 +184,21 @@ export default function BasicInfoScreen() {
         quality: 0.8,
       });
 
-      console.log('Image picker result:', result);
+      // Process image picker result
       if (!result.canceled) {
-        console.log('Image selected:', result.assets[0].uri);
+        // Image selected successfully
         setPetPhoto(result.assets[0].uri);
       }
     } catch (error) {
-      console.error('Error picking image:', error);
+      log.error('Error picking image:', error);
     }
   };
 
   const takePhoto = async () => {
-    console.log('Attempting to take photo...');
+    // Attempting to take photo with camera
     try {
       const permission = await ImagePicker.requestCameraPermissionsAsync();
-      console.log('Camera permission:', permission);
+      // Check camera permission status
       if (permission.granted) {
         const result = await ImagePicker.launchCameraAsync({
           allowsEditing: true,
@@ -206,16 +206,16 @@ export default function BasicInfoScreen() {
           quality: 0.8,
         });
 
-        console.log('Camera result:', result);
+        // Process camera result
         if (!result.canceled) {
-          console.log('Photo taken:', result.assets[0].uri);
+          // Photo taken successfully
           setPetPhoto(result.assets[0].uri);
         }
       } else {
         showWarning('Camera Permission', 'Camera access is required to take photos', 'camera');
       }
     } catch (error) {
-      console.error('Error taking photo:', error);
+      log.error('Error taking photo:', error);
     }
   };
 
@@ -232,10 +232,10 @@ export default function BasicInfoScreen() {
       photos: petPhoto ? [petPhoto] : []
     });
     
-    console.log('Saving basic info:', { name: petName, species, photos: petPhoto ? [petPhoto] : [] });
+    // Saving basic pet information
     
     // Navigate to next screen
-    router.push('/onboarding/physical-details');
+    router.push('/onboarding/physical-details' as any);
   };
 
   const handleBack = () => {

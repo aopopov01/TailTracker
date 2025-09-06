@@ -15,7 +15,7 @@ interface WidgetNativeModule {
 }
 
 export interface PetWidgetData {
-  pets: Array<{
+  pets: {
     id: string;
     name: string;
     imageUrl?: string;
@@ -35,7 +35,7 @@ export interface PetWidgetData {
       stepsToday: number;
       lastActivity?: number;
     };
-  }>;
+  }[];
   selectedPetId?: string;
   lastUpdated: number;
 }
@@ -177,13 +177,8 @@ class AndroidWidgetService {
   async getActiveWidgets(): Promise<number[]> {
     if (!this.isSupported) return [];
 
-    try {
-      // Mock implementation - would call native module
-      return [1001, 1002]; // Example widget IDs
-    } catch (error) {
-      console.error('Error getting active widgets:', error);
-      return [];
-    }
+    // Mock implementation - would call native module
+    return [1001, 1002]; // Example widget IDs
   }
 
   /**

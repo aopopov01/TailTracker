@@ -23,6 +23,8 @@ import {
   Pressable,
   ScrollView,
 } from 'react-native';
+import { Haptics } from 'expo-haptics';
+import { LinearGradient } from 'expo-linear-gradient';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -30,27 +32,26 @@ import Animated, {
   withSpring,
   withSequence,
   withDelay,
+  withRepeat,
   runOnJS,
   interpolate,
   Extrapolate,
 } from 'react-native-reanimated';
-import { LinearGradient } from 'expo-linear-gradient';
-import { Haptics } from 'expo-haptics';
 
 // Import our animation systems
+import {
+  useEmotionalIntelligence,
+  useAdaptiveLoadingAnimation,
+} from '../emotionalIntelligenceHooks';
+import { tailTrackerMotions } from '../motionSystem';
+import { useAnimationProfiler } from '../performanceMonitoring';
 import {
   useEmotionalTransition,
   usePremiumButtonAnimation,
   usePetCardAnimation,
 } from '../premiumMicroInteractions';
-import {
-  useEmotionalIntelligence,
-  useAdaptiveLoadingAnimation,
-} from '../emotionalIntelligenceHooks';
-import { useAnimationProfiler } from '../performanceMonitoring';
-import { tailTrackerMotions } from '../motionSystem';
 
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 // ====================================
 // TYPES
@@ -263,7 +264,7 @@ export const AnimatedNavigation: React.FC = () => {
       }));
       stopProfiling();
     }
-  }, [navigationState, enterScreen, exitScreen, setAppContext, inferEmotionalState]);
+  }, [navigationState, enterScreen, exitScreen, setAppContext, inferEmotionalState, startProfiling, stopProfiling]);
 
   const goBack = useCallback(() => {
     const history = navigationState.navigationHistory;
@@ -307,7 +308,7 @@ export const AnimatedNavigation: React.FC = () => {
         easing: tailTrackerMotions.easing.easeOut,
       })
     );
-  }, []);
+  }, [backdropOpacity, modalOpacity, modalScale]);
 
   const hideModal = useCallback(() => {
     backdropOpacity.value = withTiming(0, {
@@ -326,7 +327,7 @@ export const AnimatedNavigation: React.FC = () => {
     }, () => {
       runOnJS(setIsModalVisible)(false);
     });
-  }, []);
+  }, [backdropOpacity, modalOpacity, modalScale]);
 
   // ====================================
   // TAB BAR FUNCTIONS
@@ -344,7 +345,7 @@ export const AnimatedNavigation: React.FC = () => {
       duration: tailTrackerMotions.durations.standard,
       easing: tailTrackerMotions.easing.easeIn,
     });
-  }, []);
+  }, [tabBarOpacity, tabBarTranslateY]);
 
   const showTabBar = useCallback(() => {
     setTabBarVisible(true);
@@ -358,7 +359,7 @@ export const AnimatedNavigation: React.FC = () => {
       duration: tailTrackerMotions.durations.standard,
       easing: tailTrackerMotions.easing.easeOut,
     });
-  }, []);
+  }, [tabBarOpacity, tabBarTranslateY]);
 
   // ====================================
   // FAB FUNCTIONS
@@ -408,7 +409,7 @@ export const AnimatedNavigation: React.FC = () => {
         });
         break;
     }
-  }, []);
+  }, [fabRotation, fabScale]);
 
   // ====================================
   // COMPONENT EFFECTS
@@ -417,7 +418,7 @@ export const AnimatedNavigation: React.FC = () => {
   useEffect(() => {
     // Initial screen entry animation
     setTimeout(() => enterScreen(), 500);
-  }, []);
+  }, [enterScreen]);
 
   // Emergency screen handling
   useEffect(() => {
@@ -427,7 +428,7 @@ export const AnimatedNavigation: React.FC = () => {
     } else if (!tabBarVisible) {
       showTabBar();
     }
-  }, [navigationState.currentScreen]);
+  }, [navigationState.currentScreen, animateFAB, hideTabBar, showTabBar, tabBarVisible]);
 
   // ====================================
   // ANIMATED STYLES

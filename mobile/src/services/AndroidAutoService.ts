@@ -105,13 +105,8 @@ class AndroidAutoService {
   async isAndroidAutoConnected(): Promise<boolean> {
     if (!this.isSupported) return false;
 
-    try {
-      // Mock implementation - would call native module
-      return false; // Simulating not connected for development
-    } catch (error) {
-      console.error('Error checking Android Auto connection:', error);
-      return false;
-    }
+    // Mock implementation - would call native module
+    return false; // Simulating not connected for development
   }
 
   /**
@@ -515,7 +510,7 @@ export const TailTrackerAndroidAuto = {
   /**
    * Send daily summary
    */
-  async sendDailySummary(pets: Array<{ name: string; stepsToday: number; healthStatus: string }>): Promise<boolean> {
+  async sendDailySummary(pets: { name: string; stepsToday: number; healthStatus: string }[]): Promise<boolean> {
     if (pets.length === 0) return false;
 
     let summary = 'Daily pet summary: ';

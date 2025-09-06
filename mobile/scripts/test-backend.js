@@ -5,9 +5,9 @@
  * This script tests the Supabase connection and basic functionality
  */
 
-const { createClient } = require('@supabase/supabase-js');
 const fs = require('fs');
 const path = require('path');
+const { createClient } = require('@supabase/supabase-js');
 
 // Load environment variables
 require('dotenv').config();
@@ -30,7 +30,7 @@ async function testConnection() {
   console.log('\n📡 Testing Supabase connection...');
   
   try {
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from('user_profiles')
       .select('count')
       .limit(1);
@@ -55,7 +55,7 @@ async function testAuth() {
   
   try {
     // Test if auth is properly configured
-    const { data, error } = await supabase.auth.getSession();
+    const { error } = await supabase.auth.getSession();
     
     if (error) {
       console.error('❌ Auth configuration error:', error.message);
@@ -92,7 +92,7 @@ async function testMigrations() {
   
   // Test if we can query the database structure
   try {
-    const { data, error } = await supabase
+    const { error } = await supabase
       .rpc('pg_get_tabledef', { tablename: 'user_profiles' });
     
     if (error) {
@@ -103,7 +103,7 @@ async function testMigrations() {
     
     console.log('✅ Database structure appears to be in place');
     return true;
-  } catch (err) {
+  } catch (_err) {
     console.log('⚠️  Could not verify database structure');
     console.log('   This is expected if migrations haven\'t been run yet');
     return false;

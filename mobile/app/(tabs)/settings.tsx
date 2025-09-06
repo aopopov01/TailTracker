@@ -10,11 +10,11 @@ export default function SettingsScreen() {
     title: string;
     message?: string;
     type?: 'info' | 'success' | 'warning' | 'error';
-    actions?: Array<{
+    actions?: {
       text: string;
       style?: 'default' | 'destructive' | 'primary';
       onPress: () => void;
-    }>;
+    }[];
     icon?: keyof typeof Ionicons.glyphMap;
   }>({
     visible: false,
@@ -274,7 +274,7 @@ export default function SettingsScreen() {
             icon="qr-code-outline"
             title="QR Code Sharing"
             subtitle="Manage pet information sharing"
-            onPress={() => router.push('/sharing')}
+            onPress={() => router.push('/sharing' as any)}
           />
         </View>
         

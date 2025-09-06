@@ -3,10 +3,10 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { useTheme } from 'react-native-paper';
 
 // Import auth screens
-import { LoginScreen } from '@/screens/auth/LoginScreen';
-import { RegisterScreen } from '@/screens/auth/RegisterScreen';
 import { ForgotPasswordScreen } from '@/screens/auth/ForgotPasswordScreen';
+import { LoginScreen } from '@/screens/auth/LoginScreen';
 import { OnboardingScreen } from '@/screens/auth/OnboardingScreen';
+import { RegisterScreen } from '@/screens/auth/RegisterScreen';
 import { WelcomeScreen } from '@/screens/auth/WelcomeScreen';
 
 export type AuthStackParamList = {

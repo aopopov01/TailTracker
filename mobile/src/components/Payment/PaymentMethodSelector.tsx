@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   StyleSheet,
@@ -15,8 +15,8 @@ import {
   ActivityIndicator,
   Divider,
 } from 'react-native-paper';
-import { StripePaymentService, PaymentMethodInfo } from '../../services/StripePaymentService';
 import { useTailTrackerModal } from '../../hooks/useTailTrackerModal';
+import { StripePaymentService, PaymentMethodInfo } from '../../services/StripePaymentService';
 import { TailTrackerModal } from '../UI/TailTrackerModal';
 
 interface PaymentMethodSelectorProps {
@@ -46,9 +46,9 @@ export const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
   useEffect(() => {
     loadPaymentMethods();
     checkDigitalWalletSupport();
-  }, []);
+  }, [loadPaymentMethods, checkDigitalWalletSupport]);
 
-  const loadPaymentMethods = async () => {
+  const loadPaymentMethods = useCallback(async () => {
     try {
       setLoading(true);
       const { paymentMethods: methods, error } = await paymentService.getPaymentMethods();
@@ -63,9 +63,9 @@ export const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [showError, paymentService]);
 
-  const checkDigitalWalletSupport = async () => {
+  const checkDigitalWalletSupport = useCallback(async () => {
     if (showApplePay && Platform.OS === 'ios') {
       const supported = await paymentService.isApplePayAvailable();
       setApplePaySupported(supported);
@@ -75,7 +75,7 @@ export const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
       const supported = await paymentService.isGooglePayAvailable();
       setGooglePaySupported(supported);
     }
-  };
+  }, [showApplePay, showGooglePay, paymentService]);
 
   const handleDeletePaymentMethod = async (paymentMethodId: string) => {
     showConfirm(

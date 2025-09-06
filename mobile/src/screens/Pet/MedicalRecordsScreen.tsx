@@ -12,10 +12,10 @@ import {
   FlatList,
   Linking,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { colors } from '@/constants/colors';
 import { fonts } from '@/constants/fonts';
@@ -56,7 +56,7 @@ export default function MedicalRecordsScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [selectedType, setSelectedType] = useState<string>('all');
 
-  const loadMedicalRecords = async () => {
+  const loadMedicalRecords = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('medical_records')
@@ -73,7 +73,7 @@ export default function MedicalRecordsScreen() {
       setLoading(false);
       setRefreshing(false);
     }
-  };
+  }, [petId]);
 
   const onRefresh = () => {
     setRefreshing(true);
@@ -83,7 +83,7 @@ export default function MedicalRecordsScreen() {
   useFocusEffect(
     useCallback(() => {
       loadMedicalRecords();
-    }, [petId])
+    }, [loadMedicalRecords])
   );
 
   const deleteRecord = async (recordId: string) => {

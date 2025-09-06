@@ -37,7 +37,7 @@ interface iOSTextInputProps {
   hapticFeedback?: boolean;
 }
 
-export const iOSTextInput: React.FC<iOSTextInputProps> = ({
+export const IOSTextInput: React.FC<iOSTextInputProps> = ({
   value,
   onChangeText,
   placeholder,

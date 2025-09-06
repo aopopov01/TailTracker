@@ -1,5 +1,4 @@
 const Jimp = require('jimp');
-const path = require('path');
 
 /**
  * Remove grid background from Logo.jpg while preserving exact pet artwork details.

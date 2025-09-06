@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, act, waitFor } from '@testing-library/react-native';
+import { render, act } from '@testing-library/react-native';
 import { AuthProvider, useAuth } from '../../contexts/AuthContext';
 import { AuthService } from '../../services/authService';
 import { SessionService } from '../../services/sessionService';
@@ -10,7 +10,7 @@ jest.mock('../../services/authService');
 jest.mock('../../services/sessionService');
 
 const mockAuthService = AuthService as jest.Mocked<typeof AuthService>;
-const mockSessionService = SessionService as jest.Mocked<typeof SessionService>;
+// const mockSessionService = SessionService as jest.Mocked<typeof SessionService>;
 
 // Test component that uses AuthContext
 const TestComponent: React.FC = () => {

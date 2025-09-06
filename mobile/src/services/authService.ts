@@ -1,7 +1,7 @@
+import { databaseService } from '../../services/database';
 import { User, UserCredentials, UserRegistration, LoginResult, RegistrationResult } from '../types/User';
 import { CryptoService } from './cryptoService';
 import { SessionService } from './sessionService';
-import { databaseService } from '../../services/database';
 
 export class AuthService {
   /**

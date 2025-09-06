@@ -6,7 +6,7 @@ class MockNotificationService {
   private permissions = { status: 'granted', canAskAgain: true, granted: true };
   private scheduledNotifications: any[] = [];
   private presentedNotifications: any[] = [];
-  private notificationListeners: Array<{ listener: Function; remove: Function }> = [];
+  private notificationListeners: { listener: Function; remove: Function }[] = [];
 
   // Permission methods
   requestPermissionsAsync = jest.fn(async (permissions?: any) => {
@@ -133,10 +133,10 @@ class MockNotificationService {
     return { remove: removeFunction };
   });
 
-  private notificationResponseListeners: Array<{ listener: Function; remove: Function }> = [];
+  private notificationResponseListeners: { listener: Function; remove: Function }[] = [];
 
   removeNotificationSubscription = jest.fn((subscription: any) => {
-    if (subscription && subscription.remove) {
+    if (subscription?.remove) {
       subscription.remove();
     }
   });

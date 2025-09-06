@@ -139,7 +139,7 @@ class ModalService extends EventEmitter {
   alert(
     title: string,
     message?: string,
-    buttons?: Array<{ text: string; onPress?: () => void; style?: 'default' | 'destructive' }>,
+    buttons?: { text: string; onPress?: () => void; style?: 'default' | 'destructive' }[],
     options?: { cancelable?: boolean }
   ) {
     const actions: ModalAction[] = buttons?.map(button => ({

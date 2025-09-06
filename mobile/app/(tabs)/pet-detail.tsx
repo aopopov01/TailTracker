@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -10,15 +10,16 @@ import {
   Alert,
   Image,
 } from 'react-native';
-import { useRouter, useLocalSearchParams } from 'expo-router';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-import { databaseService, StoredPetProfile } from '../../services/database';
-import { useAuth } from '../../src/contexts/AuthContext';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import Animated, {
   FadeIn,
   SlideInDown,
 } from 'react-native-reanimated';
+
+import { databaseService, StoredPetProfile } from '../../services/database';
+import { useAuth } from '../../src/contexts/AuthContext';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -104,39 +105,39 @@ export default function PetDetailScreen() {
   const router = useRouter();
   const { user } = useAuth();
   const params = useLocalSearchParams<{ petId?: string }>();
-  const petId = params.petId ? parseInt(params.petId) : null;
+  const petId = params.petId ? parseInt(params.petId, 10) : null;
 
   const [pet, setPet] = useState<StoredPetProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    loadPetDetails();
-  }, [petId]);
-
-  const loadPetDetails = async () => {
+  const loadPetDetails = useCallback(async () => {
     if (!petId || !user) {
       setLoading(false);
       return;
     }
 
     try {
-      const pets = await databaseService.getAllPets(user.id);
+      const pets = await databaseService.getAllPets(parseInt(user.id, 10));
       const foundPet = pets.find(p => p.id === petId);
-      setPet(foundPet || null);
+      setPet(foundPet ?? null);
     } catch (error) {
       console.error('Error loading pet details:', error);
       Alert.alert('Error', 'Failed to load pet details');
     } finally {
       setLoading(false);
     }
-  };
+  }, [petId, user]);
+
+  useEffect(() => {
+    loadPetDetails();
+  }, [loadPetDetails]);
 
   const handleBack = () => {
     router.back();
   };
 
   const handleEdit = () => {
-    // TODO: Navigate to edit pet profile
+    // Navigate to edit pet profile screen
     Alert.alert('Edit Profile', 'Edit functionality coming soon!');
   };
 
@@ -168,7 +169,7 @@ export default function PetDetailScreen() {
         <TouchableOpacity style={styles.headerBackButton} onPress={handleBack}>
           <Ionicons name="arrow-back" size={24} color={COLORS.white} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>{pet.name || 'Pet Profile'}</Text>
+        <Text style={styles.headerTitle}>{pet.name ?? 'Pet Profile'}</Text>
         <TouchableOpacity style={styles.headerEditButton} onPress={handleEdit}>
           <Ionicons name="create-outline" size={24} color={COLORS.white} />
         </TouchableOpacity>
@@ -220,7 +221,7 @@ export default function PetDetailScreen() {
           <InfoRow
             icon="ribbon-outline"
             label="Breed"
-            value={pet.breed || 'Mixed breed'}
+            value={pet.breed ?? 'Mixed breed'}
             delay={550}
           />
           
@@ -241,7 +242,7 @@ export default function PetDetailScreen() {
           <InfoRow
             icon="scale-outline"
             label="Weight"
-            value={pet.weight ? `${pet.weight} ${pet.weightUnit || 'kg'}` : 'Not specified'}
+            value={pet.weight ? `${pet.weight} ${pet.weightUnit ?? 'kg'}` : 'Not specified'}
             delay={700}
           />
           
@@ -249,7 +250,7 @@ export default function PetDetailScreen() {
             <InfoRow
               icon="resize-outline"
               label="Height"
-              value={`${pet.height} ${pet.heightUnit || 'cm'}`}
+              value={`${pet.height} ${pet.heightUnit ?? 'cm'}`}
               delay={750}
             />
           )}

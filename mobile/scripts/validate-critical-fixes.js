@@ -7,7 +7,6 @@
  */
 
 const fs = require('fs');
-const path = require('path');
 
 console.log('🧪 TailTracker Phase 1 Critical Fixes Validation\n');
 console.log('=' .repeat(60));
