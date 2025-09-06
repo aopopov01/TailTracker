@@ -1,6 +1,7 @@
-import { databaseService } from '../../services/database';
+import { databaseService } from './databaseService';
 import { AuthService } from './authService';
 import { modalService } from './modalService';
+import { ServiceHelpers, handleServiceError } from '../utils/serviceHelpers';
 
 export class MigrationService {
   /**
@@ -8,29 +9,15 @@ export class MigrationService {
    */
   static async checkMigrationNeeded(): Promise<boolean> {
     try {
-      await databaseService.initialize();
-      
-      // Check if there are any pets without a userId (legacy data)
-      return new Promise((resolve, reject) => {
-        const db = require('expo-sqlite/legacy').openDatabase('tailtracker.db');
-        
-        db.transaction(
-          (tx: any) => {
-            tx.executeSql(
-              'SELECT COUNT(*) as count FROM pets WHERE userId IS NULL OR userId = 0',
-              [],
-              (_: any, result: any) => {
-                const count = result.rows.item(0).count;
-                resolve(count > 0);
-              },
-              (_: any, error: any) => {
-                console.error('Migration check error:', error);
-                resolve(false);
-              }
-            );
-          }
-        );
-      });
+      // Check for local SQLite database from previous versions
+      const localDbExists = await this.checkLocalDatabaseExists();
+      if (!localDbExists) {
+        return false;
+      }
+
+      // Check if there are any pets in local database that need migration
+      const localPetCount = await this.getLegacyPetCount();
+      return localPetCount > 0;
     } catch (error) {
       console.error('Migration check error:', error);
       return false;
@@ -38,31 +25,92 @@ export class MigrationService {
   }
 
   /**
+   * Checks if local SQLite database exists from previous app versions
+   */
+  private static async checkLocalDatabaseExists(): Promise<boolean> {
+    try {
+      // Check if expo-sqlite legacy database exists
+      const SQLite = require('expo-sqlite/legacy');
+      const db = SQLite.openDatabase('tailtracker.db');
+      
+      return new Promise((resolve) => {
+        db.transaction(
+          (tx: any) => {
+            tx.executeSql(
+              "SELECT name FROM sqlite_master WHERE type='table' AND name='pets'",
+              [],
+              (_: any, result: any) => {
+                resolve(result.rows.length > 0);
+              },
+              (_: any, error: any) => {
+                console.log('Local database does not exist or no pets table found');
+                resolve(false);
+              }
+            );
+          }
+        );
+      });
+    } catch (error) {
+      console.log('Local SQLite not available, no migration needed');
+      return false;
+    }
+  }
+
+  /**
    * Migrates existing pet data to a user account
    */
-  static async migrateExistingData(userId: number): Promise<{
+  static async migrateExistingData(userId: string): Promise<{
     success: boolean;
     migratedCount?: number;
     error?: string;
   }> {
     try {
-      await databaseService.initialize();
-      
-      // First, get count of pets to be migrated
+      // Check if migration is needed
       const migrationNeeded = await this.checkMigrationNeeded();
       if (!migrationNeeded) {
         return { success: true, migratedCount: 0 };
       }
 
-      // Get count of legacy pets
-      const petCount = await this.getLegacyPetCount();
+      // Get legacy pet data
+      const legacyPets = await this.getLegacyPets();
       
-      // Migrate existing pets to user
-      await databaseService.migrateExistingPetsToUser(userId);
+      if (legacyPets.length === 0) {
+        return { success: true, migratedCount: 0 };
+      }
+
+      let migratedCount = 0;
+
+      // Migrate each pet to Supabase
+      for (const legacyPet of legacyPets) {
+        try {
+          const newPet = await databaseService.createPet({
+            user_id: parseInt(userId),
+            name: legacyPet.name,
+            species: legacyPet.species || 'other',
+            breed: legacyPet.breed,
+            birth_date: legacyPet.birthDate,
+            // gender: legacyPet.gender, // Remove if not in CreatePetData interface
+            weight: legacyPet.weight,
+            color: legacyPet.color,
+            microchip_id: legacyPet.microchipId,
+            medical_conditions: legacyPet.medicalConditions || [],
+            dietary_restrictions: legacyPet.dietaryRestrictions || [],
+            photo_url: legacyPet.photoUrl
+            // status: 'active' // Remove if not in CreatePetData interface
+          });
+
+          if (newPet) {
+            migratedCount++;
+          }
+        } catch (petError) {
+          console.error('Error migrating individual pet:', petError);
+          // Continue with other pets even if one fails
+        }
+      }
 
       return {
         success: true,
-        migratedCount: petCount
+        migratedCount
       };
     } catch (error) {
       console.error('Data migration error:', error);
@@ -78,7 +126,7 @@ export class MigrationService {
    */
   static async createMigrationUser(): Promise<{
     success: boolean;
-    userId?: number;
+    userId?: string;
     error?: string;
   }> {
     try {
@@ -231,26 +279,67 @@ export class MigrationService {
    * Gets count of legacy pets (pets without userId)
    */
   private static async getLegacyPetCount(): Promise<number> {
-    return new Promise((resolve, reject) => {
-      const db = require('expo-sqlite/legacy').openDatabase('tailtracker.db');
+    try {
+      const SQLite = require('expo-sqlite/legacy');
+      const db = SQLite.openDatabase('tailtracker.db');
       
-      db.transaction(
-        (tx: any) => {
-          tx.executeSql(
-            'SELECT COUNT(*) as count FROM pets WHERE userId IS NULL OR userId = 0',
-            [],
-            (_: any, result: any) => {
-              const count = result.rows.item(0).count;
-              resolve(count);
-            },
-            (_: any, error: any) => {
-              console.error('Legacy pet count error:', error);
-              resolve(0);
-            }
-          );
-        }
-      );
-    });
+      return new Promise((resolve) => {
+        db.transaction(
+          (tx: any) => {
+            tx.executeSql(
+              'SELECT COUNT(*) as count FROM pets WHERE userId IS NULL OR userId = 0',
+              [],
+              (_: any, result: any) => {
+                const count = result.rows.item(0)?.count || 0;
+                resolve(count);
+              },
+              (_: any, error: any) => {
+                console.error('Legacy pet count error:', error);
+                resolve(0);
+              }
+            );
+          }
+        );
+      });
+    } catch (error) {
+      console.log('Could not access legacy database');
+      return 0;
+    }
+  }
+
+  /**
+   * Gets legacy pet data for migration
+   */
+  private static async getLegacyPets(): Promise<any[]> {
+    try {
+      const SQLite = require('expo-sqlite/legacy');
+      const db = SQLite.openDatabase('tailtracker.db');
+      
+      return new Promise((resolve) => {
+        db.transaction(
+          (tx: any) => {
+            tx.executeSql(
+              `SELECT * FROM pets WHERE userId IS NULL OR userId = 0`,
+              [],
+              (_: any, result: any) => {
+                const pets = [];
+                for (let i = 0; i < result.rows.length; i++) {
+                  pets.push(result.rows.item(i));
+                }
+                resolve(pets);
+              },
+              (_: any, error: any) => {
+                console.error('Legacy pets fetch error:', error);
+                resolve([]);
+              }
+            );
+          }
+        );
+      });
+    } catch (error) {
+      console.log('Could not access legacy database for pets');
+      return [];
+    }
   }
 
   /**

@@ -6,7 +6,10 @@
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "tailtracker",
-    "platforms": ["ios", "android"],
+    "platforms": [
+      "ios",
+      "android"
+    ],
     "userInterfaceStyle": "automatic",
     "splash": {
       "image": "./assets/images/splash.png",
@@ -26,7 +29,9 @@
         "usesNonExemptEncryption": false
       },
       "entitlements": {
-        "com.apple.developer.applesignin": ["Default"],
+        "com.apple.developer.applesignin": [
+          "Default"
+        ],
         "com.apple.developer.in-app-payments": true,
         "com.apple.developer.usernotifications.time-sensitive": true,
         "com.apple.developer.usernotifications.critical-alerts": true,
@@ -39,7 +44,7 @@
         "NSMicrophoneUsageDescription": "TailTracker may need microphone access for video recording features.",
         "NSFaceIDUsageDescription": "TailTracker uses Face ID for secure authentication and to protect your pet's sensitive information.",
         "NSLocationWhenInUseUsageDescription": "TailTracker needs location access to help find lost pets and send location-based alerts to nearby users.",
-        "NSLocationAlwaysAndWhenInUseUsageDescription": "TailTracker needs location access to help find lost pets and send location-based alerts to nearby users.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "Enable location services to receive real-time notifications about lost pets in your area and to help reunite missing pets with their families. This feature helps create a community network for pet safety and recovery.",
         "NSAppTransportSecurity": {
           "NSAllowsArbitraryLoads": false
         },
@@ -62,7 +67,9 @@
         "CFBundleURLTypes": [
           {
             "CFBundleURLName": "com.tailtracker.app",
-            "CFBundleURLSchemes": ["tailtracker"]
+            "CFBundleURLSchemes": [
+              "tailtracker"
+            ]
           }
         ]
       }
@@ -78,25 +85,22 @@
       "targetSdkVersion": 34,
       "minSdkVersion": 26,
       "permissions": [
-        "CAMERA",
-        "READ_EXTERNAL_STORAGE",
-        "WRITE_EXTERNAL_STORAGE",
-        "RECORD_AUDIO",
-        "VIBRATE",
-        "RECEIVE_BOOT_COMPLETED",
-        "WAKE_LOCK",
-        "INTERNET",
-        "ACCESS_NETWORK_STATE",
-        "POST_NOTIFICATIONS",
-        "SCHEDULE_EXACT_ALARM",
-        "USE_EXACT_ALARM",
-        "ACCESS_FINE_LOCATION",
-        "ACCESS_COARSE_LOCATION"
+        "android.permission.CAMERA",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.VIBRATE",
+        "android.permission.RECEIVE_BOOT_COMPLETED",
+        "android.permission.WAKE_LOCK",
+        "android.permission.INTERNET",
+        "android.permission.ACCESS_NETWORK_STATE",
+        "android.permission.POST_NOTIFICATIONS",
+        "android.permission.SCHEDULE_EXACT_ALARM",
+        "android.permission.USE_EXACT_ALARM",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION"
       ],
-      "blockedPermissions": [
-        "USE_BIOMETRIC",
-        "USE_FINGERPRINT"
-      ],
+      "blockedPermissions": [],
       "googleServicesFile": "./google-services.json"
     },
     "web": {
@@ -116,7 +120,10 @@
             "targetSdkVersion": 34,
             "minSdkVersion": 26,
             "buildToolsVersion": "34.0.0",
-            "proguardFiles": ["proguard-android-optimize.txt", "proguard-rules.pro"]
+            "proguardFiles": [
+              "proguard-android-optimize.txt",
+              "proguard-rules.pro"
+            ]
           }
         }
       ],
@@ -162,7 +169,7 @@
       [
         "expo-location",
         {
-          "locationAlwaysAndWhenInUsePermission": "TailTracker needs location access to help find lost pets and send location-based alerts to nearby users.",
+          "locationAlwaysAndWhenInUsePermission": "Enable location services to receive real-time notifications about lost pets in your area and to help reunite missing pets with their families. This feature helps create a community network for pet safety and recovery.",
           "locationWhenInUsePermission": "TailTracker needs location access to help find lost pets and send location-based alerts to nearby users.",
           "isIosBackgroundLocationEnabled": false,
           "isAndroidBackgroundLocationEnabled": false
@@ -177,8 +184,9 @@
         "origin": false
       },
       "eas": {
-        "projectId": "12345678-1234-1234-1234-123456789abc"
+        "projectId": "d232dbc6-0d7d-4217-a36b-9f3391d3e36c"
       }
-    }
+    },
+    "owner": "aopopov01"
   }
 }

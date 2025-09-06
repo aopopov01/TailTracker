@@ -6,31 +6,38 @@
 
 // Core Services
 export { ApiClient } from './ApiClient';
-export { authService } from './authService';
-export { cryptoService } from './cryptoService';
-export { sessionService } from './sessionService';
+export { AuthService } from './authService';
+export { CryptoService } from './cryptoService';
+export { SessionService } from './sessionService';
 export { modalService } from './modalService';
-export { migrationService } from './migrationService';
+export { MigrationService } from './migrationService';
+
+// Database & Offline Services
+export { databaseService, DatabaseService } from './databaseService';
+export { offlineDataLayer, OfflineDataLayer } from './OfflineDataLayer';
+export { offlineManager, OfflineManager } from './OfflineManager';
+export { offlineSyncEngine, OfflineSyncEngine } from './OfflineSyncEngine';
+export { priorityLostPetService, PriorityLostPetService } from './PriorityLostPetService';
 
 // Pet Management
-export { PetService } from './PetService';
-export { HealthRecordsService } from './HealthRecordsService';
-export { LostPetService } from './LostPetService';
+export { petService } from './PetService';
+export { healthRecordsService } from './HealthRecordsService';
+export { lostPetService } from './LostPetService';
 
 // Family Features
-export { FamilyAccessService } from './FamilyAccessService';
-export { FamilyCoordinationService } from './FamilyCoordinationService';
-export { sharingService } from './sharingService';
+export { familyAccessService } from './FamilyAccessService';
+export { familyCoordinationService } from './FamilyCoordinationService';
+export { SharingService } from './sharingService';
 
 // Notifications
-export { NotificationService } from './NotificationService';
+export { notificationService } from './NotificationService';
 export { NotificationPermissionManager } from './NotificationPermissionManager';
-export { HealthNotificationService } from './HealthNotificationService';
+export { healthNotificationService } from './HealthNotificationService';
 
 // Payment Services (for Premium/Pro tiers)
-export { GooglePlayBillingService } from './GooglePlayBillingService';
+export { googlePlayBillingService } from './GooglePlayBillingService';
 export { AppStoreBillingService } from './AppStoreBillingService';
 
 // Export types from core services
-export type { Pet, PetProfile, HealthRecord } from '../types';
-export type { User, Family, FamilyMember } from '../types';
+export type { Pet } from '../types/Pet';
+export type { User } from '../types/User';

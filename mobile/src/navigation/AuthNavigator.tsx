@@ -3,11 +3,11 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { useTheme } from 'react-native-paper';
 
 // Import auth screens
-import { ForgotPasswordScreen } from '@/screens/auth/ForgotPasswordScreen';
-import { LoginScreen } from '@/screens/auth/LoginScreen';
-import { OnboardingScreen } from '@/screens/auth/OnboardingScreen';
-import { RegisterScreen } from '@/screens/auth/RegisterScreen';
-import { WelcomeScreen } from '@/screens/auth/WelcomeScreen';
+import { ForgotPasswordScreen } from '@/components/Auth/ForgotPasswordScreen';
+import { LoginScreen } from '@/components/Auth/LoginScreen';
+import { OnboardingScreen } from '@/components/Auth/OnboardingScreen';
+import { RegisterScreen } from '@/components/Auth/RegisterScreen';
+import { WelcomeScreen } from '@/components/Auth/WelcomeScreen';
 
 export type AuthStackParamList = {
   Welcome: undefined;
@@ -72,7 +72,6 @@ export const AuthNavigator: React.FC = () => {
       />
       <Stack.Screen 
         name="Login" 
-        component={LoginScreen}
         options={{
           title: 'Sign In',
           headerStyle: {
@@ -84,7 +83,14 @@ export const AuthNavigator: React.FC = () => {
             shadowRadius: 2,
           },
         }}
-      />
+      >
+        {({ navigation }) => (
+          <LoginScreen
+            onNavigateToRegister={() => navigation.navigate('Register')}
+            onNavigateToForgotPassword={() => navigation.navigate('ForgotPassword')}
+          />
+        )}
+      </Stack.Screen>
       <Stack.Screen 
         name="Register" 
         component={RegisterScreen}
@@ -102,7 +108,6 @@ export const AuthNavigator: React.FC = () => {
       />
       <Stack.Screen 
         name="ForgotPassword" 
-        component={ForgotPasswordScreen}
         options={{
           title: 'Reset Password',
           headerStyle: {
@@ -114,7 +119,14 @@ export const AuthNavigator: React.FC = () => {
             shadowRadius: 2,
           },
         }}
-      />
+      >
+        {({ navigation }) => (
+          <ForgotPasswordScreen
+            onNavigateBack={() => navigation.goBack()}
+            onNavigateToLogin={() => navigation.navigate('Login')}
+          />
+        )}
+      </Stack.Screen>
     </Stack.Navigator>
   );
 };

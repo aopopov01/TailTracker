@@ -11,8 +11,18 @@ import {
   Chip,
   List,
 } from 'react-native-paper';
-import { tailTrackerColors } from '../../design-system/core/colors';
-import { SubscriptionPlan } from '../../services/StripePaymentService';
+import { colors } from '../../design-system/core/colors';
+
+interface SubscriptionPlan {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  currency: string;
+  interval: 'month' | 'year';
+  features: string[];
+  highlighted?: boolean;
+}
 
 interface SubscriptionPlanCardProps {
   plan: SubscriptionPlan;
@@ -115,7 +125,7 @@ export const SubscriptionPlanCard: React.FC<SubscriptionPlanCardProps> = ({
 
         <View style={styles.featuresContainer}>
           <Text style={styles.featuresTitle}>Features included:</Text>
-          {plan.features.map((feature, index) => (
+          {plan.features.map((feature: string, index: number) => (
             <List.Item
               key={index}
               title={formatFeature(feature)}
@@ -123,7 +133,7 @@ export const SubscriptionPlanCard: React.FC<SubscriptionPlanCardProps> = ({
                 <List.Icon 
                   {...props} 
                   icon="check" 
-                  color={isPopular ? tailTrackerColors.primary.trustBlue : tailTrackerColors.semantic.successPrimary} 
+                  color={isPopular ? colors.primary : colors.success} 
                 />
               )}
               titleStyle={styles.featureText}
@@ -168,12 +178,12 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   popularPlan: {
-    borderColor: tailTrackerColors.primary.trustBlue, // WCAG AA compliant
+    borderColor: colors.primary, // WCAG AA compliant
     borderWidth: 2,
     elevation: 8,
   },
   currentPlan: {
-    borderColor: tailTrackerColors.semantic.successPrimary, // WCAG AA compliant
+    borderColor: colors.success, // WCAG AA compliant
     borderWidth: 2,
   },
   popularBadge: {
@@ -183,7 +193,7 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   popularChip: {
-    backgroundColor: tailTrackerColors.primary.trustBlue, // WCAG AA compliant
+    backgroundColor: colors.primary, // WCAG AA compliant
   },
   popularChipText: {
     color: 'white',
@@ -202,7 +212,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   popularPlanName: {
-    color: tailTrackerColors.primary.trustBlue, // WCAG AA: 7.63:1
+    color: colors.primary, // WCAG AA: 7.63:1
   },
   priceContainer: {
     flexDirection: 'row',
@@ -211,19 +221,19 @@ const styles = StyleSheet.create({
   price: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: tailTrackerColors.light.textPrimary, // WCAG AA: 16.05:1
+    color: colors.text.primary, // WCAG AA: 16.05:1
   },
   popularPrice: {
-    color: tailTrackerColors.primary.trustBlue, // WCAG AA: 7.63:1
+    color: colors.primary, // WCAG AA: 7.63:1
   },
   interval: {
     fontSize: 16,
-    color: tailTrackerColors.light.textSecondary, // WCAG AA: 7.24:1
+    color: colors.text.secondary, // WCAG AA: 7.24:1
     marginLeft: 4,
   },
   description: {
     textAlign: 'center',
-    color: tailTrackerColors.light.textSecondary, // WCAG AA: 7.24:1
+    color: colors.text.secondary, // WCAG AA: 7.24:1
     marginBottom: 24,
     lineHeight: 20,
   },
@@ -234,7 +244,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     marginBottom: 8,
-    color: tailTrackerColors.light.textPrimary, // WCAG AA: 16.05:1
+    color: colors.text.primary, // WCAG AA: 16.05:1
   },
   featureItem: {
     paddingVertical: 2,
@@ -249,10 +259,10 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   popularSelectButton: {
-    backgroundColor: tailTrackerColors.primary.trustBlue, // WCAG AA compliant
+    backgroundColor: colors.primary, // WCAG AA compliant
   },
   currentPlanButton: {
-    borderColor: tailTrackerColors.semantic.successPrimary, // WCAG AA compliant
+    borderColor: colors.success, // WCAG AA compliant
   },
   selectButtonContent: {
     height: 48,
@@ -262,12 +272,12 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   currentPlanButtonLabel: {
-    color: tailTrackerColors.semantic.successPrimary, // WCAG AA: 4.8:1
+    color: colors.success, // WCAG AA: 4.8:1
   },
   trialNote: {
     textAlign: 'center',
     fontSize: 12,
-    color: tailTrackerColors.light.textSecondary, // WCAG AA: 7.24:1
+    color: colors.text.secondary, // WCAG AA: 7.24:1
     marginTop: 8,
     fontStyle: 'italic',
   },

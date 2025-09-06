@@ -1,5 +1,5 @@
 import { decode } from 'base64-arraybuffer';
-import { FileSystem } from 'expo-file-system';
+import * as FileSystem from 'expo-file-system';
 import * as ImageManipulator from 'expo-image-manipulator';
 import { supabase } from '@/lib/supabase';
 
@@ -622,7 +622,7 @@ class PetService {
       };
     } catch (error: any) {
       console.error('Error getting subscription status:', error);
-      return { status: 'free', canUsePremiumFeatures: false };
+      return { status: 'free', canUsePremiumFeatures: false, canUseProFeatures: false };
     }
   }
 }

@@ -13,7 +13,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { format } from 'date-fns';
-import { dataExportService, ExportOptions } from '@/services/DataExportService';
+import { DataExportService, ExportOptions } from '@/services/DataExportService';
 
 interface DataExportModalProps {
   visible: boolean;
@@ -47,7 +47,7 @@ export const DataExportModal: React.FC<DataExportModalProps> = ({
   }, [visible]);
 
   const loadAvailableDataTypes = async () => {
-    const available = await dataExportService.getAvailableDataTypes();
+    const available = await DataExportService.getInstance().getAvailableDataTypes();
     setAvailableDataTypes(available);
     
     // Select all available types by default
@@ -87,7 +87,7 @@ export const DataExportModal: React.FC<DataExportModalProps> = ({
         })
       };
 
-      const result = await dataExportService.exportUserData(options);
+      const result = await DataExportService.getInstance().exportUserData(options);
 
       if (!result.success) {
         Alert.alert('Export Failed', result.error || 'Failed to export data');
@@ -103,7 +103,7 @@ export const DataExportModal: React.FC<DataExportModalProps> = ({
             { text: 'Cancel', style: 'cancel' },
             { 
               text: 'Share', 
-              onPress: () => dataExportService.shareExportedFile(result.filePath!)
+              onPress: () => DataExportService.getInstance().shareExportedFile(result.filePath!)
             }
           ]
         );

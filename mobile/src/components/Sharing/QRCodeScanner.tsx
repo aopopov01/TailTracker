@@ -45,7 +45,7 @@ const QRCodeScanner: React.FC<QRCodeScannerProps> = ({
     try {
       await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       
-      const success = await SharingService.processSharedAccess(manualToken.trim(), user.id);
+      const success = await SharingService.processSharedAccess(manualToken.trim(), parseInt(user.id, 10));
 
       if (success) {
         await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);

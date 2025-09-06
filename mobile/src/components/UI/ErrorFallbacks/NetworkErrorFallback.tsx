@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import NetInfo, { NetInfoState } from '@react-native-community/netinfo';
 import LinearGradient from 'react-native-linear-gradient';
-import { advancedNetworkErrorHandler } from '../../../services/AdvancedNetworkErrorHandler';
+import { AdvancedNetworkErrorHandler } from '../../../services/AdvancedNetworkErrorHandler';
 
 interface NetworkErrorFallbackProps {
   onRetry: () => void;
@@ -67,7 +67,7 @@ export const NetworkErrorFallback: React.FC<NetworkErrorFallbackProps> = ({
 
     // Get network statistics
     if (endpoint) {
-      const stats = advancedNetworkErrorHandler.getNetworkStatistics();
+      const stats = AdvancedNetworkErrorHandler.getInstance().getMetrics();
       setNetworkStats(stats);
     }
 

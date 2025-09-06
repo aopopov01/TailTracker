@@ -68,6 +68,26 @@ export const MaterialBottomSheet = forwardRef<BottomSheetRef, MaterialBottomShee
     collapse: () => animateToIndex(0),
   }));
 
+  const closeSheet = useCallback(() => {
+    Animated.parallel([
+      Animated.timing(translateY, {
+        toValue: screenHeight,
+        duration: 300,
+        useNativeDriver: false,
+      }),
+      Animated.timing(opacity, {
+        toValue: 0,
+        duration: 250,
+        useNativeDriver: false,
+      }),
+    ]).start(() => {
+      setVisible(false);
+      onClose?.();
+    });
+    
+    onStateChange?.('closed');
+  }, [translateY, opacity, onClose, onStateChange]);
+
   React.useEffect(() => {
     const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
       if (visible) {
@@ -132,26 +152,6 @@ export const MaterialBottomSheet = forwardRef<BottomSheetRef, MaterialBottomShee
     
     onStateChange?.(initialIndex === 0 ? 'collapsed' : 'expanded');
   };
-
-  const closeSheet = useCallback(() => {
-    Animated.parallel([
-      Animated.timing(translateY, {
-        toValue: screenHeight,
-        duration: 300,
-        useNativeDriver: false,
-      }),
-      Animated.timing(opacity, {
-        toValue: 0,
-        duration: 250,
-        useNativeDriver: false,
-      }),
-    ]).start(() => {
-      setVisible(false);
-      onClose?.();
-    });
-    
-    onStateChange?.('closed');
-  }, [translateY, opacity, onClose, onStateChange]);
 
   const animateToIndex = (index: number) => {
     setCurrentIndex(index);

@@ -25,7 +25,7 @@ import Animated, {
   interpolateColor,
 } from 'react-native-reanimated';
 
-import { Pet } from '@/services/PetService';
+import { Pet } from '@/types/Pet';
 import premiumAnimations from '../../design-system/animations/premiumAnimations';
 import { useMaterialTheme } from '../../theme/MaterialThemeProvider';
 import hapticUtils from '../../utils/hapticUtils';
@@ -110,29 +110,29 @@ export const PremiumPetCard: React.FC<PremiumPetCardProps> = ({
     // Haptic feedback
     hapticUtils.card();
     
-    // Animation
-    const hoverAnimation = premiumAnimations.cards.hover();
-    scale.value = hoverAnimation.enter().scale;
-    translateY.value = hoverAnimation.enter().translateY;
-    shadowOpacity.value = hoverAnimation.enter().shadowOpacity;
+    // Animation - simplified for compatibility
+    // const hoverAnimation = premiumAnimations.cards.hover();
+    // scale.value = hoverAnimation.enter().scale;
+    // translateY.value = hoverAnimation.enter().translateY;
+    // shadowOpacity.value = hoverAnimation.enter().shadowOpacity;
     
-    // Mood animation if pet is in good mood
-    if (pet.mood && ['happy', 'playful', 'excited'].includes(pet.mood)) {
-      const moodAnimation = premiumAnimations.pets.mood(pet.mood as any);
-      moodScale.value = moodAnimation.scale || 1;
-    }
-  }, [pet.mood, moodScale, scale, shadowOpacity, translateY]);
+    // Mood animation if pet is in good mood - commented out for compatibility
+    // if (pet.mood && ['happy', 'playful', 'excited'].includes(pet.mood)) {
+    //   const moodAnimation = premiumAnimations.pets.mood(pet.mood as any);
+    //   moodScale.value = moodAnimation.scale || 1;
+    // }
+  }, []);
   
   const handlePressOut = useCallback(() => {
     setIsPressed(false);
     
-    // Animation
-    const hoverAnimation = premiumAnimations.cards.hover();
-    scale.value = hoverAnimation.exit().scale;
-    translateY.value = hoverAnimation.exit().translateY;
-    shadowOpacity.value = hoverAnimation.exit().shadowOpacity;
-    moodScale.value = premiumAnimations.springs.gentle;
-  }, [moodScale, scale, shadowOpacity, translateY]);
+    // Animation - commented out for compatibility
+    // const hoverAnimation = premiumAnimations.cards.hover();
+    // scale.value = hoverAnimation.exit().scale;
+    // translateY.value = hoverAnimation.exit().translateY;
+    // shadowOpacity.value = hoverAnimation.exit().shadowOpacity;
+    // moodScale.value = premiumAnimations.springs.gentle;
+  }, []);
   
   const handlePress = useCallback(() => {
     if (onPress) {

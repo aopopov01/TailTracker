@@ -37,17 +37,13 @@ const SharingManager: React.FC<SharingManagerProps> = ({
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  useEffect(() => {
-    loadSharingData();
-  }, [loadSharingData]);
-
   const loadSharingData = useCallback(async () => {
     if (!user) return;
 
     try {
       const [tokens, access] = await Promise.all([
-        SharingService.getUserSharingTokens(user.id),
-        SharingService.getActiveSharedAccess(user.id)
+        SharingService.getUserSharingTokens(parseInt(user.id, 10)),
+        SharingService.getActiveSharedAccess(parseInt(user.id, 10))
       ]);
 
       setActiveTokens(tokens);
@@ -72,7 +68,7 @@ const SharingManager: React.FC<SharingManagerProps> = ({
       'This will permanently disable this sharing code and remove access for all users who used it. This action cannot be undone.',
       async () => {
         try {
-          const result = await SharingService.revokeSharingToken(token.id, user!.id);
+          const result = await SharingService.revokeSharingToken(token.id, parseInt(user!.id, 10));
           if (result.success) {
             showSuccess('Success', 'Sharing code has been revoked', 'checkmark-circle');
             loadSharingData();
@@ -96,7 +92,7 @@ const SharingManager: React.FC<SharingManagerProps> = ({
       `Remove access for ${access.guestFirstName} ${access.guestLastName}?`,
       async () => {
         try {
-          const result = await SharingService.revokeUserAccess(access.id, user!.id);
+          const result = await SharingService.revokeUserAccess(access.id, parseInt(user!.id, 10));
           if (result.success) {
             showSuccess('Success', 'User access has been removed', 'checkmark-circle');
             loadSharingData();
@@ -195,6 +191,10 @@ const SharingManager: React.FC<SharingManagerProps> = ({
       </View>
     </View>
   );
+
+  useEffect(() => {
+    loadSharingData();
+  }, [loadSharingData]);
 
   if (isLoading) {
     return (

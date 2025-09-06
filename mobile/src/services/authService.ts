@@ -1,11 +1,11 @@
-import { databaseService } from '../../services/database';
-import { User, UserCredentials, UserRegistration, LoginResult, RegistrationResult } from '../types/User';
-import { CryptoService } from './cryptoService';
-import { SessionService } from './sessionService';
+import { supabase } from '../lib/supabase';
+import { databaseService } from './databaseService';
+import { User, UserCredentials, UserRegistration, LoginResult, RegistrationResult } from '../types';
+import { ServiceHelpers, handleServiceError } from '../utils/serviceHelpers';
 
 export class AuthService {
   /**
-   * Registers a new user with secure password hashing
+   * Registers a new user using Supabase Auth
    */
   static async register(userData: UserRegistration): Promise<RegistrationResult> {
     try {
@@ -18,39 +18,68 @@ export class AuthService {
         };
       }
 
-      // Check if user already exists
-      const existingUser = await databaseService.getUserByEmail(userData.email.toLowerCase());
-      if (existingUser) {
+      // Register with Supabase Auth
+      const { data, error } = await supabase.auth.signUp({
+        email: userData.email.toLowerCase(),
+        password: userData.password,
+        options: {
+          data: {
+            firstName: userData.firstName.trim(),
+            lastName: userData.lastName.trim(),
+            full_name: `${userData.firstName.trim()} ${userData.lastName.trim()}`
+          }
+        }
+      });
+
+      if (error) {
         return {
           success: false,
-          error: 'An account with this email already exists'
+          error: error.message
         };
       }
 
-      // Hash password
-      const { hash, salt } = await CryptoService.hashPassword(userData.password);
-
-      // Create user in database
-      const userId = await databaseService.createUser({
-        email: userData.email.toLowerCase(),
-        firstName: userData.firstName.trim(),
-        lastName: userData.lastName.trim(),
-        passwordHash: hash,
-        passwordSalt: salt
-      });
-
-      // Get the created user
-      const user = await databaseService.getUserById(userId);
-      if (!user) {
+      if (!data.user) {
         return {
           success: false,
           error: 'Failed to create user account'
         };
       }
 
+      // Create user profile in our database
+      let user: User | null = null;
+      if (data.user.id) {
+        try {
+          const dbUser = await databaseService.createUser({
+            auth_user_id: data.user.id,
+            email: data.user.email!,
+            full_name: `${userData.firstName.trim()} ${userData.lastName.trim()}`
+          });
+
+          user = {
+            id: dbUser.id.toString(),
+            email: dbUser.email,
+            firstName: userData.firstName.trim(),
+            lastName: userData.lastName.trim(),
+            createdAt: dbUser.created_at,
+            updatedAt: dbUser.updated_at,
+          };
+        } catch (dbError) {
+          console.error('Failed to create user profile:', dbError);
+          // Don't fail registration if profile creation fails
+        }
+      }
+
       return {
         success: true,
-        user
+        user: user || {
+          id: data.user.id,
+          email: data.user.email!,
+          firstName: userData.firstName.trim(),
+          lastName: userData.lastName.trim(),
+          createdAt: data.user.created_at!,
+          updatedAt: data.user.updated_at!,
+        },
+        requiresEmailVerification: !data.user.email_confirmed_at
       };
     } catch (error) {
       console.error('Registration error:', error);
@@ -62,7 +91,7 @@ export class AuthService {
   }
 
   /**
-   * Authenticates user with email and password
+   * Authenticates user with Supabase Auth
    */
   static async login(credentials: UserCredentials): Promise<LoginResult> {
     try {
@@ -74,57 +103,59 @@ export class AuthService {
         };
       }
 
-      if (!CryptoService.validateEmail(credentials.email)) {
+      // Sign in with Supabase
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: credentials.email.toLowerCase(),
+        password: credentials.password,
+      });
+
+      if (error) {
         return {
           success: false,
-          error: 'Invalid email format'
+          error: error.message
         };
       }
 
-      // Get user from database
-      const userWithCredentials = await databaseService.getUserByEmail(credentials.email.toLowerCase());
-      if (!userWithCredentials) {
+      if (!data.user) {
         return {
           success: false,
-          error: 'Invalid email or password'
+          error: 'Authentication failed'
         };
       }
 
-      // Verify password
-      const isValidPassword = await CryptoService.verifyPassword(
-        credentials.password,
-        userWithCredentials.passwordHash,
-        userWithCredentials.passwordSalt
-      );
-
-      if (!isValidPassword) {
-        return {
-          success: false,
-          error: 'Invalid email or password'
-        };
+      // Get or create user profile in our database
+      let dbUser = await databaseService.getUserByAuthId(data.user.id);
+      
+      if (!dbUser) {
+        // Create profile if it doesn't exist (for existing auth users)
+        try {
+          dbUser = await databaseService.createUser({
+            auth_user_id: data.user.id,
+            email: data.user.email!,
+            full_name: data.user.user_metadata?.full_name || data.user.email!.split('@')[0]
+          });
+        } catch (dbError) {
+          console.error('Failed to create user profile:', dbError);
+          // Continue without database profile
+        }
       }
 
-      // Extract user data without credentials
-      const user = {
-        id: userWithCredentials.id,
-        email: userWithCredentials.email,
-        firstName: userWithCredentials.firstName,
-        lastName: userWithCredentials.lastName,
-        lastLoginAt: userWithCredentials.lastLoginAt,
-        createdAt: userWithCredentials.createdAt,
-        updatedAt: userWithCredentials.updatedAt
+      // Convert to our User type
+      const user: User = {
+        id: dbUser?.id.toString() || data.user.id,
+        email: data.user.email!,
+        firstName: data.user.user_metadata?.firstName || dbUser?.full_name?.split(' ')[0] || '',
+        lastName: data.user.user_metadata?.lastName || dbUser?.full_name?.split(' ').slice(1).join(' ') || '',
+        createdAt: dbUser?.created_at || data.user.created_at!,
+        updatedAt: dbUser?.updated_at || data.user.updated_at!,
+        lastLoginAt: new Date().toISOString(),
       };
-
-      // Update last login time
-      await databaseService.updateUserLastLogin(user.id);
-
-      // Create session
-      const token = await SessionService.createSession(user);
 
       return {
         success: true,
         user,
-        token
+        token: data.session?.access_token,
+        refreshToken: data.session?.refresh_token
       };
     } catch (error) {
       console.error('Login error:', error);
@@ -140,7 +171,10 @@ export class AuthService {
    */
   static async logout(): Promise<void> {
     try {
-      await SessionService.clearSession();
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error('Logout error:', error);
+      }
     } catch (error) {
       console.error('Logout error:', error);
       // Don't throw error to ensure logout always appears to succeed
@@ -152,7 +186,24 @@ export class AuthService {
    */
   static async getCurrentUser(): Promise<User | null> {
     try {
-      return await SessionService.getCurrentUser();
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        return null;
+      }
+
+      // Get user profile from database
+      const dbUser = await databaseService.getUserByAuthId(user.id);
+
+      return {
+        id: dbUser?.id.toString() || user.id,
+        email: user.email!,
+        firstName: user.user_metadata?.firstName || dbUser?.full_name?.split(' ')[0] || '',
+        lastName: user.user_metadata?.lastName || dbUser?.full_name?.split(' ').slice(1).join(' ') || '',
+        createdAt: dbUser?.created_at || user.created_at!,
+        updatedAt: dbUser?.updated_at || user.updated_at!,
+        lastLoginAt: user.last_sign_in_at || undefined,
+      };
     } catch (error) {
       console.error('Get current user error:', error);
       return null;
@@ -164,7 +215,8 @@ export class AuthService {
    */
   static async isAuthenticated(): Promise<boolean> {
     try {
-      return await SessionService.isAuthenticated();
+      const { data: { session } } = await supabase.auth.getSession();
+      return !!session;
     } catch (error) {
       console.error('Authentication check error:', error);
       return false;
@@ -176,21 +228,12 @@ export class AuthService {
    */
   static async refreshSession(): Promise<boolean> {
     try {
-      const currentUser = await SessionService.getCurrentUser();
-      if (!currentUser) {
+      const { data, error } = await supabase.auth.refreshSession();
+      
+      if (error || !data.session) {
         return false;
       }
 
-      // Verify user still exists in database
-      const user = await databaseService.getUserById(currentUser.id);
-      if (!user) {
-        await SessionService.clearSession();
-        return false;
-      }
-
-      // Update session with latest user data and extend expiration
-      await SessionService.updateSessionUser(user);
-      await SessionService.extendSession();
       return true;
     } catch (error) {
       console.error('Session refresh error:', error);
@@ -206,16 +249,8 @@ export class AuthService {
     newPassword: string
   ): Promise<{ success: boolean; error?: string }> {
     try {
-      const currentUser = await SessionService.getCurrentUser();
-      if (!currentUser) {
-        return {
-          success: false,
-          error: 'User not authenticated'
-        };
-      }
-
       // Validate new password
-      const passwordValidation = CryptoService.validatePasswordStrength(newPassword);
+      const passwordValidation = this.validatePasswordStrength(newPassword);
       if (!passwordValidation.isValid) {
         return {
           success: false,
@@ -223,33 +258,17 @@ export class AuthService {
         };
       }
 
-      // Verify current password
-      const userCredentials = await databaseService.getUserCredentials(currentUser.id);
-      if (!userCredentials) {
+      // Update password with Supabase
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword
+      });
+
+      if (error) {
         return {
           success: false,
-          error: 'Authentication failed'
+          error: error.message
         };
       }
-
-      const isValidCurrentPassword = await CryptoService.verifyPassword(
-        currentPassword,
-        userCredentials.passwordHash,
-        userCredentials.passwordSalt
-      );
-
-      if (!isValidCurrentPassword) {
-        return {
-          success: false,
-          error: 'Current password is incorrect'
-        };
-      }
-
-      // Hash new password
-      const { hash, salt } = await CryptoService.hashPassword(newPassword);
-
-      // Update password in database
-      await databaseService.updateUserPassword(currentUser.id, hash, salt);
 
       return { success: true };
     } catch (error) {
@@ -257,6 +276,30 @@ export class AuthService {
       return {
         success: false,
         error: 'Failed to change password. Please try again.'
+      };
+    }
+  }
+
+  /**
+   * Resets user password via email
+   */
+  static async resetPassword(email: string): Promise<{ success: boolean; error?: string }> {
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email);
+
+      if (error) {
+        return {
+          success: false,
+          error: error.message
+        };
+      }
+
+      return { success: true };
+    } catch (error) {
+      console.error('Reset password error:', error);
+      return {
+        success: false,
+        error: 'Failed to reset password. Please try again.'
       };
     }
   }
@@ -273,7 +316,7 @@ export class AuthService {
     // Email validation
     if (!userData.email) {
       errors.push('Email is required');
-    } else if (!CryptoService.validateEmail(userData.email)) {
+    } else if (!this.isValidEmail(userData.email)) {
       errors.push('Invalid email format');
     }
 
@@ -286,7 +329,7 @@ export class AuthService {
     }
 
     // Password validation
-    const passwordValidation = CryptoService.validatePasswordStrength(userData.password);
+    const passwordValidation = this.validatePasswordStrength(userData.password);
     if (!passwordValidation.isValid) {
       errors.push(...passwordValidation.errors);
     }
@@ -300,5 +343,49 @@ export class AuthService {
       isValid: errors.length === 0,
       errors
     };
+  }
+
+  /**
+   * Validates password strength
+   */
+  private static validatePasswordStrength(password: string): {
+    isValid: boolean;
+    errors: string[];
+  } {
+    const errors: string[] = [];
+
+    if (!password) {
+      errors.push('Password is required');
+      return { isValid: false, errors };
+    }
+
+    if (password.length < 8) {
+      errors.push('Password must be at least 8 characters long');
+    }
+
+    if (!/[A-Z]/.test(password)) {
+      errors.push('Password must contain at least one uppercase letter');
+    }
+
+    if (!/[a-z]/.test(password)) {
+      errors.push('Password must contain at least one lowercase letter');
+    }
+
+    if (!/\d/.test(password)) {
+      errors.push('Password must contain at least one number');
+    }
+
+    return {
+      isValid: errors.length === 0,
+      errors
+    };
+  }
+
+  /**
+   * Validates email format
+   */
+  private static isValidEmail(email: string): boolean {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
   }
 }

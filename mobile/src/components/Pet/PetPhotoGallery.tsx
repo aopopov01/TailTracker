@@ -29,12 +29,6 @@ export const PetPhotoGallery: React.FC<PetPhotoGalleryProps> = ({
   const [photoLimits, setPhotoLimits] = useState({ current: 0, max: 1, canUpload: false });
   const [subscriptionStatus, setSubscriptionStatus] = useState({ status: 'free', canUsePremiumFeatures: false });
 
-  useEffect(() => {
-    loadPhotos();
-    loadPhotoLimits();
-    loadSubscriptionStatus();
-  }, [petId, loadPhotos]);
-
   const loadPhotos = useCallback(async () => {
     try {
       setIsLoading(true);
@@ -223,8 +217,8 @@ export const PetPhotoGallery: React.FC<PetPhotoGalleryProps> = ({
   };
 
   const showPhotoActions = (photo: PetPhoto) => {
-    const actions = [
-      { text: 'Cancel', style: 'cancel' as const },
+    const actions: { text: string; onPress?: () => void; style?: 'cancel' | 'default' | 'destructive' }[] = [
+      { text: 'Cancel', style: 'cancel' },
     ];
 
     if (!photo.is_profile_photo) {
@@ -236,12 +230,18 @@ export const PetPhotoGallery: React.FC<PetPhotoGalleryProps> = ({
 
     actions.push({
       text: 'Delete Photo',
-      style: 'destructive' as const,
+      style: 'destructive',
       onPress: () => deletePhoto(photo),
     });
 
     Alert.alert('Photo Options', 'Choose an action', actions);
   };
+
+  useEffect(() => {
+    loadPhotos();
+    loadPhotoLimits();
+    loadSubscriptionStatus();
+  }, [petId, loadPhotos]);
 
   if (isLoading) {
     return (

@@ -5,9 +5,12 @@
 import { Platform, Alert } from 'react-native';
 import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
-import { supabase } from './supabase';
+import { supabase } from '../lib/supabase';
 
-export interface PushNotificationData {
+// Import notification trigger types from expo-notifications
+import { SchedulableTriggerInputTypes } from 'expo-notifications';
+
+export interface PushNotificationData extends Record<string, unknown> {
   type: 'lost_pet_alert' | 'pet_found' | 'user_event_reminder' | 'general';
   petId?: string;
   lostPetId?: string;
@@ -120,7 +123,7 @@ class NotificationService {
       }
 
       return true;
-    } catch (_error) {
+    } catch (error) {
       console.error('Error requesting notification permissions:', error);
       return false;
     }
@@ -147,7 +150,7 @@ class NotificationService {
 
       this.pushToken = token.data;
       return token.data;
-    } catch (_error) {
+    } catch (error) {
       console.error('Error getting push token:', error);
       return null;
     }
@@ -173,7 +176,7 @@ class NotificationService {
       if (error) {
         console.error('Error updating push token:', error);
       }
-    } catch (_error) {
+    } catch (error) {
       console.error('Error updating user push token:', error);
     }
   }
@@ -202,12 +205,13 @@ class NotificationService {
           sound: 'default',
         },
         trigger: {
+          type: SchedulableTriggerInputTypes.DATE,
           date: reminderDate,
         },
       });
 
       return notificationId;
-    } catch (_error) {
+    } catch (error) {
       console.error('Error scheduling user event reminder:', error);
       return null;
     }
@@ -225,11 +229,11 @@ class NotificationService {
           data: notification.data,
           sound: notification.sound || 'default',
         },
-        trigger: delaySeconds > 0 ? { seconds: delaySeconds } : null,
+        trigger: delaySeconds > 0 ? { type: SchedulableTriggerInputTypes.TIME_INTERVAL, seconds: delaySeconds } : null,
       });
 
       return notificationId;
-    } catch (_error) {
+    } catch (error) {
       console.error('Error scheduling local notification:', error);
       return null;
     }
@@ -381,7 +385,7 @@ class NotificationService {
       if (error) {
         console.error('Error disabling push notifications:', error);
       }
-    } catch (_error) {
+    } catch (error) {
       console.error('Error disabling push notifications:', error);
     }
   }
@@ -399,7 +403,7 @@ class NotificationService {
   async clearAllNotifications(): Promise<void> {
     try {
       await Notifications.dismissAllNotificationsAsync();
-    } catch (_error) {
+    } catch (error) {
       console.error('Error clearing notifications:', error);
     }
   }
@@ -447,16 +451,12 @@ export const NotificationHelpers = {
   async openNotificationSettings(): Promise<void> {
     try {
       if (Platform.OS === 'ios') {
-        // Try to use openSettingsAsync if available, otherwise show alert
-        if (Notifications.openSettingsAsync) {
-          await Notifications.openSettingsAsync();
-        } else {
-          Alert.alert(
+        // Show alert to direct users to settings
+        Alert.alert(
             'Notification Settings',
             'Please enable notifications for TailTracker in Settings > Notifications to receive lost pet alerts.',
             [{ text: 'OK' }]
           );
-        }
       } else {
         // For Android, show instructions to open settings manually
         Alert.alert(
@@ -467,7 +467,7 @@ export const NotificationHelpers = {
           ]
         );
       }
-    } catch (_error) {
+    } catch (error) {
       console.warn('Could not open notification settings:', error);
       Alert.alert(
         'Notification Settings',

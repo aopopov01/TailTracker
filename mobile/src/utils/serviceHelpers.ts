@@ -596,3 +596,70 @@ function reportError(error: AppError, context?: Record<string, any>): void {
     context: context ? sanitizeContext(context) : undefined
   });
 }
+
+// ===================================
+// EXPORTS FOR BACKWARDS COMPATIBILITY
+// ===================================
+
+/**
+ * Service helpers class for consistent service layer patterns
+ */
+export class ServiceHelpers {
+  /**
+   * Creates a standardized success response
+   */
+  static createSuccessResult<T>(data: T): ServiceResult<T> {
+    const requestId = generateRequestId();
+    return {
+      success: true,
+      data,
+      metadata: {
+        requestId,
+        timestamp: new Date().toISOString(),
+        duration: 0,
+      },
+    };
+  }
+
+  /**
+   * Creates a standardized error response
+   */
+  static createErrorResult(error: AppError): ServiceResult<never> {
+    const requestId = generateRequestId();
+    return {
+      success: false,
+      error,
+      metadata: {
+        requestId,
+        timestamp: new Date().toISOString(),
+        duration: 0,
+      },
+    };
+  }
+
+  /**
+   * Handles and standardizes service errors
+   */
+  static handleServiceError(error: any, context: string): ServiceResult<never> {
+    console.error(`Service error in ${context}:`, error);
+    
+    const appError = error instanceof Error 
+      ? mapJavaScriptError(error, { context })
+      : createAppError(
+          'UNKNOWN_SERVICE_ERROR',
+          'An unexpected error occurred',
+          'unknown',
+          'error',
+          { context }
+        );
+
+    return this.createErrorResult(appError);
+  }
+}
+
+/**
+ * Global error handler for services - compatibility export
+ */
+export function handleServiceError(error: any, context?: string): ServiceResult<never> {
+  return ServiceHelpers.handleServiceError(error, context || 'Unknown');
+}

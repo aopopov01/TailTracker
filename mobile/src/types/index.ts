@@ -42,6 +42,26 @@ export interface OwnedEntity extends BaseEntity {
 // ===================================
 
 /**
+ * Authentication result types for service layer
+ */
+export interface LoginResult {
+  success: boolean;
+  user?: User;
+  token?: string;
+  refreshToken?: string;
+  error?: string;
+  requiresTwoFactor?: boolean;
+}
+
+export interface RegistrationResult {
+  success: boolean;
+  user?: User;
+  token?: string;
+  error?: string;
+  requiresEmailVerification?: boolean;
+}
+
+/**
  * Core user entity with consistent field types
  */
 export interface User extends BaseEntity {
@@ -135,6 +155,59 @@ export type PetGender = 'male' | 'female' | 'unknown';
  * Pet status for lost pet functionality
  */
 export type PetStatus = 'active' | 'lost' | 'found' | 'inactive' | 'deceased';
+
+/**
+ * Pet photo entity for profile images and gallery
+ */
+export interface PetPhoto extends BaseEntity {
+  /** ID of the pet this photo belongs to */
+  petId: string;
+  /** URL of the stored image */
+  url: string;
+  /** Caption or description */
+  caption?: string;
+  /** Whether this is the primary profile photo */
+  isPrimary: boolean;
+  /** File size in bytes */
+  fileSize?: number;
+  /** Image dimensions */
+  width?: number;
+  height?: number;
+}
+
+/**
+ * Family membership relationship
+ */
+export interface FamilyMembership extends BaseEntity {
+  /** ID of the family unit */
+  familyId: string;
+  /** ID of the user who is a member */
+  userId: string;
+  /** Role within the family */
+  role: FamilyRole;
+  /** Whether membership is active */
+  isActive: boolean;
+  /** Permissions granted to this member */
+  permissions: FamilyPermission[];
+}
+
+/**
+ * Family roles with different permission levels
+ */
+export type FamilyRole = 'owner' | 'admin' | 'member' | 'viewer';
+
+/**
+ * Family permissions for accessing pet data
+ */
+export type FamilyPermission = 
+  | 'view_pets'
+  | 'edit_pets' 
+  | 'add_pets'
+  | 'delete_pets'
+  | 'view_health_records'
+  | 'edit_health_records'
+  | 'manage_family'
+  | 'view_location';
 
 /**
  * Physical measurement with unit flexibility
@@ -393,6 +466,32 @@ export interface AppError {
   userId?: string;
   /** Request ID for tracing */
   requestId?: string;
+}
+
+/**
+ * Standardized API response wrapper
+ */
+export interface ApiResponse<T = any> {
+  success: boolean;
+  data?: T;
+  error?: string | undefined;
+  message?: string;
+  timestamp: string;
+  requestId?: string;
+}
+
+/**
+ * Paginated API response
+ */
+export interface PaginatedResponse<T = any> extends ApiResponse<T[]> {
+  pagination: {
+    page: number;
+    pageSize: number;
+    totalItems: number;
+    totalPages: number;
+    hasNextPage: boolean;
+    hasPreviousPage: boolean;
+  };
 }
 
 // ===================================

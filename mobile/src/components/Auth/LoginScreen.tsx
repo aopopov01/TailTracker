@@ -17,11 +17,13 @@ import { TailTrackerModal } from '../UI/TailTrackerModal';
 
 interface LoginScreenProps {
   onNavigateToRegister: () => void;
+  onNavigateToForgotPassword: () => void;
   onLoginSuccess?: () => void;
 }
 
 export const LoginScreen: React.FC<LoginScreenProps> = ({ 
   onNavigateToRegister,
+  onNavigateToForgotPassword,
   onLoginSuccess 
 }) => {
   const { modalConfig, showError } = useTailTrackerModal();
@@ -175,6 +177,16 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({
             )}
           </TouchableOpacity>
 
+          <TouchableOpacity 
+            style={styles.forgotPasswordContainer}
+            onPress={onNavigateToForgotPassword}
+            disabled={isLoading}
+          >
+            <Text style={[styles.forgotPasswordText, isLoading && styles.linkTextDisabled]}>
+              Forgot Password?
+            </Text>
+          </TouchableOpacity>
+
           <View style={styles.footer}>
             <Text style={styles.footerText}>Don't have an account? </Text>
             <TouchableOpacity onPress={onNavigateToRegister} disabled={isLoading}>
@@ -306,6 +318,15 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 18,
     fontWeight: '600',
+  },
+  forgotPasswordContainer: {
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  forgotPasswordText: {
+    fontSize: 14,
+    color: '#007bff',
+    fontWeight: '500',
   },
   footer: {
     flexDirection: 'row',

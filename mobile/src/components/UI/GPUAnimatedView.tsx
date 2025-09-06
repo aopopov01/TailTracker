@@ -70,14 +70,14 @@ const GPUAnimatedView: React.FC<GPUAnimatedViewProps> = ({
       runOnJS(onAnimationStart)();
     }
 
-    performanceMonitor.startTiming(`gpu_animation_${animation}`);
+    // performanceMonitor.startTiming(`gpu_animation_${animation}`); // Commented out for simplified version
 
     const animationCompleteCallback = () => {
-      performanceMonitor.endTiming(`gpu_animation_${animation}`, 'navigation', {
-        animationType: animation,
-        duration: Date.now() - startTime,
-        loop
-      });
+      // performanceMonitor.endTiming(`gpu_animation_${animation}`, 'navigation', {
+      //   animationType: animation,
+      //   duration: Date.now() - startTime,
+      //   loop
+      // });
       
       if (onAnimationComplete) {
         runOnJS(onAnimationComplete)();

@@ -13,17 +13,40 @@ export class CryptoService {
   }
 
   /**
-   * Hashes a password with a salt using PBKDF2-like approach
-   * Uses SHA-256 multiple times for enhanced security
+   * Hashes a password with a salt using proper PBKDF2 approach
+   * Uses PBKDF2 with SHA-256 for enhanced security
    */
   static async hashPassword(password: string, salt?: string): Promise<{ hash: string; salt: string }> {
     const generatedSalt = salt || this.generateSalt();
-    let hash = password + generatedSalt;
-
-    // Apply SHA-256 multiple times for PBKDF2-like security
-    for (let i = 0; i < this.HASH_ITERATIONS; i++) {
-      hash = await digestStringAsync(CryptoDigestAlgorithm.SHA256, hash);
-    }
+    
+    // Convert salt to Uint8Array for proper PBKDF2
+    const saltBytes = new Uint8Array(generatedSalt.match(/.{1,2}/g)!.map(byte => parseInt(byte, 16)));
+    const passwordBytes = new TextEncoder().encode(password);
+    
+    // Use proper PBKDF2 with SHA-256
+    const key = await crypto.subtle.importKey(
+      'raw',
+      passwordBytes,
+      'PBKDF2',
+      false,
+      ['deriveBits']
+    );
+    
+    const derivedBits = await crypto.subtle.deriveBits(
+      {
+        name: 'PBKDF2',
+        salt: saltBytes,
+        iterations: this.HASH_ITERATIONS,
+        hash: 'SHA-256'
+      },
+      key,
+      256 // 32 bytes
+    );
+    
+    // Convert to hex string
+    const hash = Array.from(new Uint8Array(derivedBits))
+      .map(byte => byte.toString(16).padStart(2, '0'))
+      .join('');
 
     return { hash, salt: generatedSalt };
   }
@@ -42,13 +65,15 @@ export class CryptoService {
   }
 
   /**
-   * Generates a secure session token
+   * Generates a cryptographically secure session token
    */
   static async generateSessionToken(): Promise<string> {
-    const timestamp = Date.now().toString();
-    const randomBytes = this.generateSalt();
-    const combined = timestamp + randomBytes;
-    return await digestStringAsync(CryptoDigestAlgorithm.SHA256, combined);
+    // Generate 32 bytes of cryptographically secure random data
+    const randomBytes = getRandomBytes(32);
+    
+    // Convert to base64url for safe storage/transmission
+    const base64 = btoa(String.fromCharCode(...randomBytes));
+    return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
   }
 
   /**

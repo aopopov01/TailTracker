@@ -24,6 +24,7 @@ export interface Pet {
   
   // Official Records (Screen 5)
   registrationNumber?: string;
+  microchip_number?: string;
   
   // Health Profile (Screen 6)
   medicalConditions?: string[];
@@ -56,8 +57,20 @@ export interface Pet {
   exerciseNeeds?: 'low' | 'moderate' | 'high';
   specialNotes?: string;
   
+  // Additional premium features
+  mood?: 'happy' | 'sad' | 'excited' | 'calm' | 'anxious' | 'unknown';
+  health_status?: 'excellent' | 'good' | 'fair' | 'poor' | 'unknown';
+  activity_level?: 'low' | 'moderate' | 'high' | 'very_high';
+  photo_url?: string;
+  
+  // Emergency contact information
+  emergency_contact_name?: string;
+  
+  // Alternative naming for date of birth
+  date_of_birth?: Date;
+  
   // Lost Pet Status
-  status?: 'active' | 'lost' | 'found' | 'inactive';
+  status?: 'active' | 'lost' | 'found' | 'inactive' | 'deceased';
   lostPetId?: string; // Reference to lost pet report
   
   // Meta information

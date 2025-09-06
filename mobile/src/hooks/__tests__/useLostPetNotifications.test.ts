@@ -4,13 +4,13 @@ import * as Notifications from 'expo-notifications';
 
 import { useLostPetNotifications } from '../useLostPetNotifications';
 import { notificationService } from '../../services/NotificationService';
-import { supabase } from '../../services/supabase';
+import { supabase } from '../../lib/supabase';
 import usePremiumAccess from '../usePremiumAccess';
 
 // Mock dependencies
 jest.mock('../usePremiumAccess');
 jest.mock('../../services/NotificationService');
-jest.mock('../../services/supabase');
+jest.mock('../../lib/supabase');
 
 const mockUsePremiumAccess = jest.mocked(usePremiumAccess);
 const mockNotificationService = jest.mocked(notificationService);

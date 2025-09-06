@@ -36,16 +36,12 @@ const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({
   const screenWidth = Dimensions.get('window').width;
   const qrSize = Math.min(screenWidth * 0.7, 300);
 
-  useEffect(() => {
-    generateQRCode();
-  }, [generateQRCode]);
-
   const generateQRCode = useCallback(async () => {
     if (!user) return;
 
     setIsGenerating(true);
     try {
-      const result = await SharingService.generateSharingToken(user.id, expirationHours);
+      const result = await SharingService.generateSharingToken(parseInt(user.id, 10), expirationHours);
       
       if (result.success && result.token) {
         const qrCodeData: QRCodeData = SharingService.createQRCodeData(result.token);
@@ -135,6 +131,10 @@ const QRCodeGenerator: React.FC<QRCodeGeneratorProps> = ({
       false
     );
   };
+
+  useEffect(() => {
+    generateQRCode();
+  }, [generateQRCode]);
 
   if (isGenerating) {
     return (
