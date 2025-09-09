@@ -1,2 +1,2 @@
 export { default as ReportLostPetScreen } from './ReportLostPetScreen';
-export { default as NearbyLostPetsScreen } from './NearbyLostPetsScreen';
+// NOTE: NearbyLostPetsScreen removed - community feature not approved

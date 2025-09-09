@@ -1,22 +1,6 @@
 import { useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
-
-interface ModalAction {
-  text: string;
-  style?: 'default' | 'destructive' | 'primary';
-  onPress: () => void;
-}
-
-interface ModalConfig {
-  visible: boolean;
-  title: string;
-  message?: string;
-  type?: 'info' | 'success' | 'warning' | 'error';
-  actions?: ModalAction[];
-  icon?: keyof typeof Ionicons.glyphMap;
-  showCloseButton?: boolean;
-  animationType?: 'slide' | 'fade';
-}
+import { ModalAction, ModalConfig } from '../types/Modal';
 
 export const useTailTrackerModal = () => {
   const [modalConfig, setModalConfig] = useState<ModalConfig>({

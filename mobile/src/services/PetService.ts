@@ -97,8 +97,7 @@ interface PetData {
   special_needs?: string;
   allergies?: string;
   medical_conditions?: string[];
-  food_allergies?: string;
-  dietary_preferences?: string;
+  dietary_notes?: string;
 }
 
 class PetService {
@@ -154,8 +153,7 @@ class PetService {
           special_needs,
           allergies,
           medical_conditions,
-          food_allergies,
-          dietary_preferences,
+          dietary_notes,
           created_by,
           created_at,
           updated_at,
@@ -213,8 +211,7 @@ class PetService {
           special_needs,
           allergies,
           medical_conditions,
-          food_allergies,
-          dietary_preferences,
+          dietary_notes,
           created_by,
           created_at,
           updated_at,
@@ -234,7 +231,7 @@ class PetService {
   }
 
   /**
-   * Create a new pet (with subscription limits)
+   * Create a new pet (with deduplication and subscription limits)
    */
   async createPet(petData: PetData): Promise<{ success: boolean; pet?: Pet; error?: string }> {
     try {
@@ -284,15 +281,24 @@ class PetService {
         }
       }
 
-      // Create pet
-      const { data: pet, error } = await supabase
-        .from('pets')
-        .insert({
-          ...petData,
-          created_by: userRecord.id
-        })
-        .select()
-        .single();
+      // Use upsert function to prevent duplicates and sync data
+      const { data: petId, error } = await supabase
+        .rpc('upsert_pet_data', {
+          p_family_id: petData.family_id,
+          p_name: petData.name,
+          p_species: petData.species,
+          p_breed: petData.breed || null,
+          p_color: petData.color || null,
+          p_gender: petData.gender || null,
+          p_date_of_birth: petData.date_of_birth || null,
+          p_weight_kg: petData.weight_kg || null,
+          p_microchip_number: petData.microchip_number || null,
+          p_emergency_contact_name: petData.emergency_contact_name || null,
+          p_emergency_contact_phone: petData.emergency_contact_phone || null,
+          p_special_needs: petData.special_needs || null,
+          p_allergies: petData.allergies || null,
+          p_created_by: userRecord.id
+        });
 
       if (error) {
         // Handle database constraint errors with user-friendly messages
@@ -302,10 +308,107 @@ class PetService {
         throw error;
       }
 
+      // Fetch the complete pet data
+      const pet = await this.getPet(petId);
+      if (!pet) {
+        return { success: false, error: 'Pet created but could not retrieve data' };
+      }
+
       return { success: true, pet };
     } catch (error: any) {
       console.error('Error creating pet:', error);
       return { success: false, error: error.message };
+    }
+  }
+
+  /**
+   * Upsert pet data during onboarding - prevents duplicates and syncs across app
+   * This is the main method to use during user onboarding flow
+   */
+  async upsertPetFromOnboarding(petData: PetData): Promise<{ success: boolean; pet?: Pet; isExisting: boolean; error?: string }> {
+    try {
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user) {
+        return { success: false, isExisting: false, error: 'User not authenticated' };
+      }
+
+      const { data: userRecord } = await supabase
+        .from('users')
+        .select('id, subscription_status')
+        .eq('auth_user_id', user.user.id)
+        .single();
+
+      if (!userRecord) {
+        return { success: false, isExisting: false, error: 'User not found' };
+      }
+
+      // Check for existing pets first to determine if this is new or existing
+      let existingPet = null;
+      
+      // Check by microchip first
+      if (petData.microchip_number) {
+        const { data: byMicrochip } = await supabase
+          .from('pets')
+          .select('id, name')
+          .eq('microchip_number', petData.microchip_number)
+          .is('deleted_at', null)
+          .single();
+        
+        if (byMicrochip) existingPet = byMicrochip;
+      }
+
+      // Check by name + family + species if no microchip match
+      if (!existingPet) {
+        const { data: byName } = await supabase
+          .from('pets')
+          .select('id, name')
+          .eq('family_id', petData.family_id)
+          .eq('name', petData.name)
+          .eq('species', petData.species)
+          .is('deleted_at', null)
+          .single();
+        
+        if (byName) existingPet = byName;
+      }
+
+      // Use upsert function to prevent duplicates and sync data
+      const { data: petId, error } = await supabase
+        .rpc('upsert_pet_data', {
+          p_family_id: petData.family_id,
+          p_name: petData.name,
+          p_species: petData.species,
+          p_breed: petData.breed || null,
+          p_color: petData.color || null,
+          p_gender: petData.gender || null,
+          p_date_of_birth: petData.date_of_birth || null,
+          p_weight_kg: petData.weight_kg || null,
+          p_microchip_number: petData.microchip_number || null,
+          p_emergency_contact_name: petData.emergency_contact_name || null,
+          p_emergency_contact_phone: petData.emergency_contact_phone || null,
+          p_special_needs: petData.special_needs || null,
+          p_allergies: petData.allergies || null,
+          p_created_by: userRecord.id
+        });
+
+      if (error) {
+        console.error('Upsert error:', error);
+        return { success: false, isExisting: false, error: error.message };
+      }
+
+      // Fetch the complete pet data
+      const pet = await this.getPet(petId);
+      if (!pet) {
+        return { success: false, isExisting: false, error: 'Pet processed but could not retrieve data' };
+      }
+
+      return { 
+        success: true, 
+        pet, 
+        isExisting: existingPet !== null
+      };
+    } catch (error: any) {
+      console.error('Error upserting pet during onboarding:', error);
+      return { success: false, isExisting: false, error: error.message };
     }
   }
 
@@ -623,6 +726,89 @@ class PetService {
     } catch (error: any) {
       console.error('Error getting subscription status:', error);
       return { status: 'free', canUsePremiumFeatures: false, canUseProFeatures: false };
+    }
+  }
+
+  /**
+   * Find potential duplicate pets for cleanup
+   */
+  async findDuplicatePets(familyId: string): Promise<{
+    pet1_id: string;
+    pet1_name: string;
+    pet2_id: string;
+    pet2_name: string;
+    similarity_reason: string;
+  }[]> {
+    try {
+      const { data, error } = await supabase
+        .rpc('find_potential_duplicate_pets', {
+          p_family_id: familyId
+        });
+
+      if (error) throw error;
+
+      return data || [];
+    } catch (error: any) {
+      console.error('Error finding duplicate pets:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Merge duplicate pets (for cleanup)
+   */
+  async mergeDuplicatePets(keepPetId: string, duplicatePetId: string): Promise<{ success: boolean; error?: string }> {
+    try {
+      const { data, error } = await supabase
+        .rpc('merge_duplicate_pets', {
+          p_keep_pet_id: keepPetId,
+          p_duplicate_pet_id: duplicatePetId
+        });
+
+      if (error) throw error;
+
+      return { success: true };
+    } catch (error: any) {
+      console.error('Error merging duplicate pets:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
+   * Get complete pet data with all related information
+   */
+  async getCompletePetData(petId: string): Promise<any> {
+    try {
+      const { data, error } = await supabase
+        .rpc('get_complete_pet_data', {
+          p_pet_id: petId
+        });
+
+      if (error) throw error;
+
+      return data;
+    } catch (error: any) {
+      console.error('Error getting complete pet data:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Clean up incomplete pet records (for maintenance)
+   */
+  async cleanupIncompletePets(familyId: string): Promise<{ cleaned: number; error?: string }> {
+    try {
+      const { data, error } = await supabase
+        .rpc('cleanup_incomplete_pets', {
+          p_family_id: familyId
+        });
+
+      if (error) throw error;
+
+      return { cleaned: data || 0 };
+    } catch (error: any) {
+      console.error('Error cleaning up incomplete pets:', error);
+      return { cleaned: 0, error: error.message };
     }
   }
 }

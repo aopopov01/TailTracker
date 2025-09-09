@@ -32,25 +32,11 @@ export default function SettingsScreen() {
 
   // Handler functions for each setting
   const handleProfile = () => {
-    showModal({
-      visible: true,
-      title: 'Profile',
-      message: 'Profile management will be available in the next update!',
-      type: 'info',
-      icon: 'person',
-      actions: [{ text: 'Got it', style: 'primary', onPress: hideModal }]
-    });
+    router.push('/profile' as any);
   };
 
   const handleSubscription = () => {
-    showModal({
-      visible: true,
-      title: 'Subscription',
-      message: 'Premium subscription features coming soon!',
-      type: 'info',
-      icon: 'card',
-      actions: [{ text: 'Got it', style: 'primary', onPress: hideModal }]
-    });
+    router.push('/subscription' as any);
   };
 
   const handleFamilySharing = () => {
@@ -65,14 +51,7 @@ export default function SettingsScreen() {
   };
 
   const handleNotifications = () => {
-    showModal({
-      visible: true,
-      title: 'Push Notifications',
-      message: 'Notification settings will be configurable in the next update!',
-      type: 'info',
-      icon: 'notifications',
-      actions: [{ text: 'Got it', style: 'primary', onPress: hideModal }]
-    });
+    router.push('/notifications' as any);
   };
 
   const handleLocationAlerts = () => {
@@ -98,47 +77,19 @@ export default function SettingsScreen() {
   };
 
   const handlePrivacySettings = () => {
-    showModal({
-      visible: true,
-      title: 'Privacy Settings',
-      message: 'Privacy controls will be available in the next update!',
-      type: 'info',
-      icon: 'shield',
-      actions: [{ text: 'Got it', style: 'primary', onPress: hideModal }]
-    });
+    router.push('/privacy' as any);
   };
 
   const handleSecurity = () => {
-    showModal({
-      visible: true,
-      title: 'Security',
-      message: 'Security settings will be available soon!',
-      type: 'info',
-      icon: 'lock-closed',
-      actions: [{ text: 'Got it', style: 'primary', onPress: hideModal }]
-    });
+    router.push('/security' as any);
   };
 
   const handleTermsPrivacy = () => {
-    showModal({
-      visible: true,
-      title: 'Terms & Privacy',
-      message: 'Legal documents will be available in the next update!',
-      type: 'info',
-      icon: 'document-text',
-      actions: [{ text: 'Got it', style: 'primary', onPress: hideModal }]
-    });
+    router.push('/legal' as any);
   };
 
   const handleHelpCenter = () => {
-    showModal({
-      visible: true,
-      title: 'Help Center',
-      message: 'Help documentation is being prepared and will be available soon!',
-      type: 'info',
-      icon: 'help-circle',
-      actions: [{ text: 'Got it', style: 'primary', onPress: hideModal }]
-    });
+    router.push('/help' as any);
   };
 
   const handleContactSupport = () => {

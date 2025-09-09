@@ -6,7 +6,7 @@
  */
 
 import React from 'react';
-import { View, StyleSheet, ViewStyle, Dimensions } from 'react-native';
+import { View, StyleSheet, ViewStyle, Dimensions, DimensionValue } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, {
   useSharedValue,
@@ -26,7 +26,7 @@ const { width: screenWidth } = Dimensions.get('window');
 // ====================================
 
 export interface SkeletonProps {
-  width?: number | string;
+  width?: DimensionValue;
   height?: number;
   borderRadius?: number;
   style?: ViewStyle;
@@ -50,7 +50,7 @@ export const Skeleton: React.FC<SkeletonProps> = ({
   style,
   shimmerColors,
 }) => {
-  const { theme, isDarkMode } = useMaterialTheme();
+  const { theme, isDark } = useMaterialTheme();
   
   // Animation values
   const shimmerTranslateX = useSharedValue(-1);
@@ -81,7 +81,7 @@ export const Skeleton: React.FC<SkeletonProps> = ({
   const getShimmerColors = () => {
     if (shimmerColors) return shimmerColors;
     
-    if (isDarkMode) {
+    if (isDark) {
       return [
         'rgba(255, 255, 255, 0.05)',
         'rgba(255, 255, 255, 0.15)',
@@ -97,7 +97,7 @@ export const Skeleton: React.FC<SkeletonProps> = ({
   };
   
   const getBackgroundColor = () => {
-    return isDarkMode ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)';
+    return isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)';
   };
   
   return (
@@ -115,7 +115,7 @@ export const Skeleton: React.FC<SkeletonProps> = ({
     >
       <Animated.View style={[StyleSheet.absoluteFillObject, shimmerStyle]}>
         <LinearGradient
-          colors={getShimmerColors()}
+          colors={getShimmerColors() as unknown as readonly [string, string, ...string[]]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
           style={StyleSheet.absoluteFillObject}
@@ -318,7 +318,7 @@ export const PulsingSkeleton: React.FC<SkeletonProps> = ({
   borderRadius = 8,
   style,
 }) => {
-  const { isDarkMode } = useMaterialTheme();
+  const { isDark } = useMaterialTheme();
   
   // Animation values
   const pulseOpacity = useSharedValue(0.3);
@@ -340,7 +340,7 @@ export const PulsingSkeleton: React.FC<SkeletonProps> = ({
   });
   
   const getBackgroundColor = () => {
-    return isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+    return isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
   };
   
   return (

@@ -46,8 +46,8 @@ interface PhotoItem {
 export default function PhotoGalleryScreen() {
   const navigation = useNavigation();
   const route = useRoute();
-  const petId = route.params?.petId;
-  const petName = route.params?.petName || 'Pet';
+  const petId = (route.params as any)?.petId;
+  const petName = (route.params as any)?.petName || 'Pet';
 
   const [photos, setPhotos] = useState<PhotoItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -284,7 +284,7 @@ export default function PhotoGalleryScreen() {
       // No specific start action needed
     },
     onActive: (event) => {
-      scale.value = Math.max(1, Math.min(event.scale, 3));
+      scale.value = Math.max(1, Math.min((event as any).scale, 3));
     },
     onEnd: () => {
       if (scale.value < 1.2) {
@@ -384,7 +384,7 @@ export default function PhotoGalleryScreen() {
         </View>
 
         {selectedPhoto && (
-          <PinchGestureHandler onGestureEvent={pinchHandler}>
+          <PinchGestureHandler onGestureEvent={pinchHandler as any}>
             <Animated.View style={[styles.imageContainer, animatedStyle]}>
               <Image source={{ uri: selectedPhoto.url }} style={styles.fullscreenImage} />
             </Animated.View>
@@ -555,7 +555,7 @@ const styles = StyleSheet.create({
   uploadingOverlay: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.primaryLight,
+    backgroundColor: colors.primaryContainer,
     marginHorizontal: spacing.md,
     marginTop: spacing.lg,
     borderRadius: 8,
@@ -614,7 +614,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: spacing.xl,
-    paddingVertical: spacing.xxxl,
+    paddingVertical: spacing['6xl'],
   },
   emptyTitle: {
     fontSize: 20,
@@ -650,7 +650,7 @@ const styles = StyleSheet.create({
     color: colors.white,
   },
   secondaryButton: {
-    backgroundColor: colors.primaryLight,
+    backgroundColor: colors.primaryContainer,
     borderWidth: 1,
     borderColor: colors.primary,
   },

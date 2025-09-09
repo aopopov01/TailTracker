@@ -16,7 +16,7 @@ export const PetCard: React.FC<PetCardProps> = ({
   onDelete
 }) => {
   const getAge = (birthDate: string | undefined): string => {
-    if (!birthDate) return 'Unknown age';
+    if (!birthDate) return 'Age unknown';
     
     const birth = new Date(birthDate);
     const today = new Date();
@@ -26,14 +26,14 @@ export const PetCard: React.FC<PetCardProps> = ({
     if (ageInYears < 1) {
       const ageInMonths = monthDiff <= 0 ? 
         12 + monthDiff : monthDiff;
-      return `${ageInMonths} months`;
+      return `${ageInMonths} ${ageInMonths === 1 ? 'month' : 'months'}`;
     }
     
     if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
-      return `${ageInYears - 1} years`;
+      return `${ageInYears - 1} ${ageInYears - 1 === 1 ? 'year' : 'years'}`;
     }
     
-    return `${ageInYears} years`;
+    return `${ageInYears} ${ageInYears === 1 ? 'year' : 'years'}`;
   };
 
   const getStatusColor = () => {
@@ -74,10 +74,12 @@ export const PetCard: React.FC<PetCardProps> = ({
           <Text style={styles.petDetails}>
             {pet.species}
             {pet.breed && ` • ${pet.breed}`}
+            {pet.color && ` • ${pet.color}`}
           </Text>
           <Text style={styles.petAge}>
             {getAge(pet.date_of_birth)}
             {pet.weight_kg && ` • ${pet.weight_kg}kg`}
+            {pet.gender && ` • ${pet.gender.charAt(0).toUpperCase() + pet.gender.slice(1)}`}
           </Text>
         </View>
         

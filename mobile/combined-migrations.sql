@@ -233,7 +233,7 @@ CREATE TABLE subscription_transactions (
   amount DECIMAL(10,2) NOT NULL,
   currency TEXT DEFAULT 'USD',
   status TEXT NOT NULL, -- 'pending', 'completed', 'failed', 'refunded'
-  provider TEXT NOT NULL, -- 'revenuecat', 'stripe'
+  provider TEXT NOT NULL, -- 'stripe', 'apple', 'google'
   provider_transaction_id TEXT,
   subscription_period_start TIMESTAMPTZ,
   subscription_period_end TIMESTAMPTZ,

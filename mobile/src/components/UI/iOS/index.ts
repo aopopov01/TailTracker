@@ -2,10 +2,10 @@
 // Following Apple's Human Interface Guidelines
 
 export { iOSButton, iOSButtonType, iOSButtonSize } from './iOSButton';
-export { iOSCard } from './iOSCard';
-export { iOSTextInput } from './iOSTextInput';
-export { iOSActionSheet, type ActionSheetAction } from './iOSActionSheet';
-export { iOSTabBar, type TabItem } from './iOSTabBar';
+export { IOSCard } from './iOSCard';
+export { IOSTextInput } from './iOSTextInput';
+export { IOSActionSheet, type ActionSheetAction } from './iOSActionSheet';
+export { IOSTabBar, type TabItem } from './iOSTabBar';
 
 // Component guidelines and best practices:
 //

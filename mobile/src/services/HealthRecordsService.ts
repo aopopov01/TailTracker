@@ -301,9 +301,10 @@ class HealthRecordsService {
 
       if (photos) {
         // Delete photo files from storage
-        const filePaths = photos.map(photo => 
-          photo.photo_url.replace(supabase.storageUrl + '/object/public/', '')
-        );
+        const filePaths = photos.map(photo => {
+          const url = new URL(photo.photo_url);
+          return url.pathname.replace('/storage/v1/object/public/health-records/', '');
+        });
         
         if (filePaths.length > 0) {
           await supabase.storage.from('health-records').remove(filePaths);
@@ -416,7 +417,8 @@ class HealthRecordsService {
 
       if (photo) {
         // Extract file path from URL
-        const filePath = photo.photo_url.replace(supabase.storageUrl + '/object/public/', '');
+        const url = new URL(photo.photo_url);
+        const filePath = url.pathname.replace('/storage/v1/object/public/health-records/', '');
         
         // Delete from storage
         await supabase.storage.from('health-records').remove([filePath]);
@@ -533,7 +535,8 @@ class HealthRecordsService {
 
       if (vaccination?.certificate_photo_url) {
         // Extract file path and delete from storage
-        const filePath = vaccination.certificate_photo_url.replace(supabase.storageUrl + '/object/public/', '');
+        const url = new URL(vaccination.certificate_photo_url);
+        const filePath = url.pathname.replace('/storage/v1/object/public/health-records/', '');
         await supabase.storage.from('vaccination-certificates').remove([filePath]);
       }
 

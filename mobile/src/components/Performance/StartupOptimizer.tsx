@@ -100,11 +100,11 @@ const StartupOptimizer: React.FC<StartupOptimizerProps> = React.memo(({
       execute: async () => {
         // Initialize critical services
         const { AuthService } = await import('../../services/authService');
-        const { default: BatteryOptimizationService } = await import('../../services/BatteryOptimizationService');
+        // NOTE: BatteryOptimizationService removed - feature not approved
         
         await Promise.all([
-          AuthService.initialize?.(),
-          BatteryOptimizationService.getInstance().initialize(),
+          // AuthService doesn't need initialization
+          Promise.resolve(), // Placeholder for removed BatteryOptimizationService
         ]);
       },
     },
@@ -121,7 +121,7 @@ const StartupOptimizer: React.FC<StartupOptimizerProps> = React.memo(({
         
         await Promise.all([
           ComponentPreloader.preload('PetProfile', () => import('../../screens/Pet/PetProfileScreen')),
-          ComponentPreloader.preload('Dashboard', () => import('../../screens/Dashboard/DashboardScreen')),
+          // ComponentPreloader.preload('Dashboard', () => import('../../screens/Dashboard/DashboardScreen')), // DashboardScreen not found
         ]);
       },
     },
@@ -168,7 +168,7 @@ const StartupOptimizer: React.FC<StartupOptimizerProps> = React.memo(({
         return acc;
       }, {} as Record<string, StartupTask[]>);
 
-      const priorityOrder: Array<keyof typeof tasksByPriority> = ['critical', 'high', 'medium', 'low'];
+      const priorityOrder: (keyof typeof tasksByPriority)[] = ['critical', 'high', 'medium', 'low'];
       let completedCount = 0;
       const totalTasks = startupTasks.length;
 
@@ -261,7 +261,7 @@ const StartupOptimizer: React.FC<StartupOptimizerProps> = React.memo(({
       console.error('[Startup] Failed:', error);
       
       performanceMonitor.endTiming('app_startup', 'startup', {
-        error: error.message,
+        error: error instanceof Error ? error.message : String(error),
         success: false,
       });
 

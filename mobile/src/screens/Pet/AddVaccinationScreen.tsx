@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   Alert,
   StatusBar,
-  TextInput,
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
@@ -22,6 +21,8 @@ import { colors } from '@/constants/colors';
 import { fonts } from '@/constants/fonts';
 import { spacing } from '@/constants/spacing';
 import { supabase } from '@/services/supabase';
+import { AutoPopulateField } from '@/components/AutoPopulate/AutoPopulateField';
+import { useDataSync } from '@/contexts/DataSyncContext';
 
 interface VaccinationData {
   vaccine_name: string;
@@ -29,24 +30,42 @@ interface VaccinationData {
   next_due_date: string;
   batch_number: string;
   notes: string;
+  veterinarian: string;
+  clinic_name: string;
+  cost?: string;
 }
 
 export default function AddVaccinationScreen() {
   const navigation = useNavigation();
   const route = useRoute();
-  const petId = route.params?.petId;
+  const petId = (route.params as any)?.petId;
 
   const [saving, setSaving] = useState(false);
   const [showAdministeredPicker, setShowAdministeredPicker] = useState(false);
   const [showDuePicker, setShowDuePicker] = useState(false);
 
+  const { updateMedicalData } = useDataSync();
+  
   const [formData, setFormData] = useState<VaccinationData>({
     vaccine_name: '',
     date_administered: new Date().toISOString().split('T')[0],
     next_due_date: '',
     batch_number: '',
     notes: '',
+    veterinarian: '',
+    clinic_name: '',
+    cost: '',
   });
+
+  // Update context when form data changes
+  useEffect(() => {
+    updateMedicalData({
+      veterinarian: formData.veterinarian,
+      notes: formData.notes,
+      last_visit_date: formData.date_administered,
+      last_visit_cost: formData.cost ? parseFloat(formData.cost) : undefined,
+    } as any);
+  }, [formData.veterinarian, formData.notes, formData.clinic_name, formData.date_administered, formData.cost, updateMedicalData]);
 
   const updateField = (field: keyof VaccinationData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -87,10 +106,21 @@ export default function AddVaccinationScreen() {
           next_due_date: formData.next_due_date || null,
           batch_number: formData.batch_number || null,
           notes: formData.notes || null,
+          veterinarian: formData.veterinarian || null,
+          clinic_name: formData.clinic_name || null,
+          cost: formData.cost ? parseFloat(formData.cost) : null,
           created_at: new Date().toISOString(),
         });
 
       if (error) throw error;
+
+      // Final sync with context for future use
+      updateMedicalData({
+        veterinarian: formData.veterinarian,
+        notes: formData.notes,
+        last_visit_date: formData.date_administered,
+        last_visit_cost: formData.cost ? parseFloat(formData.cost) : undefined,
+      } as any);
 
       Alert.alert(
         'Success',
@@ -180,6 +210,8 @@ export default function AddVaccinationScreen() {
       multiline?: boolean;
       numberOfLines?: number;
       required?: boolean;
+      autoPopulateContext?: 'medical' | 'user' | 'pet';
+      autoPopulateField?: string;
     }
   ) => (
     <View style={styles.formField}>
@@ -187,16 +219,24 @@ export default function AddVaccinationScreen() {
         {label}
         {options?.required && <Text style={styles.requiredMark}> *</Text>}
       </Text>
-      <TextInput
-        style={[styles.textInput, options?.multiline && styles.multilineInput]}
-        value={value}
-        onChangeText={onChangeText}
-        placeholder={options?.placeholder || `Enter ${label.toLowerCase()}`}
-        placeholderTextColor={colors.gray400}
-        keyboardType={options?.keyboardType || 'default'}
-        multiline={options?.multiline}
-        numberOfLines={options?.numberOfLines}
-      />
+      {options?.autoPopulateContext && options?.autoPopulateField ? (
+        <AutoPopulateField
+          style={[styles.textInput, options?.multiline && styles.multilineInput]}
+          value={value}
+          onChangeText={onChangeText}
+          placeholder={options?.placeholder || `Enter ${label.toLowerCase()}`}
+          placeholderTextColor={colors.gray400}
+          keyboardType={options?.keyboardType || 'default'}
+          multiline={options?.multiline}
+          numberOfLines={options?.numberOfLines}
+          context={options.autoPopulateContext}
+          fieldPath={options.autoPopulateField}
+        />
+      ) : (
+        <Text style={styles.regularInput}>
+          Regular input (no auto-populate available)
+        </Text>
+      )}
     </View>
   );
 
@@ -272,13 +312,47 @@ export default function AddVaccinationScreen() {
             )}
 
             {renderFormField(
+              'Veterinarian',
+              formData.veterinarian,
+              (text) => updateField('veterinarian', text),
+              { 
+                placeholder: 'Dr. Name or clinic veterinarian',
+                autoPopulateContext: 'medical',
+                autoPopulateField: 'veterinarian'
+              }
+            )}
+
+            {renderFormField(
+              'Clinic Name',
+              formData.clinic_name,
+              (text) => updateField('clinic_name', text),
+              { 
+                placeholder: 'Veterinary clinic name',
+                autoPopulateContext: 'medical',
+                autoPopulateField: 'clinic_name'
+              }
+            )}
+
+            {renderFormField(
+              'Cost',
+              formData.cost || '',
+              (text) => updateField('cost', text),
+              { 
+                placeholder: '0.00',
+                keyboardType: 'numeric'
+              }
+            )}
+
+            {renderFormField(
               'Notes',
               formData.notes,
               (text) => updateField('notes', text),
               { 
                 placeholder: 'Any additional notes or reactions',
                 multiline: true,
-                numberOfLines: 4
+                numberOfLines: 4,
+                autoPopulateContext: 'medical',
+                autoPopulateField: 'notes'
               }
             )}
           </View>
@@ -289,6 +363,12 @@ export default function AddVaccinationScreen() {
               <Text style={styles.infoText}>
                 The next due date is automatically set to 12 months from the administered date. 
                 You can modify it as needed.
+              </Text>
+            </View>
+            <View style={[styles.infoCard, { backgroundColor: colors.success + '20', marginTop: spacing.sm }]}>
+              <Ionicons name="sync" size={20} color={colors.success} />
+              <Text style={[styles.infoText, { color: colors.success }]}>
+                Veterinarian and notes fields auto-populate from your previous entries.
               </Text>
             </View>
           </View>
@@ -325,7 +405,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 20,
-    fontFamily: fonts.semiBold,
+    fontFamily: fonts.medium,
     color: '#fff',
     flex: 1,
     textAlign: 'center',
@@ -360,7 +440,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 18,
-    fontFamily: fonts.semiBold,
+    fontFamily: fonts.medium,
     color: colors.text,
     marginBottom: spacing.md,
   },
@@ -390,6 +470,16 @@ const styles = StyleSheet.create({
     height: 100,
     textAlignVertical: 'top',
   },
+  regularInput: {
+    borderWidth: 1,
+    borderColor: colors.gray300,
+    borderRadius: 8,
+    padding: spacing.md,
+    fontSize: 16,
+    fontFamily: fonts.regular,
+    color: colors.gray500,
+    backgroundColor: '#f9f9f9',
+  },
   dateButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -410,7 +500,7 @@ const styles = StyleSheet.create({
   },
   infoCard: {
     flexDirection: 'row',
-    backgroundColor: colors.primaryLight,
+    backgroundColor: colors.primaryContainer,
     borderRadius: 8,
     padding: spacing.md,
     alignItems: 'flex-start',

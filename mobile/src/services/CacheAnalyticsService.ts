@@ -46,6 +46,12 @@ export class CacheAnalyticsService {
   clearAnalytics(): void {
     console.log('CacheAnalyticsService: Clearing analytics (stub)');
   }
+
+  // Get current metrics (stub)
+  getCurrentMetrics(): CacheMetrics {
+    console.log('CacheAnalyticsService: Getting current metrics (stub)');
+    return this.getCacheMetrics();
+  }
 }
 
 export default CacheAnalyticsService;

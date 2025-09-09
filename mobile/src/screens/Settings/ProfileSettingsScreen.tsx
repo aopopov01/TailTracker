@@ -15,7 +15,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
-import { supabase } from '../../config/supabase';
+import { supabase } from '@/services/supabase';
 import { useAuth } from '../../hooks/useAuth';
 import { useUserProfile } from '../../hooks/useUserProfile';
 
@@ -58,13 +58,13 @@ export const ProfileSettingsScreen: React.FC = () => {
       setFormData({
         full_name: profile.full_name || '',
         phone: profile.phone || '',
-        location: profile.location_text || '',
+        location: (profile as any).location_text || profile.location || '',
         bio: profile.bio || '',
         emergency_contact_name: profile.emergency_contact_name || '',
         emergency_contact_phone: profile.emergency_contact_phone || '',
         preferred_vet_clinic: profile.preferred_vet_clinic || '',
         preferred_language: profile.preferred_language || 'en',
-        timezone: profile.timezone || 'America/New_York',
+        timezone: (profile as any).timezone || 'America/New_York',
       });
       setProfileImage(profile.avatar_url || null);
     }
@@ -83,7 +83,7 @@ export const ProfileSettingsScreen: React.FC = () => {
         { text: 'Cancel', style: 'cancel' },
         { text: 'Camera', onPress: () => openImagePicker('camera') },
         { text: 'Photo Library', onPress: () => openImagePicker('library') },
-        ...(profileImage ? [{ text: 'Remove Photo', style: 'destructive', onPress: removeProfileImage }] : []),
+        ...(profileImage ? [{ text: 'Remove Photo', style: 'destructive' as const, onPress: removeProfileImage }] : []),
       ]
     );
   };
@@ -288,13 +288,13 @@ export const ProfileSettingsScreen: React.FC = () => {
                 setFormData({
                   full_name: profile.full_name || '',
                   phone: profile.phone || '',
-                  location: profile.location_text || '',
+                  location: (profile as any).location_text || profile.location || '',
                   bio: profile.bio || '',
                   emergency_contact_name: profile.emergency_contact_name || '',
                   emergency_contact_phone: profile.emergency_contact_phone || '',
                   preferred_vet_clinic: profile.preferred_vet_clinic || '',
                   preferred_language: profile.preferred_language || 'en',
-                  timezone: profile.timezone || 'America/New_York',
+                  timezone: (profile as any).timezone || 'America/New_York',
                 });
                 setProfileImage(profile.avatar_url || null);
               }

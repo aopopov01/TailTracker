@@ -4,13 +4,13 @@ import * as Notifications from 'expo-notifications';
 
 import { useLostPetNotifications } from '../useLostPetNotifications';
 import { notificationService } from '../../services/NotificationService';
-import { supabase } from '../../lib/supabase';
+import { supabase } from '../../services/supabase';
 import usePremiumAccess from '../usePremiumAccess';
 
 // Mock dependencies
 jest.mock('../usePremiumAccess');
 jest.mock('../../services/NotificationService');
-jest.mock('../../lib/supabase');
+jest.mock('../../services/supabase');
 
 const mockUsePremiumAccess = jest.mocked(usePremiumAccess);
 const mockNotificationService = jest.mocked(notificationService);
@@ -24,6 +24,7 @@ describe('useLostPetNotifications', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.clearAllTimers();
     
     // Default mocks
     mockUsePremiumAccess.mockReturnValue({
@@ -60,6 +61,16 @@ describe('useLostPetNotifications', () => {
       remove: jest.fn(),
     });
     jest.mocked(Notifications.getPresentedNotificationsAsync).mockResolvedValue([]);
+    
+    // Mock AppState.addEventListener
+    jest.mocked(AppState.addEventListener).mockReturnValue({
+      remove: jest.fn(),
+    });
+  });
+
+  afterEach(() => {
+    jest.runOnlyPendingTimers();
+    jest.useRealTimers();
   });
 
   describe('initialization', () => {
@@ -76,10 +87,12 @@ describe('useLostPetNotifications', () => {
     it('should initialize notifications on mount', async () => {
       const { result } = renderHook(() => useLostPetNotifications());
 
-      await waitFor(() => {
-        expect(result.current.loading).toBe(false);
+      // Wait for all promises to resolve
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 0));
       });
 
+      expect(result.current.loading).toBe(false);
       expect(result.current.notificationsEnabled).toBe(true);
       expect(result.current.pushToken).toBe('ExponentPushToken[test]');
       expect(mockNotificationService.updateUserPushToken).toHaveBeenCalledWith('user-1');
@@ -91,10 +104,12 @@ describe('useLostPetNotifications', () => {
 
       const { result } = renderHook(() => useLostPetNotifications());
 
-      await waitFor(() => {
-        expect(result.current.loading).toBe(false);
+      // Wait for all promises to resolve
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 0));
       });
 
+      expect(result.current.loading).toBe(false);
       expect(result.current.error).toBe('Failed to initialize notifications');
     });
   });
@@ -115,9 +130,15 @@ describe('useLostPetNotifications', () => {
     });
 
     it('should handle permission denial', async () => {
-      mockNotificationService.requestPermissions.mockResolvedValue(false);
-
       const { result } = renderHook(() => useLostPetNotifications());
+
+      // Wait for initial mount to complete
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 0));
+      });
+
+      // Now mock for the permission denial case
+      mockNotificationService.requestPermissions.mockResolvedValue(false);
 
       let permissionResult: boolean;
       await act(async () => {
@@ -183,6 +204,11 @@ describe('useLostPetNotifications', () => {
       const { result } = renderHook(() => useLostPetNotifications());
       const alertSpy = jest.spyOn(Alert, 'alert');
 
+      // Wait for initial mount to complete
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 0));
+      });
+
       await act(async () => {
         await result.current.disableNotifications();
       });
@@ -197,11 +223,17 @@ describe('useLostPetNotifications', () => {
     });
 
     it('should handle disable error', async () => {
+      const { result } = renderHook(() => useLostPetNotifications());
+
+      // Wait for initial mount to complete
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 0));
+      });
+
+      // Mock the error case
       mockNotificationService.disablePushNotifications.mockRejectedValue(
         new Error('Disable failed')
       );
-
-      const { result } = renderHook(() => useLostPetNotifications());
 
       await act(async () => {
         await result.current.disableNotifications();
@@ -214,6 +246,11 @@ describe('useLostPetNotifications', () => {
   describe('clearNotifications', () => {
     it('should clear all notifications', async () => {
       const { result } = renderHook(() => useLostPetNotifications());
+
+      // Wait for initial mount to complete
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 0));
+      });
 
       await act(async () => {
         await result.current.clearNotifications();
@@ -228,6 +265,11 @@ describe('useLostPetNotifications', () => {
     it('should send test notification successfully', async () => {
       const { result } = renderHook(() => useLostPetNotifications());
 
+      // Wait for initial mount to complete
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 0));
+      });
+
       await act(async () => {
         await result.current.testNotification();
       });
@@ -236,12 +278,18 @@ describe('useLostPetNotifications', () => {
     });
 
     it('should handle test notification error', async () => {
+      const alertSpy = jest.spyOn(Alert, 'alert');
+      const { result } = renderHook(() => useLostPetNotifications());
+
+      // Wait for initial mount to complete
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 0));
+      });
+
+      // Mock the error case
       mockNotificationService.testNotification.mockRejectedValue(
         new Error('Test failed')
       );
-      const alertSpy = jest.spyOn(Alert, 'alert');
-
-      const { result } = renderHook(() => useLostPetNotifications());
 
       await act(async () => {
         await result.current.testNotification();
@@ -385,6 +433,11 @@ describe('useLostPetNotifications', () => {
     it('should refresh notification status', async () => {
       const { result } = renderHook(() => useLostPetNotifications());
 
+      // Wait for initial mount to complete
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 0));
+      });
+
       await act(async () => {
         await result.current.refreshStatus();
       });
@@ -394,10 +447,16 @@ describe('useLostPetNotifications', () => {
     });
 
     it('should get new token if current token is missing', async () => {
-      mockNotificationService.getCurrentPushToken.mockReturnValue(null);
-      
       const { result } = renderHook(() => useLostPetNotifications());
 
+      // Wait for initial mount to complete
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 0));
+      });
+
+      // Mock the missing token case
+      mockNotificationService.getCurrentPushToken.mockReturnValue(null);
+      
       await act(async () => {
         await result.current.refreshStatus();
       });
@@ -415,8 +474,8 @@ describe('useLostPetNotifications', () => {
 
       const { result } = renderHook(() => useLostPetNotifications());
 
-      await waitFor(() => {
-        expect(result.current.loading).toBe(false);
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 0));
       });
 
       // Should still work without authenticated user

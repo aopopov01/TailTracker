@@ -37,7 +37,6 @@ export const AuthNavigator: React.FC = () => {
           fontSize: 20,
           fontWeight: '600',
         },
-        headerBackTitleVisible: false,
         gestureEnabled: true,
         gestureDirection: 'horizontal',
         cardStyleInterpolator: ({ current, layouts }) => {
@@ -93,7 +92,12 @@ export const AuthNavigator: React.FC = () => {
       </Stack.Screen>
       <Stack.Screen 
         name="Register" 
-        component={RegisterScreen}
+        component={(props: any) => (
+          <RegisterScreen 
+            {...props} 
+            onNavigateToLogin={() => props.navigation.navigate('Login')}
+          />
+        )}
         options={{
           title: 'Create Account',
           headerStyle: {

@@ -17,8 +17,8 @@ import { PetDetailScreen } from '@/screens/PetDetailScreen';
 import { PetsScreen } from '@/screens/PetsScreen';
 import { ProfileScreen } from '@/screens/ProfileScreen';
 import { PrivacyPolicyScreen, TermsOfServiceScreen } from '@/screens/Settings';
-import { SettingsScreen } from '@/screens/SettingsScreen';
-import { SubscriptionScreen } from '@/screens/SubscriptionScreen';
+import { SettingsScreen } from '@/screens/Settings/SettingsScreen';
+import { SubscriptionScreen } from '@/screens/Payment/SubscriptionScreen';
 import { AuthNavigator } from './AuthNavigator';
 
 // Navigation types
@@ -237,7 +237,6 @@ const RootNavigator: React.FC = () => {
           fontSize: 20,
           fontWeight: '600',
         },
-        headerBackTitleVisible: false,
         cardStyleInterpolator: ({ current, layouts }) => {
           return {
             cardStyle: {
@@ -357,6 +356,24 @@ export const AppNavigator: React.FC = () => {
           text: theme.colors.onSurface,
           border: theme.colors.outline,
           notification: theme.colors.error,
+        },
+        fonts: {
+          regular: {
+            fontFamily: 'System',
+            fontWeight: 'normal' as any,
+          },
+          medium: {
+            fontFamily: 'System',
+            fontWeight: '500' as any,
+          },
+          bold: {
+            fontFamily: 'System',
+            fontWeight: 'bold' as any,
+          },
+          heavy: {
+            fontFamily: 'System',
+            fontWeight: '900' as any,
+          },
         },
       }}
     >

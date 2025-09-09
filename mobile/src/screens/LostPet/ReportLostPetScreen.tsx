@@ -8,8 +8,6 @@ import {
   AccessibilityInfo,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import * as Location from 'expo-location';
-import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import {
   Text,
   Button,
@@ -24,6 +22,8 @@ import {
 import PremiumFeatureWrapper from '../../components/Payment/PremiumFeatureWrapper';
 import { premiumLostPetService, LostPetReport } from '../../services/PremiumLostPetService';
 import { Pet } from '../../types/Pet';
+import { AutoPopulateField } from '../../components/AutoPopulate/AutoPopulateField';
+import { useDataSync } from '../../contexts/DataSyncContext';
 
 interface ReportLostPetScreenProps {
   route: {
@@ -36,105 +36,51 @@ interface ReportLostPetScreenProps {
 const ReportLostPetScreen: React.FC<ReportLostPetScreenProps> = ({ route }) => {
   const navigation = useNavigation();
   const { pet } = route.params;
+  const { updateUserData, updatePetData } = useDataSync();
   
   const [loading, setLoading] = useState(false);
-  const [location, setLocation] = useState<{lat: number; lng: number} | null>(null);
   const [description, setDescription] = useState('');
   const [rewardAmount, setRewardAmount] = useState('');
   const [contactPhone, setContactPhone] = useState('');
+  const [emergencyContact, setEmergencyContact] = useState('');
+  const [ownerName, setOwnerName] = useState('');
   const [urgencyLevel, setUrgencyLevel] = useState<'high' | 'medium' | 'low'>('high');
   const [lastSeenAddress, setLastSeenAddress] = useState('');
-  const [selectedLocation, setSelectedLocation] = useState<{lat: number; lng: number} | null>(null);
   const [isScreenReaderEnabled, setIsScreenReaderEnabled] = useState(false);
-  const [locationSelectionMode, setLocationSelectionMode] = useState<'current' | 'manual' | 'selected'>('current');
 
-  // Check accessibility and get current location on mount
+  // Update context when form data changes
   useEffect(() => {
-    checkAccessibilityAndInit();
-  }, [checkAccessibilityAndInit]);
+    updateUserData({
+      phone: contactPhone,
+      emergency_contact_name: emergencyContact,
+      full_name: ownerName,
+    });
+    
+    updatePetData(pet.id, {
+      name: pet.name,
+      species: pet.species,
+      breed: pet.breed,
+      is_lost: true,
+      last_seen_date: new Date().toISOString(),
+    });
+  }, [contactPhone, emergencyContact, ownerName, pet, updateUserData, updatePetData]);
 
-  const checkAccessibilityAndInit = useCallback(async () => {
+  const checkAccessibilitySettings = useCallback(async () => {
     // Check if screen reader is enabled
     const screenReaderEnabled = await AccessibilityInfo.isScreenReaderEnabled();
     setIsScreenReaderEnabled(screenReaderEnabled);
-    
-    // Get current location
-    getCurrentLocation();
-  }, [getCurrentLocation]);
-
-  const getCurrentLocation = useCallback(async () => {
-    try {
-      setLoading(true);
-      const currentLocation = await premiumLostPetService.getCurrentLocation();
-      if (currentLocation) {
-        setLocation(currentLocation);
-        setSelectedLocation(currentLocation);
-        // Get address from coordinates
-        const addressResult = await Location.reverseGeocodeAsync(currentLocation);
-        if (addressResult.length > 0) {
-          const address = addressResult[0];
-          setLastSeenAddress(
-            `${address.name || ''} ${address.street || ''}, ${address.city || ''}, ${address.region || ''}`
-          );
-        }
-      }
-    } catch (error) {
-      Alert.alert('Location Error', 'Unable to get current location. Please select on map.');
-    } finally {
-      setLoading(false);
-    }
   }, []);
 
-  const handleMapPress = (event: any) => {
-    const { latitude, longitude } = event.nativeEvent.coordinate;
-    setSelectedLocation({ lat: latitude, lng: longitude });
-    setLocationSelectionMode('selected');
-    
-    // Get address for selected location
-    Location.reverseGeocodeAsync({ latitude, longitude }).then((result) => {
-      if (result.length > 0) {
-        const address = result[0];
-        const newAddress = `${address.name || ''} ${address.street || ''}, ${address.city || ''}, ${address.region || ''}`;
-        setLastSeenAddress(newAddress);
-        
-        // Announce location change to screen readers
-        if (isScreenReaderEnabled) {
-          AccessibilityInfo.announceForAccessibility(
-            `Location selected: ${newAddress}. Pet ${pet.name} was last seen here.`
-          );
-        }
-      }
-    });
-  };
+  // Check accessibility on mount
+  useEffect(() => {
+    checkAccessibilitySettings();
+  }, [checkAccessibilitySettings]);
 
-  const handleUseCurrentLocation = async () => {
-    try {
-      setLoading(true);
-      await getCurrentLocation();
-      setLocationSelectionMode('current');
-      
-      if (isScreenReaderEnabled) {
-        AccessibilityInfo.announceForAccessibility(
-          `Using your current location for ${pet.name}'s last seen location.`
-        );
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
 
-  const handleManualAddressEntry = () => {
-    setLocationSelectionMode('manual');
-    if (isScreenReaderEnabled) {
-      AccessibilityInfo.announceForAccessibility(
-        'Switched to manual address entry mode. You can now type the address where your pet was last seen.'
-      );
-    }
-  };
 
   const handleReportLostPet = async () => {
-    if (!selectedLocation) {
-      Alert.alert('Location Required', 'Please select where your pet was last seen on the map.');
+    if (!lastSeenAddress.trim()) {
+      Alert.alert('Address Required', 'Please provide the address where your pet was last seen.');
       return;
     }
 
@@ -147,15 +93,17 @@ const ReportLostPetScreen: React.FC<ReportLostPetScreenProps> = ({ route }) => {
       setLoading(true);
 
       const reportData: LostPetReport = {
-        pet_id: pet.id,
-        last_seen_location: selectedLocation,
-        last_seen_address: lastSeenAddress,
-        last_seen_date: new Date(),
+        id: `report_${Date.now()}`,
+        alertId: `alert_${pet.id}_${Date.now()}`,
+        reporterId: 'current_user', // TODO: Get from auth
+        sightingLocation: {
+          latitude: 0, // TODO: Get from location service
+          longitude: 0
+        },
+        timestamp: new Date().toISOString(),
         description: description.trim(),
-        reward_amount: rewardAmount ? parseFloat(rewardAmount) : undefined,
-        reward_currency: 'USD',
-        contact_phone: contactPhone.trim() || undefined,
-        search_radius_km: urgencyLevel === 'high' ? 5 : urgencyLevel === 'medium' ? 10 : 15,
+        photos: [],
+        verified: false
       };
 
       const result = await premiumLostPetService.reportLostPet(reportData);
@@ -213,180 +161,83 @@ const ReportLostPetScreen: React.FC<ReportLostPetScreenProps> = ({ route }) => {
           </Card.Content>
         </Card>
 
-        <Card style={styles.mapCard}>
-          <Card.Content>
-            <Title>Last Seen Location</Title>
-            <Paragraph style={styles.instruction}>
-              Tap on the map to mark where {pet.name} was last seen
-            </Paragraph>
-          </Card.Content>
-          
-          {location ? (
-            <View>
-              {/* Screen Reader Alternative */}
-              {isScreenReaderEnabled && (
-                <View style={styles.accessibleLocationContainer}>
-                  <Text style={styles.accessibleLocationTitle}>
-                    Location Selection (Accessible Mode)
-                  </Text>
-                  <Text style={styles.accessibleLocationDescription}>
-                    Since you're using a screen reader, we've provided accessible alternatives to the map.
-                  </Text>
-                  
-                  <View style={styles.accessibleButtonsContainer}>
-                    <Button
-                      mode="outlined"
-                      onPress={handleUseCurrentLocation}
-                      style={[styles.accessibleButton, locationSelectionMode === 'current' && styles.selectedButton]}
-                      contentStyle={{ paddingVertical: 8 }}
-                      disabled={loading}
-                      accessibilityLabel="Use my current location as where the pet was last seen"
-                      accessibilityHint="This will use your device's current location"
-                      accessibilityState={{ selected: locationSelectionMode === 'current' }}
-                    >
-                      Use Current Location
-                    </Button>
-                    
-                    <Button
-                      mode="outlined"
-                      onPress={handleManualAddressEntry}
-                      style={[styles.accessibleButton, locationSelectionMode === 'manual' && styles.selectedButton]}
-                      contentStyle={{ paddingVertical: 8 }}
-                      accessibilityLabel="Enter address manually"
-                      accessibilityHint="This will let you type the address where your pet was last seen"
-                      accessibilityState={{ selected: locationSelectionMode === 'manual' }}
-                    >
-                      Enter Address Manually
-                    </Button>
-                  </View>
-                  
-                  {selectedLocation && (
-                    <Text style={styles.selectedLocationText}
-                          accessibilityLabel={`Selected location: ${lastSeenAddress}`}>
-                      📍 Selected: {lastSeenAddress}
-                    </Text>
-                  )}
-                </View>
-              )}
-              
-              {/* Visual Map (hidden from screen readers) */}
-              <MapView
-                style={[styles.map, isScreenReaderEnabled && styles.hiddenFromScreenReader]}
-                provider={PROVIDER_GOOGLE}
-                region={{
-                  latitude: location.lat,
-                  longitude: location.lng,
-                  latitudeDelta: 0.0922,
-                  longitudeDelta: 0.0421,
-                }}
-                onPress={handleMapPress}
-                accessible={!isScreenReaderEnabled}
-                accessibilityLabel={isScreenReaderEnabled ? undefined : `Interactive map showing ${pet.name}'s location area`}
-                accessibilityHint={isScreenReaderEnabled ? undefined : "Tap on the map to select where your pet was last seen"}
-                importantForAccessibility={isScreenReaderEnabled ? 'no-hide-descendants' : 'auto'}
-              >
-                {selectedLocation && (
-                  <Marker
-                    coordinate={{
-                      latitude: selectedLocation.lat,
-                      longitude: selectedLocation.lng,
-                    }}
-                    title={`${pet.name} last seen here`}
-                    description={lastSeenAddress}
-                    pinColor={getUrgencyColor(urgencyLevel)}
-                    accessible={!isScreenReaderEnabled}
-                    accessibilityLabel={`Map marker showing ${pet.name} was last seen at ${lastSeenAddress}`}
-                  />
-                )}
-              </MapView>
-            </View>
-          ) : loading ? (
-            <View 
-              style={styles.loadingContainer}
-              accessible={true}
-              accessibilityRole="progressbar"
-              accessibilityLabel="Loading your current location"
-            >
-              <ActivityIndicator 
-                size="large" 
-                accessible={true}
-                accessibilityLabel="Loading indicator"
-              />
-              <Text 
-                style={styles.loadingText}
-                accessible={true}
-                accessibilityLabel="Getting your location, please wait"
-              >
-                Getting your location...
-              </Text>
-            </View>
-          ) : (
-            <View 
-              style={styles.errorContainer}
-              accessible={true}
-              accessibilityRole="alert"
-              accessibilityLabel="Error loading map"
-            >
-              <Text 
-                accessible={true}
-                accessibilityRole="text"
-              >
-                Unable to load map
-              </Text>
-              <Button 
-                mode="outlined" 
-                onPress={getCurrentLocation}
-                accessible={true}
-                accessibilityLabel="Retry loading location and map"
-                accessibilityHint="Double tap to try loading your location again"
-                style={{ minHeight: 44 }}
-              >
-                Retry
-              </Button>
-            </View>
-          )}
-        </Card>
+
 
         <Card style={styles.detailsCard}>
           <Card.Content>
             <Title>Alert Details</Title>
             
             <TextInput
-              label={locationSelectionMode === 'manual' ? "Address *" : "Address (optional)"}
+              label="Last Seen Address *"
               value={lastSeenAddress}
               onChangeText={setLastSeenAddress}
               style={styles.input}
               multiline
               numberOfLines={2}
-              placeholder={locationSelectionMode === 'manual' ? "Enter the full address where your pet was last seen" : "Address will be filled automatically from map selection"}
-              accessibilityLabel={locationSelectionMode === 'manual' ? "Required address field where your pet was last seen" : "Optional address field, automatically filled from map selection"}
-              accessibilityHint={locationSelectionMode === 'manual' ? "Type the complete address including street, city, and state" : "This field is automatically populated when you select a location on the map"}
-              editable={locationSelectionMode === 'manual' || !isScreenReaderEnabled}
+              placeholder="Enter the full address where your pet was last seen"
+              accessibilityLabel="Required address field where your pet was last seen"
+              accessibilityHint="Type the complete address including street, city, and state"
             />
 
-            <TextInput
-              label="Description *"
-              value={description}
-              onChangeText={setDescription}
-              placeholder={`Help others identify ${pet.name}. What was ${pet.name} wearing? Any distinctive features?`}
-              style={styles.input}
-              multiline
-              numberOfLines={4}
-              accessibilityLabel={`Required description field for ${pet.name}`}
-              accessibilityHint="Describe your pet's appearance, clothing, collar, or any distinctive features to help others identify them"
-              error={!description.trim() && description.length > 0}
-            />
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Description *</Text>
+              <AutoPopulateField
+                style={[styles.autoInput, styles.multilineInput]}
+                value={description}
+                onChangeText={setDescription}
+                placeholder={`Help others identify ${pet.name}. What was ${pet.name} wearing? Any distinctive features?`}
+                multiline
+                numberOfLines={4}
+                context="pet"
+                fieldPath="description"
+                accessibilityLabel={`Required description field for ${pet.name}`}
+                accessibilityHint="Describe your pet's appearance, clothing, collar, or any distinctive features to help others identify them"
+              />
+            </View>
 
-            <TextInput
-              label="Contact Phone (optional)"
-              value={contactPhone}
-              onChangeText={setContactPhone}
-              placeholder="Phone number for direct contact"
-              keyboardType="phone-pad"
-              style={styles.input}
-              accessibilityLabel="Optional phone number for direct contact"
-              accessibilityHint="Provide a phone number where people can call you directly if they find your pet"
-            />
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Contact Phone (optional)</Text>
+              <AutoPopulateField
+                style={styles.autoInput}
+                value={contactPhone}
+                onChangeText={setContactPhone}
+                placeholder="Phone number for direct contact"
+                keyboardType="phone-pad"
+                context="user"
+                fieldPath="phone"
+                accessibilityLabel="Optional phone number for direct contact"
+                accessibilityHint="Provide a phone number where people can call you directly if they find your pet"
+              />
+            </View>
+
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Emergency Contact (optional)</Text>
+              <AutoPopulateField
+                style={styles.autoInput}
+                value={emergencyContact}
+                onChangeText={setEmergencyContact}
+                placeholder="Backup contact person"
+                keyboardType="phone-pad"
+                context="user"
+                fieldPath="emergency_contact"
+                accessibilityLabel="Optional emergency contact"
+                accessibilityHint="Provide an alternative contact if you're unreachable"
+              />
+            </View>
+
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Owner Name (optional)</Text>
+              <AutoPopulateField
+                style={styles.autoInput}
+                value={ownerName}
+                onChangeText={setOwnerName}
+                placeholder="Your full name"
+                context="user"
+                fieldPath="full_name"
+                accessibilityLabel="Optional owner name"
+                accessibilityHint="Your name to display on lost pet alerts"
+              />
+            </View>
 
             <TextInput
               label="Reward Amount (optional)"
@@ -476,16 +327,21 @@ const ReportLostPetScreen: React.FC<ReportLostPetScreenProps> = ({ route }) => {
 
         <Card style={styles.actionCard}>
           <Card.Content>
+            <View style={styles.autoPopulateInfo}>
+              <Text style={styles.autoPopulateText}>
+                💡 Contact information auto-fills from your previous entries for faster reporting.
+              </Text>
+            </View>
             <Button
               mode="contained"
               onPress={handleReportLostPet}
-              disabled={loading || (!selectedLocation && locationSelectionMode !== 'manual') || !description.trim() || (locationSelectionMode === 'manual' && !lastSeenAddress.trim())}
+              disabled={loading || !lastSeenAddress.trim() || !description.trim()}
               loading={loading}
               style={[styles.reportButton, { minHeight: 48 }]} // WCAG touch target minimum
               contentStyle={{ paddingVertical: 12 }}
               accessibilityLabel={`Send emergency alert for missing ${pet.name}`}
               accessibilityHint={`This will immediately notify nearby TailTracker users within ${urgencyLevel === 'high' ? '5' : urgencyLevel === 'medium' ? '10' : '15'} kilometers to help find your pet`}
-              accessibilityState={{ disabled: loading || (!selectedLocation && locationSelectionMode !== 'manual') || !description.trim() }}
+              accessibilityState={{ disabled: loading || !lastSeenAddress.trim() || !description.trim() }}
             >
               🚨 Send Regional Alert
             </Button>
@@ -586,50 +442,38 @@ const styles = StyleSheet.create({
     marginTop: 8,
     fontStyle: 'italic',
   },
-  // Accessibility-specific styles
-  accessibleLocationContainer: {
-    backgroundColor: '#E3F2FD',
-    padding: 16,
+
+  inputContainer: {
+    marginBottom: 16,
+  },
+  inputLabel: {
+    fontSize: 16,
+    fontWeight: '500',
+    marginBottom: 8,
+    color: '#333',
+  },
+  autoInput: {
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 4,
+    padding: 12,
+    fontSize: 16,
+    backgroundColor: '#fff',
+  },
+  multilineInput: {
+    height: 100,
+    textAlignVertical: 'top',
+  },
+  autoPopulateInfo: {
+    backgroundColor: '#e8f5e8',
+    padding: 12,
     borderRadius: 8,
     marginBottom: 16,
-    borderLeftWidth: 4,
-    borderLeftColor: '#2196F3',
   },
-  accessibleLocationTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#1976D2',
-    marginBottom: 8,
-  },
-  accessibleLocationDescription: {
+  autoPopulateText: {
     fontSize: 14,
-    color: '#424242',
-    marginBottom: 16,
-    lineHeight: 20,
-  },
-  accessibleButtonsContainer: {
-    flexDirection: 'column',
-    gap: 12,
-    marginBottom: 16,
-  },
-  accessibleButton: {
-    minHeight: 48, // WCAG AA touch target requirement
-  },
-  selectedButton: {
-    backgroundColor: '#2196F3',
-    borderColor: '#1976D2',
-  },
-  selectedLocationText: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: '#2E7D32',
-    backgroundColor: '#E8F5E8',
-    padding: 12,
-    borderRadius: 4,
+    color: '#2e7d32',
     textAlign: 'center',
-  },
-  hiddenFromScreenReader: {
-    opacity: 0.3, // Visual indication that map is not accessible
   },
 });
 

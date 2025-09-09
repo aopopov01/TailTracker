@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   StyleSheet,
@@ -38,10 +38,6 @@ export const SubscriptionScreen: React.FC = () => {
   const paymentService = StripePaymentService.getInstance();
   const { modalConfig, showError, showSuccess, showModal, hideModal } = useTailTrackerModal();
 
-  useEffect(() => {
-    loadSubscriptionData();
-  }, [loadSubscriptionData]);
-
   const loadSubscriptionData = useCallback(async () => {
     try {
       setLoading(true);
@@ -60,9 +56,14 @@ export const SubscriptionScreen: React.FC = () => {
     }
   }, [showError, paymentService]);
 
+  useEffect(() => {
+    loadSubscriptionData();
+  }, [loadSubscriptionData]);
+
   const handleSelectPlan = (planId: string) => {
     setSelectedPlanId(planId);
-    navigation.navigate('PaymentMethod', { planId });
+    // TODO: Implement navigation to PaymentMethod screen
+    console.log('Navigate to payment method with plan:', planId);
   };
 
   const handleCancelSubscription = () => {
@@ -74,10 +75,10 @@ export const SubscriptionScreen: React.FC = () => {
       setCancelling(true);
       setShowCancelModal(false);
       
-      const { success, error } = await paymentService.cancelSubscription(immediately);
+      const success = await paymentService.cancelSubscription('subscription_id'); // TODO: Get actual subscription ID
       
-      if (error) {
-        showError('Error', error, 'alert-circle-outline');
+      if (!success) {
+        showError('Error', 'Failed to cancel subscription', 'alert-circle-outline');
       } else {
         showSuccess(
           'Subscription Cancelled',
@@ -99,7 +100,9 @@ export const SubscriptionScreen: React.FC = () => {
     try {
       setSubscribing(true);
       
-      const { success, error } = await paymentService.reactivateSubscription();
+      // Reactivation not implemented in current service
+      const success = false;
+      const error = 'Reactivation not available';
       
       if (error) {
         showError('Error', error, 'alert-circle-outline');
@@ -120,7 +123,9 @@ export const SubscriptionScreen: React.FC = () => {
 
   const handleManageBilling = async () => {
     try {
-      const { url, error } = await paymentService.getBillingPortalUrl();
+      // Billing portal not implemented in current service
+      const url = null;
+      const error = 'Billing portal not available';
       
       if (error) {
         showError('Error', error, 'alert-circle-outline');
@@ -141,7 +146,7 @@ export const SubscriptionScreen: React.FC = () => {
   };
 
   const renderCurrentSubscription = () => {
-    if (!subscriptionStatus || subscriptionStatus.status === 'free') {
+    if (!subscriptionStatus || subscriptionStatus.status === 'inactive') {
       return (
         <Card style={styles.currentSubscriptionCard}>
           <Card.Content>
@@ -150,7 +155,7 @@ export const SubscriptionScreen: React.FC = () => {
               Basic pet management features with limited access.
             </Text>
             <Text style={styles.upgradePrompt}>
-              Upgrade to Premium for unlimited pets, lost pet alerts, and more!
+              Upgrade to Premium (3 family members + 2 pets) or Pro (unlimited) for lost pet alerts and more!
             </Text>
           </Card.Content>
         </Card>
@@ -158,7 +163,7 @@ export const SubscriptionScreen: React.FC = () => {
     }
 
     const isActive = subscriptionStatus.isActive;
-    const willRenew = subscriptionStatus.willRenew !== false;
+    const willRenew = !subscriptionStatus.cancelAtPeriodEnd;
 
     return (
       <Card style={styles.currentSubscriptionCard}>
@@ -167,15 +172,15 @@ export const SubscriptionScreen: React.FC = () => {
             Current Plan: {subscriptionStatus.plan || 'Premium'}
           </Text>
           
-          {subscriptionStatus.expiresAt && (
+          {subscriptionStatus.currentPeriodEnd && (
             <Text style={styles.expirationDate}>
-              {willRenew ? 'Renews' : 'Expires'} on {subscriptionStatus.expiresAt.toLocaleDateString()}
+              {willRenew ? 'Renews' : 'Expires'} on {subscriptionStatus.currentPeriodEnd.toLocaleDateString()}
             </Text>
           )}
 
-          {subscriptionStatus.trialEndsAt && (
+          {subscriptionStatus.status === 'trialing' && subscriptionStatus.currentPeriodEnd && (
             <Text style={styles.trialDate}>
-              Trial ends on {subscriptionStatus.trialEndsAt.toLocaleDateString()}
+              Trial ends on {subscriptionStatus.currentPeriodEnd.toLocaleDateString()}
             </Text>
           )}
 
@@ -287,7 +292,10 @@ export const SubscriptionScreen: React.FC = () => {
         {availablePlans.map((plan) => (
           <SubscriptionPlanCard
             key={plan.id}
-            plan={plan}
+            plan={{
+              ...plan,
+              description: plan.description || 'Premium subscription plan'
+            }}
             isCurrentPlan={subscriptionStatus?.plan === plan.id}
             isPopular={plan.id === 'premium_monthly'}
             onSelectPlan={handleSelectPlan}
@@ -298,14 +306,22 @@ export const SubscriptionScreen: React.FC = () => {
 
         <Card style={styles.benefitsCard}>
           <Card.Content>
-            <Text style={styles.benefitsTitle}>Why Upgrade to Premium?</Text>
+            <Text style={styles.benefitsTitle}>Premium vs Pro Features</Text>
             <Text style={styles.benefitsDescription}>
-              • Unlimited pets and photos{'\n'}
-              • Lost pet alerts with GPS tracking{'\n'}
-              • Vaccination reminders and health tracking{'\n'}
-              • Family sharing with up to 10 members{'\n'}
+              <Text style={{ fontWeight: 'bold' }}>Premium (€5.99/month or €50/year):{'\n'}</Text>
+              • 3 family members + 2 pet profiles{'\n'}
+              • 12 photos per pet{'\n'}
+              • Lost pet reporting & alerts{'\n'}
+              • Health record PDF export{'\n'}
+              • Enhanced family coordination{'\n'}
+              {'\n'}
+              <Text style={{ fontWeight: 'bold' }}>Pro (€8.99/month or €80/year):{'\n'}</Text>
+              • Unlimited family members & pets{'\n'}
+              • 12 photos per pet{'\n'}
+              • All Premium features{'\n'}
               • Priority customer support{'\n'}
-              • No ads and premium features
+              {'\n'}
+              <Text style={{ fontWeight: 'bold', color: '#10B981' }}>Save 30% with annual billing!</Text>
             </Text>
           </Card.Content>
         </Card>

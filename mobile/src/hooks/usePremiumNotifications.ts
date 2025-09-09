@@ -41,17 +41,15 @@ export const usePremiumNotificationService = () => {
 
   const { hasPremiumAccess } = usePremiumAccess();
 
-  // Initialize the premium notification service
-  useEffect(() => {
-    initializeService();
-  }, [initializeService]);
-
-  // Update notification status when premium access changes
-  useEffect(() => {
-    if (isInitialized) {
-      updateNotificationStatus();
+  // Define functions first to avoid hoisting issues
+  const updateNotificationStatus = useCallback(async () => {
+    try {
+      const status = await premiumNotificationService.getNotificationStatus();
+      setNotificationStatus(status);
+    } catch (error) {
+      console.error('Error updating notification status:', error);
     }
-  }, [hasPremiumAccess, isInitialized]);
+  }, []);
 
   const initializeService = useCallback(async () => {
     try {
@@ -68,7 +66,7 @@ export const usePremiumNotificationService = () => {
         setPushToken(premiumNotificationService.getPushToken());
         setPermissionState(premiumNotificationService.getPermissionState());
         setPreferences(premiumNotificationService.getUserPreferences());
-        setAnalytics(premiumNotificationService.getAnalytics());
+        setAnalytics(premiumNotificationService.getAnalyticsData());
         
         // Load notification status
         await updateNotificationStatus();
@@ -76,7 +74,7 @@ export const usePremiumNotificationService = () => {
         // Set up event listeners
         const removePermissionListener = premiumNotificationService.addEventListener(
           'permission_changed',
-          (_, state: PermissionState) => {
+          (_: string, state: PermissionState) => {
             setPermissionState(state);
             if (state.granted) {
               setPushToken(premiumNotificationService.getPushToken());
@@ -91,20 +89,11 @@ export const usePremiumNotificationService = () => {
       }
     } catch (err) {
       console.error('Error initializing premium notification service:', err);
-      setError(err.message || 'Unknown error occurred');
+      setError(err instanceof Error ? err.message : 'Unknown error occurred');
     } finally {
       setIsLoading(false);
     }
-  }, []);
-
-  const updateNotificationStatus = async () => {
-    try {
-      const status = await premiumNotificationService.getNotificationStatus();
-      setNotificationStatus(status);
-    } catch (error) {
-      console.error('Error updating notification status:', error);
-    }
-  };
+  }, [updateNotificationStatus]);
 
   const sendNotification = useCallback(async (notification: any): Promise<PremiumNotificationResult> => {
     if (!isInitialized) {
@@ -128,7 +117,7 @@ export const usePremiumNotificationService = () => {
     await updateNotificationStatus();
     
     return result;
-  }, [isInitialized]);
+  }, [isInitialized, updateNotificationStatus]);
 
   const updatePreferences = useCallback(async (newPreferences: Partial<NotificationPreferences>) => {
     if (!isInitialized) return;
@@ -151,6 +140,19 @@ export const usePremiumNotificationService = () => {
     if (!isInitialized) return { success: false, error: 'Service not initialized' };
     return await premiumNotificationService.testPremiumNotification();
   }, [isInitialized]);
+
+  // Effects placed after function declarations to avoid hoisting issues
+  // Initialize the premium notification service
+  useEffect(() => {
+    initializeService();
+  }, [initializeService]);
+
+  // Update notification status when premium access changes
+  useEffect(() => {
+    if (isInitialized) {
+      updateNotificationStatus();
+    }
+  }, [hasPremiumAccess, isInitialized, updateNotificationStatus]);
 
   return {
     // State
@@ -299,20 +301,9 @@ export const usePremiumNotificationPreferences = () => {
     }
 
     // Disable premium notification types for non-premium users
-    const filteredTypes = { ...prefs.types };
-    
-    Object.keys(filteredTypes).forEach(type => {
-      if (NotificationPremiumUtils.isPremiumNotification(type as NotificationType)) {
-        filteredTypes[type as keyof typeof filteredTypes] = {
-          ...filteredTypes[type as keyof typeof filteredTypes],
-          enabled: false,
-        };
-      }
-    });
-
     return {
       ...prefs,
-      types: filteredTypes,
+      lostPetAlerts: false, // Premium feature
     };
   };
 
@@ -321,20 +312,11 @@ export const usePremiumNotificationPreferences = () => {
       // Prevent enabling premium features for non-premium users
       const safeUpdates = { ...updates };
       
-      if (!hasPremium && safeUpdates.types) {
-        Object.keys(safeUpdates.types).forEach(type => {
-          if (NotificationPremiumUtils.isPremiumNotification(type as NotificationType)) {
-            // Show premium prompt if trying to enable premium notification
-            if (safeUpdates.types![type as keyof typeof safeUpdates.types]?.enabled) {
-              premiumNotificationService.showPremiumPrompt(type);
-              // Reset to disabled
-              safeUpdates.types![type as keyof typeof safeUpdates.types] = {
-                ...safeUpdates.types![type as keyof typeof safeUpdates.types],
-                enabled: false,
-              };
-            }
-          }
-        });
+      if (!hasPremium && safeUpdates.lostPetAlerts) {
+        // Show premium prompt if trying to enable premium notification
+        premiumNotificationService.showPremiumPrompt('lost_pet_alerts');
+        // Reset to disabled
+        safeUpdates.lostPetAlerts = false;
       }
       
       setLocalPreferences(prev => ({
@@ -346,7 +328,7 @@ export const usePremiumNotificationPreferences = () => {
   }, [localPreferences, hasPremium]);
 
   const savePreferences = useCallback(async () => {
-    if (!localPreferences || !isDirty) return;
+    if (!localPreferences || !isDirty || !updateGlobalPreferences) return;
 
     try {
       setIsSaving(true);
@@ -376,8 +358,9 @@ export const usePremiumNotificationPreferences = () => {
     updatePreferences: updateLocalPreferences,
     savePreferences,
     resetPreferences,
-    premiumNotificationTypes: Object.keys(localPreferences?.types || {})
-      .filter(type => NotificationPremiumUtils.isPremiumNotification(type as NotificationType)),
+    premiumNotificationTypes: ['lost_pet_alerts'].filter(type => 
+      NotificationPremiumUtils.isPremiumNotification(type as NotificationType)
+    ),
   };
 };
 

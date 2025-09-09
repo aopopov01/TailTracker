@@ -27,19 +27,21 @@ import {
   SubscriptionPlan 
 } from '../../services/StripePaymentService';
 
+interface RouteParams {
+  planId?: string;
+  isAddingPaymentMethod?: boolean;
+}
+
 interface PaymentMethodScreenProps {
   route: {
-    params: {
-      planId?: string;
-      isAddingPaymentMethod?: boolean;
-    };
+    params?: RouteParams;
   };
 }
 
 export const PaymentMethodScreen: React.FC<PaymentMethodScreenProps> = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<any>();
   const route = useRoute();
-  const { planId, isAddingPaymentMethod = false } = route.params || {};
+  const { planId, isAddingPaymentMethod = false } = (route.params as RouteParams) || {};
 
   const [selectedPaymentMethodId, setSelectedPaymentMethodId] = useState<string>('');
   const [showAddCardForm, setShowAddCardForm] = useState(false);
@@ -66,12 +68,13 @@ export const PaymentMethodScreen: React.FC<PaymentMethodScreenProps> = () => {
     setShowAddCardForm(true);
   };
 
-  const handlePaymentMethodCreated = async (paymentMethod: PaymentMethod) => {
+  const handlePaymentMethodCreated = async (paymentMethod: any) => {
     try {
       setProcessing(true);
       
       // Add payment method to customer
-      const { success, error } = await paymentService.addPaymentMethod(paymentMethod.id);
+      const result = await paymentService.addPaymentMethod(paymentMethod.id);
+      const { success, error } = result;
       
       if (error) {
         showError('Error', error, 'card-outline');
@@ -99,8 +102,8 @@ export const PaymentMethodScreen: React.FC<PaymentMethodScreenProps> = () => {
         type: 'success',
         icon: 'card-outline',
         actions: [
-          { text: 'No', style: 'cancel', onPress: hideModal },
-          { text: 'Yes', style: 'primary', onPress: () => { hideModal(); handleSubscribe(paymentMethod.id); } },
+          { text: 'No', style: 'default' as const, onPress: hideModal },
+          { text: 'Yes', style: 'primary' as const, onPress: () => { hideModal(); handleSubscribe(paymentMethod.id); } },
         ]
       });
     } catch (error) {
@@ -128,37 +131,37 @@ export const PaymentMethodScreen: React.FC<PaymentMethodScreenProps> = () => {
 
       // Handle digital wallet payments
       if (methodId === 'apple_pay') {
-        const { paymentMethod, error } = await paymentService.createApplePayPaymentMethod(
+        const result = await paymentService.createApplePayPaymentMethod(
           plan.price,
           plan.currency
         );
 
-        if (error) {
-          const parsedError = paymentService.parseStripeError(error);
+        if (result.error) {
+          const parsedError = paymentService.parseStripeError(result.error);
           showError('Payment Error', parsedError.message, 'logo-apple');
           return;
         }
 
-        if (paymentMethod) {
-          await createSubscriptionWithPaymentMethod(paymentMethod.id);
+        if (result.paymentMethod) {
+          await createSubscriptionWithPaymentMethod(result.paymentMethod.id);
         }
         return;
       }
 
       if (methodId === 'google_pay') {
-        const { paymentMethod, error } = await paymentService.createGooglePayPaymentMethod(
+        const result = await paymentService.createGooglePayPaymentMethod(
           plan.price,
           plan.currency
         );
 
-        if (error) {
-          const parsedError = paymentService.parseStripeError(error);
+        if (result.error) {
+          const parsedError = paymentService.parseStripeError(result.error);
           showError('Payment Error', parsedError.message, 'logo-google');
           return;
         }
 
-        if (paymentMethod) {
-          await createSubscriptionWithPaymentMethod(paymentMethod.id);
+        if (result.paymentMethod) {
+          await createSubscriptionWithPaymentMethod(result.paymentMethod.id);
         }
         return;
       }
@@ -176,24 +179,24 @@ export const PaymentMethodScreen: React.FC<PaymentMethodScreenProps> = () => {
     if (!plan) return;
 
     try {
-      const { success, error, requiresAction, clientSecret } = await paymentService.createSubscription(
+      const result = await paymentService.createSubscription(
         plan.id,
         paymentMethodId
       );
 
-      if (error) {
-        showError('Subscription Error', error, 'alert-circle-outline');
+      if (result.error) {
+        showError('Subscription Error', result.error, 'alert-circle-outline');
         return;
       }
 
-      if (success) {
+      if (result.success) {
         showSuccess(
           'Subscription Created!',
           `Welcome to ${plan.name}! Your subscription is now active.`,
           'checkmark-circle-outline',
           () => {
-            navigation.popToTop();
-            navigation.navigate('Subscription');
+            // Navigate back to main screen
+            navigation.goBack();
           }
         );
       }
@@ -256,7 +259,7 @@ export const PaymentMethodScreen: React.FC<PaymentMethodScreenProps> = () => {
         
         <PaymentCardForm
           onPaymentMethodCreated={handlePaymentMethodCreated}
-          onError={(error) => showError('Error', error, 'card-outline')}
+          onError={(error: string) => showError('Error', error, 'card-outline')}
           loading={processing}
           disabled={processing}
         />

@@ -8,7 +8,7 @@ interface AuthNavigatorProps {
 }
 
 export const AuthNavigator: React.FC<AuthNavigatorProps> = ({ onAuthSuccess }) => {
-  const [currentScreen, setCurrentScreen] = useState<'login' | 'register'>('login');
+  const [currentScreen, setCurrentScreen] = useState<'login' | 'register' | 'forgot-password'>('login');
 
   const navigateToLogin = () => setCurrentScreen('login');
   const navigateToRegister = () => setCurrentScreen('register');
@@ -18,6 +18,7 @@ export const AuthNavigator: React.FC<AuthNavigatorProps> = ({ onAuthSuccess }) =
       {currentScreen === 'login' ? (
         <LoginScreen
           onNavigateToRegister={navigateToRegister}
+          onNavigateToForgotPassword={() => setCurrentScreen('forgot-password')}
           onLoginSuccess={onAuthSuccess}
         />
       ) : (

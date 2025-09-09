@@ -20,6 +20,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
+  withSpring,
   runOnJS,
   interpolateColor,
 } from 'react-native-reanimated';
@@ -68,7 +69,7 @@ export interface PremiumButtonProps {
   // Style overrides
   style?: ViewStyle;
   textStyle?: TextStyle;
-  gradientColors?: string[];
+  gradientColors?: readonly [string, string, ...string[]];
 }
 
 // ====================================
@@ -112,6 +113,19 @@ export const PremiumButton: React.FC<PremiumButtonProps> = ({
   const pressTimestamp = useRef<number>(0);
   
   // ====================================
+  // HELPER FUNCTIONS
+  // ====================================
+  
+  const getAnimationIntensityValue = (intensity: 'subtle' | 'medium' | 'bold'): number => {
+    switch (intensity) {
+      case 'subtle': return 0.5;
+      case 'medium': return 1;
+      case 'bold': return 1.5;
+      default: return 1;
+    }
+  };
+  
+  // ====================================
   // ANIMATION STYLES
   // ====================================
   
@@ -130,6 +144,31 @@ export const PremiumButton: React.FC<PremiumButtonProps> = ({
   });
   
   // ====================================
+  // HELPER FUNCTIONS
+  // ====================================
+  
+  const getRippleColor = useCallback((): string => {
+    switch (variant) {
+      case 'primary':
+      case 'secondary':
+      case 'danger':
+      case 'success':
+        return 'rgba(255, 255, 255, 0.3)';
+      default:
+        return `${theme.colors.primary}30`;
+    }
+  }, [variant, theme.colors.primary]);
+  
+  const getRippleIntensity = useCallback((): number => {
+    switch (animationIntensity) {
+      case 'subtle': return 0.1;
+      case 'medium': return 0.2;
+      case 'bold': return 0.3;
+      default: return 0.2;
+    }
+  }, [animationIntensity]);
+  
+  // ====================================
   // EVENT HANDLERS
   // ====================================
   
@@ -144,25 +183,27 @@ export const PremiumButton: React.FC<PremiumButtonProps> = ({
     
     // Trigger press animation
     if (!disabled) {
-      const animation = premiumAnimations.buttons.press(animationIntensity);
-      scale.value = animation.pressIn();
+      const animation = premiumAnimations.buttons.press(getAnimationIntensityValue(animationIntensity));
+      const pressInConfig = animation.pressIn();
+      scale.value = withSpring(pressInConfig.scale);
       
       // Start ripple animation
       const rippleAnimation = premiumAnimations.buttons.ripple(
         getRippleColor(),
         getRippleIntensity()
       );
-      rippleScale.value = rippleAnimation.scale;
-      rippleOpacity.value = rippleAnimation.opacity;
+      rippleScale.value = withSpring(rippleAnimation.scale);
+      rippleOpacity.value = withSpring(rippleAnimation.opacity);
     }
     
     onPressIn?.();
-  }, [hapticFeedback, hapticType, variant, disabled, animationIntensity, onPressIn, getRippleColor, getRippleIntensity, rippleOpacity, rippleScale, scale]);
+  }, [hapticFeedback, hapticType, variant, disabled, animationIntensity, onPressIn, rippleOpacity, rippleScale, scale, getRippleColor, getRippleIntensity]);
   
   const handlePressOut = useCallback(() => {
     if (!disabled) {
-      const animation = premiumAnimations.buttons.press(animationIntensity);
-      scale.value = animation.pressOut();
+      const animation = premiumAnimations.buttons.press(getAnimationIntensityValue(animationIntensity));
+      const pressOutConfig = animation.pressOut();
+      scale.value = withSpring(pressOutConfig.scale);
     }
     
     onPressOut?.();
@@ -294,47 +335,26 @@ export const PremiumButton: React.FC<PremiumButtonProps> = ({
     }
   };
   
-  const getGradientColors = (): string[] => {
+  const getGradientColors = (): readonly [string, string, ...string[]] => {
     if (gradientColors) return gradientColors;
     
     switch (emotion) {
       case 'trust':
-        return [theme.colors.primary, '#1D4ED8'];
+        return [theme.colors.primary, '#1D4ED8'] as const;
       case 'love':
-        return ['#F87171', '#EF4444'];
+        return ['#F87171', '#EF4444'] as const;
       case 'joy':
-        return ['#10B981', '#059669'];
+        return ['#10B981', '#059669'] as const;
       case 'urgent':
-        return [theme.colors.error, '#DC2626'];
+        return [theme.colors.error, '#DC2626'] as const;
       case 'playful':
-        return ['#8B5CF6', '#7C3AED'];
+        return ['#8B5CF6', '#7C3AED'] as const;
       case 'calm':
-        return ['#6B7280', '#4B5563'];
+        return ['#6B7280', '#4B5563'] as const;
       default:
-        return [theme.colors.primary, theme.colors.primary];
+        return [theme.colors.primary, theme.colors.primary] as const;
     }
   };
-  
-  const getRippleColor = useCallback((): string => {
-    switch (variant) {
-      case 'primary':
-      case 'secondary':
-      case 'danger':
-      case 'success':
-        return 'rgba(255, 255, 255, 0.3)';
-      default:
-        return `${theme.colors.primary}30`;
-    }
-  }, [variant, theme.colors.primary]);
-  
-  const getRippleIntensity = useCallback((): number => {
-    switch (animationIntensity) {
-      case 'subtle': return 0.1;
-      case 'medium': return 0.2;
-      case 'bold': return 0.3;
-      default: return 0.2;
-    }
-  }, [animationIntensity]);
   
   const getHapticTypeForVariant = (variant: string) => {
     switch (variant) {

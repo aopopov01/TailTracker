@@ -468,31 +468,6 @@ export interface AppError {
   requestId?: string;
 }
 
-/**
- * Standardized API response wrapper
- */
-export interface ApiResponse<T = any> {
-  success: boolean;
-  data?: T;
-  error?: string | undefined;
-  message?: string;
-  timestamp: string;
-  requestId?: string;
-}
-
-/**
- * Paginated API response
- */
-export interface PaginatedResponse<T = any> extends ApiResponse<T[]> {
-  pagination: {
-    page: number;
-    pageSize: number;
-    totalItems: number;
-    totalPages: number;
-    hasNextPage: boolean;
-    hasPreviousPage: boolean;
-  };
-}
 
 // ===================================
 // NOTIFICATION TYPES
@@ -612,6 +587,83 @@ export interface GeoCoordinates {
   altitude?: number;
   /** When the coordinates were obtained */
   timestamp?: string;
+}
+
+// ===================================
+// SUBSCRIPTION TYPES
+// ===================================
+
+/**
+ * Subscription tier levels with specific limits
+ */
+export type SubscriptionTier = 'free' | 'premium' | 'pro';
+
+/**
+ * Subscription pricing information
+ */
+export interface SubscriptionPricing {
+  /** Monthly price in euros */
+  monthlyPrice: number;
+  /** Annual price in euros */
+  annualPrice: number;
+  /** Currency code */
+  currency: 'EUR';
+}
+
+/**
+ * Subscription tier limits and features
+ */
+export interface SubscriptionLimits {
+  /** Maximum number of pets allowed */
+  maxPets: number;
+  /** Maximum number of family members allowed */
+  maxFamilyMembers: number;
+  /** Whether lost pet creation is allowed */
+  canCreateLostPets: boolean;
+  /** Maximum photos per pet */
+  maxPhotosPerPet: number;
+  /** Whether advanced features are available */
+  hasAdvancedFeatures: boolean;
+}
+
+/**
+ * Complete subscription tier configuration
+ */
+export interface SubscriptionTierConfig {
+  /** Tier identifier */
+  tier: SubscriptionTier;
+  /** Display name */
+  name: string;
+  /** Pricing information (undefined for free tier) */
+  pricing?: SubscriptionPricing;
+  /** Feature limits */
+  limits: SubscriptionLimits;
+  /** Feature descriptions */
+  features: string[];
+}
+
+/**
+ * User's current subscription information
+ */
+export interface UserSubscription extends BaseEntity {
+  /** User this subscription belongs to */
+  userId: string;
+  /** Current subscription tier */
+  tier: SubscriptionTier;
+  /** Subscription status */
+  status: 'active' | 'expired' | 'cancelled' | 'pending';
+  /** Current billing period start */
+  currentPeriodStart?: string;
+  /** Current billing period end */
+  currentPeriodEnd?: string;
+  /** Whether subscription auto-renews */
+  autoRenew: boolean;
+  /** Payment method identifier */
+  paymentMethodId?: string;
+  /** Subscription provider (Stripe, Apple, Google) */
+  provider?: 'stripe' | 'apple' | 'google';
+  /** Provider-specific subscription ID */
+  providerSubscriptionId?: string;
 }
 
 // ===================================

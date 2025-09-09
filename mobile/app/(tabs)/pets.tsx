@@ -30,21 +30,21 @@ export default function PetsScreen() {
             <Text style={styles.petBreed}>Golden Retriever • 3 years</Text>
           </View>
           <View style={[styles.statusBadge, styles.statusActiveBackground]}>
-            <Text style={styles.statusText}>Active</Text>
+            <Text style={styles.statusText}>Healthy</Text>
           </View>
         </View>
         <View style={styles.petStats}>
           <View style={styles.statItem}>
-            <Text style={styles.statValue}>2.1 mi</Text>
-            <Text style={styles.statLabel}>Today</Text>
+            <Text style={styles.statValue}>45 lbs</Text>
+            <Text style={styles.statLabel}>Weight</Text>
           </View>
           <View style={styles.statItem}>
-            <Text style={styles.statValue}>Home</Text>
-            <Text style={styles.statLabel}>Location</Text>
+            <Text style={styles.statValue}>3 Photos</Text>
+            <Text style={styles.statLabel}>Gallery</Text>
           </View>
           <View style={styles.statItem}>
-            <Text style={styles.statValue}>98%</Text>
-            <Text style={styles.statLabel}>Battery</Text>
+            <Text style={styles.statValue}>Healthy</Text>
+            <Text style={styles.statLabel}>Status</Text>
           </View>
         </View>
       </View>
@@ -56,22 +56,22 @@ export default function PetsScreen() {
             <Text style={styles.petName}>Luna</Text>
             <Text style={styles.petBreed}>Persian Cat • 2 years</Text>
           </View>
-          <View style={[styles.statusBadge, styles.statusExploringBackground]}>
-            <Text style={styles.statusText}>Exploring</Text>
+          <View style={[styles.statusBadge, styles.statusActiveBackground]}>
+            <Text style={styles.statusText}>Healthy</Text>
           </View>
         </View>
         <View style={styles.petStats}>
           <View style={styles.statItem}>
-            <Text style={styles.statValue}>0.5 mi</Text>
-            <Text style={styles.statLabel}>Today</Text>
+            <Text style={styles.statValue}>8.2 lbs</Text>
+            <Text style={styles.statLabel}>Weight</Text>
           </View>
           <View style={styles.statItem}>
-            <Text style={styles.statValue}>Garden</Text>
-            <Text style={styles.statLabel}>Location</Text>
+            <Text style={styles.statValue}>1 Photo</Text>
+            <Text style={styles.statLabel}>Gallery</Text>
           </View>
           <View style={styles.statItem}>
-            <Text style={styles.statValue}>76%</Text>
-            <Text style={styles.statLabel}>Battery</Text>
+            <Text style={styles.statValue}>Healthy</Text>
+            <Text style={styles.statLabel}>Status</Text>
           </View>
         </View>
       </View>
@@ -83,22 +83,22 @@ export default function PetsScreen() {
             <Text style={styles.petName}>Buddy</Text>
             <Text style={styles.petBreed}>Labrador Mix • 5 years</Text>
           </View>
-          <View style={[styles.statusBadge, styles.statusRestingBackground]}>
-            <Text style={styles.statusText}>Resting</Text>
+          <View style={[styles.statusBadge, styles.statusActiveBackground]}>
+            <Text style={styles.statusText}>Healthy</Text>
           </View>
         </View>
         <View style={styles.petStats}>
           <View style={styles.statItem}>
-            <Text style={styles.statValue}>1.8 mi</Text>
-            <Text style={styles.statLabel}>Today</Text>
+            <Text style={styles.statValue}>72 lbs</Text>
+            <Text style={styles.statLabel}>Weight</Text>
           </View>
           <View style={styles.statItem}>
-            <Text style={styles.statValue}>Home</Text>
-            <Text style={styles.statLabel}>Location</Text>
+            <Text style={styles.statValue}>5 Photos</Text>
+            <Text style={styles.statLabel}>Gallery</Text>
           </View>
           <View style={styles.statItem}>
-            <Text style={styles.statValue}>84%</Text>
-            <Text style={styles.statLabel}>Battery</Text>
+            <Text style={styles.statValue}>Healthy</Text>
+            <Text style={styles.statLabel}>Status</Text>
           </View>
         </View>
       </View>

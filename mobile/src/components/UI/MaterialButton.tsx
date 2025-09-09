@@ -8,7 +8,7 @@ import { useMaterialTheme, useThemeAwareStyles } from '../../theme/MaterialTheme
 
 type ButtonProps = ComponentProps<typeof Button>;
 
-interface MaterialButtonProps extends Omit<ButtonProps, 'mode'> {
+interface MaterialButtonProps extends Omit<ButtonProps, 'mode' | 'elevation'> {
   variant?: 'filled' | 'outlined' | 'text' | 'elevated' | 'tonal';
   size?: 'small' | 'medium' | 'large';
   fullWidth?: boolean;
@@ -34,7 +34,8 @@ export const MaterialButton: React.FC<MaterialButtonProps> = ({
   ...props
 }) => {
   const theme = useTheme();
-  const { isDarkMode } = useMaterialTheme();
+  const materialTheme = useMaterialTheme();
+  const isDarkMode = materialTheme.isDark;
   
   const getMode = (): ButtonProps['mode'] => {
     switch (variant) {
@@ -54,7 +55,7 @@ export const MaterialButton: React.FC<MaterialButtonProps> = ({
   };
 
   const getSizeStyles = () => {
-    const baseStyle = MaterialComponentStyles.button[variant] || MaterialComponentStyles.button.filled;
+    const baseStyle = (MaterialComponentStyles.button as any)[variant] || (MaterialComponentStyles.button as any).filled;
     switch (size) {
       case 'small':
         return { ...baseStyle, ...styles.small };

@@ -3,7 +3,7 @@ import {
   StripePaymentService, 
   SubscriptionStatus 
 } from '../services/StripePaymentService';
-import { PaymentErrorUtils } from '../utils/paymentErrorUtils';
+import { logPaymentError, PaymentErrorCode } from '../utils/paymentErrorUtils';
 
 interface PremiumAccessHook {
   subscriptionStatus: SubscriptionStatus | null;
@@ -34,6 +34,21 @@ export const usePremiumAccess = (): PremiumAccessHook => {
   const paymentService = StripePaymentService.getInstance();
   const isMountedRef = useRef(true);
 
+  // Helper function to check if error is retryable
+  const isRetryableError = (error: any): boolean => {
+    const retryableMessages = [
+      'network error',
+      'timeout',
+      'connection',
+      'failed to fetch',
+      'ECONNRESET',
+      'ETIMEDOUT'
+    ];
+    
+    const errorMessage = error?.message?.toLowerCase() || '';
+    return retryableMessages.some(msg => errorMessage.includes(msg));
+  };
+
   // Cleanup on unmount
   useEffect(() => {
     return () => {
@@ -55,14 +70,22 @@ export const usePremiumAccess = (): PremiumAccessHook => {
         setIsInitialized(true);
         setLastRefreshTime(new Date());
         setRetryCount(0);
-        PaymentErrorUtils.logError({ message: 'Subscription status loaded successfully' }, 'usePremiumAccess');
+        // Successfully loaded - no need to log success as error
+        console.log('usePremiumAccess: Subscription status loaded successfully');
       }
     } catch (err) {
       if (isMountedRef.current) {
         const errorMessage = err instanceof Error ? err.message : 'Failed to load subscription status';
         setError(errorMessage);
         setRetryCount(prev => prev + 1);
-        PaymentErrorUtils.logError(err, 'usePremiumAccess - loadSubscriptionStatus');
+        logPaymentError({
+          code: PaymentErrorCode.UNKNOWN_ERROR,
+          message: errorMessage,
+          userMessage: errorMessage,
+          recoverable: true,
+          retryable: true,
+          debugInfo: err,
+        }, 'usePremiumAccess - loadSubscriptionStatus');
         
         // Auto-retry with exponential backoff for network errors
         if (retryCount < 3 && isRetryableError(err)) {
@@ -89,21 +112,6 @@ export const usePremiumAccess = (): PremiumAccessHook => {
     setRetryCount(0); // Reset retry count on manual refresh
     await loadSubscriptionStatus();
   }, [loadSubscriptionStatus]);
-
-  // Helper function to check if error is retryable
-  const isRetryableError = (error: any): boolean => {
-    const retryableMessages = [
-      'network error',
-      'timeout',
-      'connection',
-      'failed to fetch',
-      'ECONNRESET',
-      'ETIMEDOUT'
-    ];
-    
-    const errorMessage = error?.message?.toLowerCase() || '';
-    return retryableMessages.some(msg => errorMessage.includes(msg));
-  };
 
   const hasPremiumAccess = subscriptionStatus?.isPremium || false;
 

@@ -54,6 +54,10 @@
       <key>NSAllowsArbitraryLoads</key>
       <false/>
     </dict>
+    <key>NSCalendarsFullAccessUsageDescription</key>
+    <string>Allow $(PRODUCT_NAME) to access your calendars</string>
+    <key>NSCalendarsUsageDescription</key>
+    <string>Allow $(PRODUCT_NAME) to access your calendars</string>
     <key>NSCameraUsageDescription</key>
     <string>TailTracker needs camera access to take photos of your pets for their profiles.</string>
     <key>NSFaceIDUsageDescription</key>
@@ -72,6 +76,10 @@
     <string>TailTracker needs permission to save photos of your pets to your photo library.</string>
     <key>NSPhotoLibraryUsageDescription</key>
     <string>TailTracker needs photo library access to select photos of your pets.</string>
+    <key>NSRemindersFullAccessUsageDescription</key>
+    <string>Allow $(PRODUCT_NAME) to access your reminders</string>
+    <key>NSRemindersUsageDescription</key>
+    <string>Allow $(PRODUCT_NAME) to access your reminders</string>
     <key>NSSupportsLiveActivities</key>
     <true/>
     <key>NSSupportsLiveActivitiesFrequentUpdates</key>

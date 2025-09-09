@@ -10,6 +10,12 @@ import { ServiceHelpers, handleServiceError } from '../utils/serviceHelpers';
 
 export type ConflictResolutionStrategy = 'server_wins' | 'client_wins' | 'merge' | 'manual';
 
+export interface ConflictResolution {
+  conflictId: string;
+  resolution: any;
+  strategy: ConflictResolutionStrategy;
+}
+
 export interface SyncConflict {
   id: string;
   type: 'pet' | 'user' | 'photo' | 'family';

@@ -14,6 +14,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useTailTrackerModal } from '../../hooks/useTailTrackerModal';
 import { CryptoService } from '../../services/cryptoService';
 import { TailTrackerModal } from '../UI/TailTrackerModal';
+import { modalService } from '../../services/modalService';
 
 interface RegisterScreenProps {
   onNavigateToLogin: () => void;
@@ -35,6 +36,7 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
+
 
   const { register, isLoading, error, clearError } = useAuth();
 
@@ -91,8 +93,22 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
       });
 
       if (result.success) {
-        // Registration successful - auto-login is handled by AuthContext
-        // Just navigate to the success callback
+        // Registration successful - user will receive Supabase email verification
+        modalService.showSuccess(
+          'Registration Successful!',
+          'Please check your email and click the verification link to complete your registration.',
+          'mail-outline'
+        );
+        
+        // Clear form after successful registration
+        setFormData({
+          firstName: '',
+          lastName: '',
+          email: '',
+          password: '',
+          confirmPassword: ''
+        });
+        
         if (onRegistrationSuccess) {
           onRegistrationSuccess();
         }
@@ -144,6 +160,10 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
       </View>
     );
   };
+
+
+
+
 
   return (
     <KeyboardAvoidingView 

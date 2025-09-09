@@ -94,13 +94,13 @@ export function createLazyComponent<T extends ComponentType<any>>(
     
     return (
       <LazyComponentWrapper options={options} componentName={componentName}>
-        <LazyComponent {...restProps} />
+        <LazyComponent {...(restProps as any)} />
       </LazyComponentWrapper>
     );
   };
 
   // Set display name for debugging
-  WrappedComponent.displayName = `LazyLoaded(${LazyComponent.displayName || 'Component'})`;
+  WrappedComponent.displayName = `LazyLoaded(${(LazyComponent as any).displayName || 'Component'})`;
   
   return WrappedComponent;
 }

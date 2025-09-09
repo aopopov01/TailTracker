@@ -40,7 +40,6 @@ export const MaterialCard: React.FC<MaterialCardProps> = ({
         return {
           ...baseStyle,
           backgroundColor: theme.colors.surfaceVariant,
-          elevation: 0,
         };
       case 'outlined':
         return {
@@ -48,22 +47,25 @@ export const MaterialCard: React.FC<MaterialCardProps> = ({
           backgroundColor: theme.colors.surface,
           borderWidth: 1,
           borderColor: theme.colors.outline,
-          elevation: 0,
         };
       default:
         return baseStyle;
     }
   };
 
+  const cardStyle = getCardStyle();
+  const { elevation, ...restStyle } = cardStyle;
+
   return (
     <Card
       style={[
-        getCardStyle(),
+        restStyle,
         style,
       ]}
       contentStyle={[
         { padding },
       ]}
+      elevation={elevation as any}
       {...props}
     >
       {children}

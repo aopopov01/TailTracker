@@ -50,7 +50,7 @@ interface Pet {
 export default function EditPetScreen() {
   const navigation = useNavigation();
   const route = useRoute();
-  const petId = route.params?.petId;
+  const petId = (route.params as any)?.petId;
   const isEditing = !!petId;
 
   const [loading, setLoading] = useState(false);
@@ -76,12 +76,6 @@ export default function EditPetScreen() {
     veterinarian_info: '',
     insurance_info: '',
   });
-
-  useEffect(() => {
-    if (isEditing) {
-      loadPetData();
-    }
-  }, [isEditing, petId, loadPetData]);
 
   const loadPetData = useCallback(async () => {
     try {
@@ -114,6 +108,12 @@ export default function EditPetScreen() {
       setLoading(false);
     }
   }, [petId]);
+
+  useEffect(() => {
+    if (isEditing) {
+      loadPetData();
+    }
+  }, [isEditing, petId, loadPetData]);
 
   const updateField = (field: keyof Pet, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -338,6 +338,8 @@ export default function EditPetScreen() {
     </View>
   );
 
+  const [tempDate, setTempDate] = useState<Date | null>(null);
+
   const handleDateChange = (event: any, selectedDate?: Date) => {
     // Handle date picker changes properly for both iOS and Android
     if (Platform.OS === 'android') {
@@ -349,11 +351,26 @@ export default function EditPetScreen() {
       }
       // If event.type === 'dismissed', user cancelled - do nothing
     } else {
-      // On iOS, keep picker open for spinner mode
+      // On iOS, store the selected date temporarily but don't update form yet
       if (selectedDate) {
-        updateField('birth_date', selectedDate.toISOString().split('T')[0]);
+        setTempDate(selectedDate);
       }
     }
+  };
+
+  const handleiOSDateConfirm = () => {
+    // Only update the form data when user confirms on iOS
+    if (tempDate) {
+      updateField('birth_date', tempDate.toISOString().split('T')[0]);
+    }
+    setShowDatePicker(false);
+    setTempDate(null);
+  };
+
+  const handleiOSDateCancel = () => {
+    // Cancel without saving changes
+    setShowDatePicker(false);
+    setTempDate(null);
   };
 
   const renderDateField = () => (
@@ -361,7 +378,12 @@ export default function EditPetScreen() {
       <Text style={styles.fieldLabel}>Birth Date</Text>
       <TouchableOpacity
         style={styles.dateButton}
-        onPress={() => setShowDatePicker(true)}
+        onPress={() => {
+          // Initialize temp date with current value when opening picker
+          const currentDate = formData.birth_date ? new Date(formData.birth_date) : new Date();
+          setTempDate(currentDate);
+          setShowDatePicker(true);
+        }}
       >
         <Text style={styles.dateButtonText}>
           {formData.birth_date 
@@ -375,7 +397,11 @@ export default function EditPetScreen() {
       {showDatePicker && (
         <>
           <DateTimePicker
-            value={formData.birth_date ? new Date(formData.birth_date) : new Date()}
+            value={
+              Platform.OS === 'ios' 
+                ? (tempDate || (formData.birth_date ? new Date(formData.birth_date) : new Date()))
+                : (formData.birth_date ? new Date(formData.birth_date) : new Date())
+            }
             mode="date"
             display={Platform.OS === 'ios' ? 'spinner' : 'default'}
             onChange={handleDateChange}
@@ -384,8 +410,14 @@ export default function EditPetScreen() {
           {Platform.OS === 'ios' && (
             <View style={styles.iosDatePickerActions}>
               <TouchableOpacity
+                style={[styles.datePickerButton, styles.cancelButton]}
+                onPress={handleiOSDateCancel}
+              >
+                <Text style={[styles.datePickerButtonText, styles.cancelButtonText]}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
                 style={styles.datePickerButton}
-                onPress={() => setShowDatePicker(false)}
+                onPress={handleiOSDateConfirm}
               >
                 <Text style={styles.datePickerButtonText}>Done</Text>
               </TouchableOpacity>
@@ -755,7 +787,7 @@ const styles = StyleSheet.create({
     borderColor: colors.gray200,
   },
   selectedOption: {
-    backgroundColor: colors.primaryLight,
+    backgroundColor: colors.primaryContainer,
     borderColor: colors.primary,
   },
   pickerOptionText: {
@@ -802,22 +834,31 @@ const styles = StyleSheet.create({
   },
   iosDatePickerActions: {
     flexDirection: 'row',
-    justifyContent: 'flex-end',
+    justifyContent: 'space-between',
     paddingTop: spacing.sm,
     borderTopWidth: 1,
     borderTopColor: colors.gray200,
     marginTop: spacing.sm,
+    gap: spacing.sm,
   },
   datePickerButton: {
     backgroundColor: colors.primary,
     borderRadius: 8,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.sm,
+    flex: 1,
+    alignItems: 'center',
+  },
+  cancelButton: {
+    backgroundColor: colors.gray200,
   },
   datePickerButtonText: {
     fontSize: 16,
     fontFamily: fonts.semibold,
     color: colors.white,
+  },
+  cancelButtonText: {
+    color: colors.textSecondary,
   },
   bottomSpacer: {
     height: spacing.xl,

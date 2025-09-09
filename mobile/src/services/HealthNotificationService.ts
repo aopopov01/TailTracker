@@ -9,6 +9,8 @@ Notifications.setNotificationHandler({
     shouldShowAlert: true,
     shouldPlaySound: true,
     shouldSetBadge: false,
+    shouldShowBanner: true,
+    shouldShowList: true,
   }),
 });
 
@@ -108,8 +110,9 @@ class HealthNotificationService {
           }
         },
         trigger: {
+          type: 'date',
           date: notificationDate,
-        }
+        } as any
       });
 
       return { success: true };
@@ -189,8 +192,9 @@ class HealthNotificationService {
           }
         },
         trigger: {
+          type: 'date',
           date: reminderDate,
-        }
+        } as any
       });
 
       return { success: true };
@@ -262,7 +266,7 @@ class HealthNotificationService {
       
       if (data?.notificationId) {
         // Mark notification as sent in database
-        await healthRecordsService.markNotificationSent(data.notificationId);
+        await healthRecordsService.markNotificationSent(data.notificationId.toString());
       }
 
       // Handle different notification types

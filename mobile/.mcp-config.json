@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "supabase-mcp": {
+      "command": "npx",
+      "args": ["@smithery/cli@latest", "run", "@supabase-community/supabase-mcp"],
+      "env": {
+        "SUPABASE_URL": "https://tkcajpwdlsavqfqhdawy.supabase.co",
+        "SUPABASE_SERVICE_ROLE_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRrY2FqcHdkbHNhdnFmcWhkYXd5Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NjQ1ODAxNSwiZXhwIjoyMDcyMDM0MDE1fQ.NA_3G3RXr7nq_4iKDhPp1Cb2pojSHrOFtv5Jl9Fs570",
+        "SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRrY2FqcHdkbHNhdnFmcWhkYXd5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY0NTgwMTUsImV4cCI6MjA3MjAzNDAxNX0.Xz4Lu5PsRmk9aPDQGzmQXSd7lmfzaZklXC8QD0tMCvI",
+        "PROJECT_REF": "tkcajpwdlsavqfqhdawy"
+      }
+    }
+  }
+}

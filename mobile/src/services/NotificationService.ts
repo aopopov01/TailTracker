@@ -57,6 +57,8 @@ class NotificationService {
             shouldShowAlert: true,
             shouldPlaySound: true,
             shouldSetBadge: true,
+            shouldShowBanner: true,
+            shouldShowList: true,
             priority: Notifications.AndroidNotificationPriority.HIGH,
           };
         }
@@ -66,6 +68,8 @@ class NotificationService {
             shouldShowAlert: true,
             shouldPlaySound: true,
             shouldSetBadge: true,
+            shouldShowBanner: true,
+            shouldShowList: true,
             priority: Notifications.AndroidNotificationPriority.DEFAULT,
           };
         }
@@ -74,6 +78,8 @@ class NotificationService {
           shouldShowAlert: true,
           shouldPlaySound: true,
           shouldSetBadge: false,
+          shouldShowBanner: true,
+          shouldShowList: true,
         };
       },
     });

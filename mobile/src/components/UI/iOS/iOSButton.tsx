@@ -189,7 +189,7 @@ export const iOSButton: React.FC<iOSButtonProps> = ({
       ) : (
         <>
           {icon && <>{icon}</>}
-          <Text style={[getTextStyle(), textStyle, icon && { marginLeft: 8 }]}>{title}</Text>
+          <Text style={[getTextStyle(), textStyle, icon ? { marginLeft: 8 } : null]}>{title}</Text>
         </>
       )}
     </TouchableOpacity>

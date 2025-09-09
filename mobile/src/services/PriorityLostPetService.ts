@@ -518,23 +518,18 @@ export class PriorityLostPetService {
   }
 
   public async getEmergencyContacts(): Promise<string[]> {
-    try {
-      // In a real implementation, this would get contacts from:
-      // 1. User's emergency contacts
-      // 2. Local animal control
-      // 3. Nearby veterinarians
-      // 4. Animal shelters in the area
-      // 5. Community response groups
+    // In a real implementation, this would get contacts from:
+    // 1. User's emergency contacts
+    // 2. Local animal control
+    // 3. Nearby veterinarians
+    // 4. Animal shelters in the area
+    // 5. Community response groups
 
-      return [
-        'emergency@example.com',
-        'animalcontrol@city.gov', 
-        'shelter@localrescue.org'
-      ];
-    } catch (error) {
-      console.error('Failed to get emergency contacts:', error);
-      return [];
-    }
+    return [
+      'emergency@example.com',
+      'animalcontrol@city.gov', 
+      'shelter@localrescue.org'
+    ];
   }
 }
 

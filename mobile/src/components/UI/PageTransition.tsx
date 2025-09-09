@@ -84,7 +84,7 @@ export const PageTransition: React.FC<PageTransitionProps> = ({
       if (onTransitionComplete) {
         setTimeout(() => {
           runOnJS(onTransitionComplete)();
-        }, premiumAnimations.timings.comfortable);
+        }, premiumAnimations.timings.comfortable.duration);
       }
     } else {
       // Exiting animation
@@ -245,8 +245,8 @@ const StaggerItem: React.FC<{
   
   useEffect(() => {
     setTimeout(() => {
-      opacity.value = premiumAnimations.springs.gentle;
-      translateY.value = premiumAnimations.springs.smooth;
+      opacity.value = 1;
+      translateY.value = 0;
     }, delay);
   }, [delay, opacity, translateY]);
   

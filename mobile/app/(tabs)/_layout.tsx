@@ -35,20 +35,20 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="tracking"
-        options={{
-          title: 'Wellness',
-          tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? 'fitness' : 'fitness-outline'} size={24} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
         name="pets"
         options={{
           title: 'My Pets',
           tabBarIcon: ({ color, focused }) => (
             <Ionicons name={focused ? 'heart' : 'heart-outline'} size={24} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="alerts"
+        options={{
+          title: 'Alerts',
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons name={focused ? 'location' : 'location-outline'} size={24} color={color} />
           ),
         }}
       />

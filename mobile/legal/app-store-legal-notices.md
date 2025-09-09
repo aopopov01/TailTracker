@@ -29,8 +29,8 @@ Terms of Use: https://tailtracker.app/terms
 ```
 SUBSCRIPTION TERMS
 
-TailTracker Premium: €7.99/month or €79.99/year
-TailTracker Pro: €19.99/month or €199.99/year
+TailTracker Premium: €5.99/month or €50.00/year
+TailTracker Pro: €8.99/month or €80.00/year
 
 • Subscription automatically renews unless auto-renewal is turned off at least 24 hours before the end of the current period
 • Payment will be charged to Google Play Account at confirmation of purchase

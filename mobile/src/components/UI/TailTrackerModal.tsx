@@ -14,6 +14,7 @@ import Animated, {
   SlideInUp,
   FadeIn,
 } from 'react-native-reanimated';
+import { ModalAction } from '../../types/Modal';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -31,12 +32,6 @@ const COLORS = {
   error: '#EF4444',
   info: '#3B82F6',
 };
-
-interface ModalAction {
-  text: string;
-  style?: 'default' | 'destructive' | 'primary';
-  onPress: () => void;
-}
 
 interface TailTrackerModalProps {
   visible: boolean;
@@ -174,7 +169,7 @@ export const TailTrackerModal: React.FC<TailTrackerModalProps> = ({
                   <TouchableOpacity
                     key={index}
                     style={styles.primaryButton}
-                    onPress={action.onPress}
+                    onPress={action.onPress || (() => {})}
                     activeOpacity={0.8}
                   >
                     <LinearGradient
@@ -198,7 +193,7 @@ export const TailTrackerModal: React.FC<TailTrackerModalProps> = ({
                     styles.modalButton,
                     action.style === 'destructive' && styles.destructiveButton
                   ]}
-                  onPress={action.onPress}
+                  onPress={action.onPress || (() => {})}
                   activeOpacity={0.7}
                 >
                   <Text style={[

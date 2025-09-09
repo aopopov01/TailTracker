@@ -93,15 +93,15 @@ export default function EditPetScreen() {
         >
           <PhotoField
             label="Pet Photo"
-            photoUrl={formData.photo_url}
-            onSelectPhoto={handleImagePicker}
+            value={formData.photo_url}
+            onImageChange={(uri: string) => updateField('photo_url', uri)}
           />
 
           <FormSection title="Basic Information">
             <FormField
               label="Pet Name"
               value={formData.name}
-              onChangeText={(text) => updateField('name', text)}
+              onChangeText={(text: string) => updateField('name', text)}
               placeholder="Enter your pet's name"
               required
             />
@@ -109,36 +109,36 @@ export default function EditPetScreen() {
             <SelectField
               label="Species"
               value={formData.species}
-              options={SPECIES_OPTIONS}
-              onSelect={(value) => updateField('species', value as any)}
+              options={[...SPECIES_OPTIONS]}
+              onValueChange={(value: string) => updateField('species', value as 'dog' | 'cat' | 'bird' | 'other')}
               required
             />
 
             <FormField
               label="Breed"
               value={formData.breed || ''}
-              onChangeText={(text) => updateField('breed', text)}
+              onChangeText={(text: string) => updateField('breed', text)}
               placeholder="Enter breed or mix"
             />
 
             <DateField
               label="Birth Date"
-              value={formData.birth_date}
-              onDateSelect={(date) => updateField('birth_date', date)}
+              value={formData.birth_date ? new Date(formData.birth_date) : undefined}
+              onDateChange={(date: Date) => updateField('birth_date', date.toISOString())}
               maximumDate={new Date()}
             />
 
             <SelectField
               label="Gender"
               value={formData.gender || ''}
-              options={GENDER_OPTIONS}
-              onSelect={(value) => updateField('gender', value as any)}
+              options={[...GENDER_OPTIONS]}
+              onValueChange={(value: string) => updateField('gender', value as 'male' | 'female')}
             />
 
             <BooleanField
               label="Neutered/Spayed"
-              value={formData.neutered}
-              onSelect={(value) => updateField('neutered', value)}
+              value={formData.neutered || false}
+              onValueChange={(value: boolean) => updateField('neutered', value)}
             />
           </FormSection>
 
@@ -146,7 +146,7 @@ export default function EditPetScreen() {
             <FormField
               label="Weight (kg)"
               value={formData.weight || ''}
-              onChangeText={(text) => updateField('weight', text)}
+              onChangeText={(text: string) => updateField('weight', text)}
               keyboardType="numeric"
               placeholder="Enter weight"
             />
@@ -154,7 +154,7 @@ export default function EditPetScreen() {
             <FormField
               label="Height (cm)"
               value={formData.height || ''}
-              onChangeText={(text) => updateField('height', text)}
+              onChangeText={(text: string) => updateField('height', text)}
               keyboardType="numeric"
               placeholder="Enter height"
             />
@@ -162,7 +162,7 @@ export default function EditPetScreen() {
             <FormField
               label="Color & Markings"
               value={formData.color_markings || ''}
-              onChangeText={(text) => updateField('color_markings', text)}
+              onChangeText={(text: string) => updateField('color_markings', text)}
               placeholder="Describe color and distinctive markings"
               multiline
               numberOfLines={3}
@@ -173,14 +173,14 @@ export default function EditPetScreen() {
             <FormField
               label="Microchip ID"
               value={formData.microchip_id || ''}
-              onChangeText={(text) => updateField('microchip_id', text)}
+              onChangeText={(text: string) => updateField('microchip_id', text)}
               placeholder="Enter microchip number"
             />
 
             <FormField
               label="Registration Number"
               value={formData.registration_number || ''}
-              onChangeText={(text) => updateField('registration_number', text)}
+              onChangeText={(text: string) => updateField('registration_number', text)}
               placeholder="Enter registration or license number"
             />
           </FormSection>
@@ -189,7 +189,7 @@ export default function EditPetScreen() {
             <FormField
               label="Medical Conditions"
               value={formData.medical_conditions || ''}
-              onChangeText={(text) => updateField('medical_conditions', text)}
+              onChangeText={(text: string) => updateField('medical_conditions', text)}
               placeholder="List conditions separated by commas"
               multiline
               numberOfLines={3}
@@ -198,7 +198,7 @@ export default function EditPetScreen() {
             <FormField
               label="Dietary Restrictions"
               value={formData.dietary_restrictions || ''}
-              onChangeText={(text) => updateField('dietary_restrictions', text)}
+              onChangeText={(text: string) => updateField('dietary_restrictions', text)}
               placeholder="List restrictions separated by commas"
               multiline
               numberOfLines={3}
@@ -209,7 +209,7 @@ export default function EditPetScreen() {
             <FormField
               label="Emergency Contact"
               value={formData.emergency_contact || ''}
-              onChangeText={(text) => updateField('emergency_contact', text)}
+              onChangeText={(text: string) => updateField('emergency_contact', text)}
               placeholder="Name and phone number"
               multiline
               numberOfLines={2}
@@ -218,7 +218,7 @@ export default function EditPetScreen() {
             <FormField
               label="Veterinarian Info"
               value={formData.veterinarian_info || ''}
-              onChangeText={(text) => updateField('veterinarian_info', text)}
+              onChangeText={(text: string) => updateField('veterinarian_info', text)}
               placeholder="Vet name, clinic, and contact"
               multiline
               numberOfLines={3}
@@ -227,7 +227,7 @@ export default function EditPetScreen() {
             <FormField
               label="Insurance Info"
               value={formData.insurance_info || ''}
-              onChangeText={(text) => updateField('insurance_info', text)}
+              onChangeText={(text: string) => updateField('insurance_info', text)}
               placeholder="Insurance provider and policy number"
               multiline
               numberOfLines={2}

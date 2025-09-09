@@ -18,8 +18,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Location from 'expo-location';
-// eslint-disable-next-line import/no-unresolved
-import QRCode from 'react-native-qr-code-svg';
+import QRCode from 'react-native-qrcode-svg';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { captureRef } from 'react-native-view-shot';
 
@@ -27,34 +26,9 @@ import { colors } from '@/constants/colors';
 import { fonts } from '@/constants/fonts';
 import { spacing } from '@/constants/spacing';
 import { supabase } from '@/services/supabase';
+import { Pet, petService } from '@/services/PetService';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
-
-interface Pet {
-  id: string;
-  user_id: string;
-  name: string;
-  species: 'dog' | 'cat' | 'bird' | 'other';
-  breed?: string;
-  birth_date?: string;
-  weight?: number;
-  height?: number;
-  color_markings?: string;
-  microchip_id?: string;
-  registration_number?: string;
-  gender?: 'male' | 'female';
-  neutered?: boolean;
-  photo_url?: string;
-  medical_conditions?: string[];
-  dietary_restrictions?: string[];
-  emergency_contact?: string;
-  veterinarian_info?: any;
-  insurance_info?: any;
-  status: 'safe' | 'lost' | 'found';
-  last_seen_location?: any;
-  created_at: string;
-  updated_at: string;
-}
 
 interface VaccinationRecord {
   id: string;
@@ -79,12 +53,16 @@ interface MedicalRecord {
   cost?: number;
 }
 
+interface PetProfileRouteParams {
+  petId: string;
+}
+
 export default function PetProfileScreen() {
   const navigation = useNavigation();
   const route = useRoute();
   const qrRef = useRef(null);
   
-  const petId = route.params?.petId;
+  const petId = (route.params as PetProfileRouteParams)?.petId;
   
   const [pet, setPet] = useState<Pet | null>(null);
   const [vaccinations, setVaccinations] = useState<VaccinationRecord[]>([]);
@@ -94,13 +72,6 @@ export default function PetProfileScreen() {
   const [activeTab, setActiveTab] = useState<'info' | 'health' | 'photos' | 'records'>('info');
   const [showQRModal, setShowQRModal] = useState(false);
   const [locationPermission, setLocationPermission] = useState(false);
-
-  useEffect(() => {
-    if (petId) {
-      loadPetData();
-      requestLocationPermission();
-    }
-  }, [petId, loadPetData, requestLocationPermission]);
 
   const requestLocationPermission = useCallback(async () => {
     try {
@@ -116,13 +87,10 @@ export default function PetProfileScreen() {
       setLoading(true);
       
       // Load pet basic info
-      const { data: petData, error: petError } = await supabase
-        .from('pets')
-        .select('*')
-        .eq('id', petId)
-        .single();
-
-      if (petError) throw petError;
+      const petData = await petService.getPet(petId);
+      if (!petData) {
+        throw new Error('Pet not found');
+      }
       setPet(petData);
 
       // Load vaccinations
@@ -172,8 +140,15 @@ export default function PetProfileScreen() {
     }
   }, [petId]);
 
+  useEffect(() => {
+    if (petId) {
+      loadPetData();
+      requestLocationPermission();
+    }
+  }, [petId, loadPetData, requestLocationPermission]);
+
   const calculateAge = (birthDate?: string) => {
-    if (!birthDate) return 'Unknown';
+    if (!birthDate) return 'Unknown age';
     
     const birth = new Date(birthDate);
     const today = new Date();
@@ -276,11 +251,6 @@ export default function PetProfileScreen() {
                   .from('pets')
                   .update({
                     status: 'lost',
-                    last_seen_location: {
-                      latitude: location.coords.latitude,
-                      longitude: location.coords.longitude,
-                      timestamp: new Date().toISOString(),
-                    },
                   })
                   .eq('id', petId);
 
@@ -326,14 +296,13 @@ export default function PetProfileScreen() {
               const { error } = await supabase
                 .from('pets')
                 .update({
-                  status: 'safe',
-                  last_seen_location: null,
+                  status: 'active',
                 })
                 .eq('id', petId);
 
               if (error) throw error;
 
-              setPet(prev => prev ? { ...prev, status: 'safe' } : null);
+              setPet(prev => prev ? { ...prev, status: 'active' } : null);
               Alert.alert('Success', 'Your pet has been marked as found!');
             } catch (error) {
               console.error('Error marking pet as found:', error);
@@ -401,9 +370,9 @@ export default function PetProfileScreen() {
   const renderProfileCard = () => (
     <View style={styles.profileCard}>
       <View style={styles.petImageContainer}>
-        {pet?.photo_url || photos[0] ? (
+        {photos[0] ? (
           <Image
-            source={{ uri: pet?.photo_url || photos[0] }}
+            source={{ uri: photos[0] }}
             style={styles.petImage}
           />
         ) : (
@@ -422,10 +391,12 @@ export default function PetProfileScreen() {
       <View style={styles.petBasicInfo}>
         <Text style={styles.petName}>{pet?.name}</Text>
         <Text style={styles.petBreed}>
-          {pet?.breed} • {calculateAge(pet?.birth_date)}
+          {pet?.breed && `${pet.breed} • `}{calculateAge(pet?.date_of_birth)}
         </Text>
         <Text style={styles.petSpecies}>
-          {pet?.species?.charAt(0).toUpperCase() + pet?.species?.slice(1)} • {pet?.gender}
+          {pet?.species ? pet.species.charAt(0)?.toUpperCase() + pet.species.slice(1) : ''}
+          {pet?.gender ? ` • ${pet.gender.charAt(0)?.toUpperCase() + pet.gender.slice(1)}` : ''}
+          {pet?.color && ` • ${pet.color}`}
         </Text>
       </View>
 
@@ -483,55 +454,207 @@ export default function PetProfileScreen() {
           <View style={styles.infoItem}>
             <Ionicons name="scale" size={16} color={colors.primary} />
             <Text style={styles.infoLabel}>Weight</Text>
-            <Text style={styles.infoValue}>{pet?.weight ? `${pet.weight} kg` : 'Not set'}</Text>
+            <Text style={styles.infoValue}>{pet?.weight_kg ? `${pet.weight_kg} kg` : 'Not set'}</Text>
           </View>
           
           <View style={styles.infoItem}>
-            <Ionicons name="resize" size={16} color={colors.primary} />
-            <Text style={styles.infoLabel}>Height</Text>
-            <Text style={styles.infoValue}>{pet?.height ? `${pet.height} cm` : 'Not set'}</Text>
+            <Ionicons name="calendar" size={16} color={colors.primary} />
+            <Text style={styles.infoLabel}>Age</Text>
+            <Text style={styles.infoValue}>{calculateAge(pet?.date_of_birth)}</Text>
           </View>
           
           <View style={styles.infoItem}>
             <Ionicons name="color-palette" size={16} color={colors.primary} />
             <Text style={styles.infoLabel}>Color</Text>
-            <Text style={styles.infoValue}>{pet?.color_markings || 'Not specified'}</Text>
+            <Text style={styles.infoValue}>{pet?.color || 'Not specified'}</Text>
           </View>
           
           <View style={styles.infoItem}>
-            <Ionicons name="medical" size={16} color={colors.primary} />
-            <Text style={styles.infoLabel}>Neutered</Text>
+            <Ionicons name="male-female" size={16} color={colors.primary} />
+            <Text style={styles.infoLabel}>Gender</Text>
             <Text style={styles.infoValue}>
-              {pet?.neutered === undefined ? 'Not specified' : pet.neutered ? 'Yes' : 'No'}
+              {pet?.gender ? pet.gender.charAt(0).toUpperCase() + pet.gender.slice(1) : 'Not specified'}
             </Text>
           </View>
         </View>
       </View>
 
-      {pet?.microchip_id && (
+      {pet?.microchip_number && (
         <View style={styles.infoSection}>
           <Text style={styles.sectionTitle}>Identification</Text>
           
           <View style={styles.idCard}>
             <Ionicons name="hardware-chip" size={24} color={colors.primary} />
             <View style={styles.idInfo}>
-              <Text style={styles.idLabel}>Microchip ID</Text>
-              <Text style={styles.idValue}>{pet.microchip_id}</Text>
+              <Text style={styles.idLabel}>Microchip Number</Text>
+              <Text style={styles.idValue}>{pet.microchip_number}</Text>
             </View>
           </View>
         </View>
       )}
 
-      {pet?.medical_conditions && pet.medical_conditions.length > 0 && (
+      {pet?.personality_traits && (
         <View style={styles.infoSection}>
-          <Text style={styles.sectionTitle}>Medical Conditions</Text>
+          <Text style={styles.sectionTitle}>Personality & Behavior</Text>
           
-          {pet.medical_conditions.map((condition, index) => (
-            <View key={index} style={styles.conditionItem}>
-              <Ionicons name="medical" size={16} color={colors.warning} />
-              <Text style={styles.conditionText}>{condition}</Text>
+          <View style={styles.textSection}>
+            <Text style={styles.textLabel}>Personality Traits</Text>
+            <Text style={styles.textValue}>{pet.personality_traits}</Text>
+          </View>
+          
+          {pet.behavioral_notes && (
+            <View style={styles.textSection}>
+              <Text style={styles.textLabel}>Behavioral Notes</Text>
+              <Text style={styles.textValue}>{pet.behavioral_notes}</Text>
             </View>
-          ))}
+          )}
+        </View>
+      )}
+
+      {(pet?.special_needs || pet?.allergies || pet?.medical_conditions?.length) && (
+        <View style={styles.infoSection}>
+          <Text style={styles.sectionTitle}>Health & Medical</Text>
+          
+          {pet.special_needs && (
+            <View style={styles.textSection}>
+              <Text style={styles.textLabel}>Special Needs</Text>
+              <Text style={styles.textValue}>{pet.special_needs}</Text>
+            </View>
+          )}
+
+          {pet.allergies && (
+            <View style={styles.textSection}>
+              <Text style={styles.textLabel}>Allergies</Text>
+              <Text style={styles.textValue}>{pet.allergies}</Text>
+            </View>
+          )}
+
+          {pet.medical_conditions && pet.medical_conditions.length > 0 && (
+            <View style={styles.textSection}>
+              <Text style={styles.textLabel}>Medical Conditions</Text>
+              {pet.medical_conditions.map((condition, index) => (
+                <View key={index} style={styles.conditionItem}>
+                  <Ionicons name="medical" size={16} color={colors.warning} />
+                  <Text style={styles.conditionText}>{condition}</Text>
+                </View>
+              ))}
+            </View>
+          )}
+        </View>
+      )}
+
+      {pet?.dietary_notes && (
+        <View style={styles.infoSection}>
+          <Text style={styles.sectionTitle}>Dietary Information</Text>
+          
+          <View style={styles.textSection}>
+            <Text style={styles.textLabel}>Dietary Notes</Text>
+            <Text style={styles.textValue}>{pet.dietary_notes}</Text>
+          </View>
+        </View>
+      )}
+
+      {pet?.emergency_contact_name && (
+        <View style={styles.infoSection}>
+          <Text style={styles.sectionTitle}>Emergency Contact</Text>
+          
+          <View style={styles.contactCard}>
+            <Ionicons name="person" size={24} color={colors.primary} />
+            <View style={styles.contactInfo}>
+              <Text style={styles.contactName}>{pet.emergency_contact_name}</Text>
+              {pet.emergency_contact_phone && (
+                <Text style={styles.contactDetail}>📞 {pet.emergency_contact_phone}</Text>
+              )}
+              {pet.emergency_contact_email && (
+                <Text style={styles.contactDetail}>✉️ {pet.emergency_contact_email}</Text>
+              )}
+            </View>
+          </View>
+
+          {pet.emergency_contact_2_name && (
+            <View style={styles.contactCard}>
+              <Ionicons name="person" size={24} color={colors.secondary} />
+              <View style={styles.contactInfo}>
+                <Text style={styles.contactName}>{pet.emergency_contact_2_name}</Text>
+                {pet.emergency_contact_2_phone && (
+                  <Text style={styles.contactDetail}>📞 {pet.emergency_contact_2_phone}</Text>
+                )}
+                {pet.emergency_contact_2_email && (
+                  <Text style={styles.contactDetail}>✉️ {pet.emergency_contact_2_email}</Text>
+                )}
+              </View>
+            </View>
+          )}
+        </View>
+      )}
+
+      {pet?.insurance_provider && (
+        <View style={styles.infoSection}>
+          <Text style={styles.sectionTitle}>Pet Insurance</Text>
+          
+          <View style={styles.insuranceCard}>
+            <Ionicons name="shield-checkmark" size={24} color={colors.success} />
+            <View style={styles.insuranceInfo}>
+              <Text style={styles.insuranceProvider}>{pet.insurance_provider}</Text>
+              {pet.insurance_policy_number && (
+                <Text style={styles.insuranceDetail}>Policy: {pet.insurance_policy_number}</Text>
+              )}
+              {pet.insurance_contact_phone && (
+                <Text style={styles.insuranceDetail}>Contact: {pet.insurance_contact_phone}</Text>
+              )}
+            </View>
+          </View>
+
+          {pet.insurance_coverage_details && (
+            <View style={styles.textSection}>
+              <Text style={styles.textLabel}>Coverage Details</Text>
+              <Text style={styles.textValue}>{pet.insurance_coverage_details}</Text>
+            </View>
+          )}
+        </View>
+      )}
+
+      {pet?.breeding_status && pet.breeding_status !== 'not_applicable' && (
+        <View style={styles.infoSection}>
+          <Text style={styles.sectionTitle}>Breeding Information</Text>
+          
+          <View style={styles.textSection}>
+            <Text style={styles.textLabel}>Breeding Status</Text>
+            <Text style={styles.textValue}>
+              {pet.breeding_status.charAt(0).toUpperCase() + pet.breeding_status.slice(1)}
+            </Text>
+          </View>
+
+          {(pet.sire_name || pet.dam_name) && (
+            <View style={styles.textSection}>
+              <Text style={styles.textLabel}>Lineage</Text>
+              {pet.sire_name && (
+                <Text style={styles.textValue}>Sire: {pet.sire_name}</Text>
+              )}
+              {pet.dam_name && (
+                <Text style={styles.textValue}>Dam: {pet.dam_name}</Text>
+              )}
+            </View>
+          )}
+
+          {(pet.registration_number || pet.registration_organization) && (
+            <View style={styles.textSection}>
+              <Text style={styles.textLabel}>Registration</Text>
+              {pet.registration_organization && (
+                <Text style={styles.textValue}>Organization: {pet.registration_organization}</Text>
+              )}
+              {pet.registration_number && (
+                <Text style={styles.textValue}>Number: {pet.registration_number}</Text>
+              )}
+            </View>
+          )}
+
+          {pet.breeding_notes && (
+            <View style={styles.textSection}>
+              <Text style={styles.textLabel}>Breeding Notes</Text>
+              <Text style={styles.textValue}>{pet.breeding_notes}</Text>
+            </View>
+          )}
         </View>
       )}
     </View>
@@ -951,7 +1074,7 @@ const styles = StyleSheet.create({
   addButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.primaryLight,
+    backgroundColor: colors.primaryContainer,
     borderRadius: 16,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
@@ -991,7 +1114,7 @@ const styles = StyleSheet.create({
   idCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.primaryLight,
+    backgroundColor: colors.primaryContainer,
     borderRadius: 12,
     padding: spacing.md,
   },
@@ -1012,7 +1135,7 @@ const styles = StyleSheet.create({
   conditionItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.warningLight,
+    backgroundColor: colors.warningContainer,
     borderRadius: 8,
     padding: spacing.md,
     marginBottom: spacing.sm,
@@ -1029,7 +1152,7 @@ const styles = StyleSheet.create({
   healthAlert: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.warningLight,
+    backgroundColor: colors.warningContainer,
     borderRadius: 12,
     padding: spacing.md,
     marginBottom: spacing.lg,
@@ -1061,7 +1184,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: colors.successLight,
+    backgroundColor: colors.successContainer,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: spacing.md,
@@ -1136,7 +1259,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: colors.primaryLight,
+    backgroundColor: colors.primaryContainer,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: spacing.md,
@@ -1225,5 +1348,72 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: fonts.semibold,
     color: colors.white,
+  },
+  textSection: {
+    backgroundColor: colors.gray50,
+    borderRadius: 12,
+    padding: spacing.md,
+    marginBottom: spacing.md,
+  },
+  textLabel: {
+    fontSize: 12,
+    fontFamily: fonts.semibold,
+    color: colors.primary,
+    marginBottom: spacing.xs,
+    textTransform: 'uppercase',
+  },
+  textValue: {
+    fontSize: 14,
+    fontFamily: fonts.regular,
+    color: colors.text,
+    lineHeight: 20,
+  },
+  contactCard: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    backgroundColor: colors.primaryContainer,
+    borderRadius: 12,
+    padding: spacing.md,
+    marginBottom: spacing.md,
+  },
+  contactInfo: {
+    marginLeft: spacing.md,
+    flex: 1,
+  },
+  contactName: {
+    fontSize: 16,
+    fontFamily: fonts.semibold,
+    color: colors.text,
+    marginBottom: spacing.xs,
+  },
+  contactDetail: {
+    fontSize: 14,
+    fontFamily: fonts.regular,
+    color: colors.textSecondary,
+    marginBottom: spacing.xs / 2,
+  },
+  insuranceCard: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    backgroundColor: colors.successContainer,
+    borderRadius: 12,
+    padding: spacing.md,
+    marginBottom: spacing.md,
+  },
+  insuranceInfo: {
+    marginLeft: spacing.md,
+    flex: 1,
+  },
+  insuranceProvider: {
+    fontSize: 16,
+    fontFamily: fonts.semibold,
+    color: colors.text,
+    marginBottom: spacing.xs,
+  },
+  insuranceDetail: {
+    fontSize: 14,
+    fontFamily: fonts.regular,
+    color: colors.textSecondary,
+    marginBottom: spacing.xs / 2,
   },
 });

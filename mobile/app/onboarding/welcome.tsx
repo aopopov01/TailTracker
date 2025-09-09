@@ -221,7 +221,9 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 25,
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
+    paddingTop: 40,
+    paddingBottom: 40,
   },
   iconContainer: {
     marginBottom: 30,
@@ -267,7 +269,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     width: '100%',
-    marginBottom: 40,
+    marginBottom: 60,
   },
   benefitCard: {
     flex: 1,

@@ -80,6 +80,25 @@ export const materialDarkTheme: Theme = {
   },
 };
 
+export const petColors = {
+  dog: '#FF6B6B',
+  cat: '#4ECDC4',
+  bird: '#45B7D1',
+  fish: '#96CEB4',
+  rabbit: '#FFEAA7',
+  hamster: '#DDA0DD',
+  reptile: '#98D8C8',
+  other: '#A8A8A8',
+};
+
+export const statusColors = {
+  safe: '#4CAF50',
+  alert: '#FF9800',
+  danger: '#F44336',
+  unknown: '#9E9E9E',
+  offline: '#607D8B',
+};
+
 export const materialTheme = {
   light: materialLightTheme,
   dark: materialDarkTheme,

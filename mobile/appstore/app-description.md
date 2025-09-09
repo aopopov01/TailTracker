@@ -50,11 +50,11 @@ Your pet's data is protected with enterprise-grade security:
 • GDPR and privacy regulation compliant
 
 **✨ PREMIUM FEATURES**
-Upgrade to TailTracker Premium (€5.99/month) or Pro (€8.99/month):
+Upgrade to TailTracker Premium (€5.99/month or €50/year) or Pro (€8.99/month or €80/year):
 • Premium: 3 family members total + 2 pet profiles (vs 2 members + 1 pet free)
 • Pro: unlimited family members + unlimited pet profiles
-• Unlimited health record storage
-• Enhanced family coordination features
+• 12 photos per pet (vs 1 photo free)
+• Lost pet reporting and community alerts
 • Enhanced family coordination features
 • Export health records to PDF
 
@@ -69,7 +69,7 @@ Connect with other pet owners:
 **🏆 WHY CHOOSE TAILTRACKER?**
 ✅ Simple and easy to use
 ✅ Focus on essential features only
-✅ Affordable family coordination (€5.99/€8.99)
+✅ Affordable family coordination (€5.99/month, €50/year or €8.99/month, €80/year)
 ✅ Community-based lost pet support
 ✅ Privacy-first approach to your pet's data
 ✅ No complex features or overwhelming interfaces
@@ -100,7 +100,7 @@ Start your free trial today - because every pet deserves the best care possible.
 ---
 
 ## Keywords (96/100 characters)
-pet,dog,cat,tracker,GPS,safety,health,care,vet,lost,family,location,reminder,schedule,vaccination
+pet,dog,cat,health,care,vet,lost,family,reminder,schedule,vaccination,community,safety,profile
 
 ## What's New in This Version
 **Version 1.0 - Welcome to TailTracker!**
@@ -108,12 +108,12 @@ pet,dog,cat,tracker,GPS,safety,health,care,vet,lost,family,location,reminder,sch
 We're excited to launch TailTracker, the complete pet management solution! This initial release includes:
 
 🐾 **Core Features:**
-• GPS tracking with real-time location updates
 • Pet profiles with photo galleries
-• Smart reminders for feeding, medication, and appointments  
-• Safe zone alerts when pets wander off
-• Health record management
+• Health record management with manual entries
+• Basic weight and measurement tracking
 • Family sharing and collaboration
+• Lost pet community alerts (Pro tier can report)
+• Vaccination records and medical notes
 
 🔒 **Security & Privacy:**
 • Face ID and Touch ID authentication
@@ -121,16 +121,15 @@ We're excited to launch TailTracker, the complete pet management solution! This 
 • Privacy-first data handling
 
 📱 **iOS Integration:**
-• Native Apple Maps integration
 • iOS 13+ support with full device compatibility
 • Dark mode and accessibility support
-• Background location updates
+• Native system integrations
 
 ✨ **Premium Benefits:**
-• Unlimited pet profiles
-• Extended location history
-• Advanced health insights
-• Priority support
+• Multiple pet profiles (2 for Premium, unlimited for Pro)
+• Extended family sharing (3 for Premium, unlimited for Pro)
+• Lost pet reporting capability
+• Health record PDF export
 
 Thank you for choosing TailTracker! We're committed to helping you provide the best care for your beloved pets. Send us feedback at feedback@tailtracker.com - we read every message!
 

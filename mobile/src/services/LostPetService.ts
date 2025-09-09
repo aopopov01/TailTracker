@@ -101,7 +101,7 @@ class LostPetService {
         .eq('id', petId)
         .single();
 
-      if (!pet || pet.families.owner_id !== user.user.id) {
+      if (!pet || (pet.families as any)?.owner_id !== user.user.id) {
         return {
           success: false,
           error: 'Pet not found or you do not have permission to report this pet as lost'
@@ -294,12 +294,12 @@ class LostPetService {
         .eq('id', alertId)
         .single();
 
-      if (!alert?.reporter.push_token) return;
+      if (!alert || !(alert.reporter as any)?.push_token) return;
 
       // Send notification to pet owner
       const notification = {
-        to: alert.reporter.push_token,
-        title: `${alert.pet.name} Spotted!`,
+        to: (alert.reporter as any).push_token,
+        title: `${(alert.pet as any)?.name} Spotted!`,
         body: 'Someone reported seeing your pet. Check the app for details.',
         data: {
           type: 'pet_sighting',

@@ -137,8 +137,8 @@ export const PremiumPullToRefresh: React.FC<PremiumPullToRefreshProps> = ({
       // Start refresh animation
       indicatorRotation.value = withRepeat(
         withSequence(
-          withSpring(360, premiumAnimations.springs.gentle),
-          withSpring(720, premiumAnimations.springs.gentle)
+          withSpring(360),
+          withSpring(720)
         ),
         -1,
         false
@@ -149,18 +149,18 @@ export const PremiumPullToRefresh: React.FC<PremiumPullToRefreshProps> = ({
         setInternalRefreshing(false);
         
         // Reset animations
-        pullDistance.value = withSpring(0, premiumAnimations.springs.gentle);
-        indicatorScale.value = withSpring(0, premiumAnimations.springs.gentle);
-        indicatorRotation.value = withSpring(0, premiumAnimations.springs.gentle);
-        progressOpacity.value = withSpring(0, premiumAnimations.springs.gentle);
+        pullDistance.value = withSpring(0);
+        indicatorScale.value = withSpring(0);
+        indicatorRotation.value = withSpring(0);
+        progressOpacity.value = withSpring(0);
         isTriggered.value = false;
       });
     } else {
       // Reset to initial position
-      pullDistance.value = withSpring(0, premiumAnimations.springs.gentle);
-      indicatorScale.value = withSpring(0, premiumAnimations.springs.gentle);
-      indicatorRotation.value = withSpring(0, premiumAnimations.springs.gentle);
-      progressOpacity.value = withSpring(0, premiumAnimations.springs.gentle);
+      pullDistance.value = withSpring(0);
+      indicatorScale.value = withSpring(0);
+      indicatorRotation.value = withSpring(0);
+      progressOpacity.value = withSpring(0);
       isTriggered.value = false;
     }
   }, [pullThreshold, internalRefreshing, onRefresh, hapticEnabled, pullDistance, indicatorScale, indicatorRotation, progressOpacity, isTriggered]);
@@ -208,31 +208,31 @@ export const PremiumPullToRefresh: React.FC<PremiumPullToRefreshProps> = ({
       case 'pet':
         return {
           icon: 'paw-outline',
-          colors: ['#3B82F6', '#1D4ED8'],
+          colors: ['#3B82F6', '#1D4ED8'] as const,
           backgroundColor: materialTheme.colors.primary,
         };
       case 'heart':
         return {
           icon: 'heart-outline',
-          colors: ['#F87171', '#EF4444'],
+          colors: ['#F87171', '#EF4444'] as const,
           backgroundColor: '#F87171',
         };
       case 'paw':
         return {
           icon: 'paw-outline',
-          colors: ['#10B981', '#059669'],
+          colors: ['#10B981', '#059669'] as const,
           backgroundColor: '#10B981',
         };
       case 'bone':
         return {
           icon: 'fitness-outline',
-          colors: ['#F59E0B', '#D97706'],
+          colors: ['#F59E0B', '#D97706'] as const,
           backgroundColor: '#F59E0B',
         };
       default:
         return {
           icon: 'refresh-outline',
-          colors: [materialTheme.colors.primary, materialTheme.colors.primary],
+          colors: [materialTheme.colors.primary, materialTheme.colors.primary] as const,
           backgroundColor: materialTheme.colors.primary,
         };
     }
@@ -438,12 +438,12 @@ const StaggeredItem: React.FC<{
   React.useEffect(() => {
     if (isVisible) {
       setTimeout(() => {
-        opacity.value = withSpring(1, premiumAnimations.springs.gentle);
-        translateY.value = withSpring(0, premiumAnimations.springs.smooth);
+        opacity.value = withSpring(1);
+        translateY.value = withSpring(0);
       }, delay);
     } else {
-      opacity.value = withSpring(0, premiumAnimations.springs.gentle);
-      translateY.value = withSpring(20, premiumAnimations.springs.gentle);
+      opacity.value = withSpring(0);
+      translateY.value = withSpring(20);
     }
   }, [isVisible, delay, opacity, translateY]);
   

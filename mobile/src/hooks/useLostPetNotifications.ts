@@ -33,50 +33,71 @@ export const useLostPetNotifications = (): UseLostPetNotificationsHook => {
 
   const { subscriptionStatus } = usePremiumAccess();
 
-  // Initialize notification status
-  useEffect(() => {
-    initializeNotifications();
-  }, [initializeNotifications]);
-
-  // Handle app state changes
-  useEffect(() => {
-    const subscription = AppState.addEventListener('change', (nextAppState) => {
-      if (nextAppState === 'active') {
-        refreshStatus();
-        updateNotificationCount();
-      }
-    });
-
-    return () => subscription?.remove();
+  // Helper functions defined first to avoid hoisting issues
+  const updateNotificationCount = useCallback(async () => {
+    try {
+      // Use getPresentedNotificationsAsync which is more widely supported
+      const notifications = await Notifications.getPresentedNotificationsAsync();
+      const lostPetNotifications = notifications.filter(
+        n => n.request.content.data?.type === 'lost_pet_alert'
+      );
+      setPendingNotifications(lostPetNotifications.length);
+    } catch (err) {
+      console.error('Update notification count error:', err);
+      // Fallback to 0 if the function is not available
+      setPendingNotifications(0);
+    }
   }, []);
 
-  // Listen for incoming notifications
-  useEffect(() => {
-    const notificationListener = Notifications.addNotificationReceivedListener((notification) => {
-      const data = notification.request.content.data as PushNotificationData;
-      
-      if (data.type === 'lost_pet_alert') {
-        // Update pending notifications count
-        updateNotificationCount();
-        
-        // Handle lost pet alert
-        handleLostPetAlert(notification, data);
-      }
-    });
+  const handleNotificationTapped = useCallback((data: PushNotificationData) => {
+    // This would integrate with React Navigation
+    console.log('Navigate to lost pet details:', data);
+    
+    // Example navigation:
+    // navigation.navigate('NearbyLostPets', { 
+    //   highlightId: data.lostPetId,
+    //   petName: data.petName 
+    // });
+  }, []);
 
-    const responseListener = Notifications.addNotificationResponseReceivedListener((response) => {
-      const data = response.notification.request.content.data as PushNotificationData;
-      
-      if (data.type === 'lost_pet_alert') {
-        handleNotificationTapped(data);
-      }
-    });
+  const handleLostPetAlert = useCallback((notification: Notifications.Notification, data: PushNotificationData) => {
+    // Show in-app alert if app is active
+    if (AppState.currentState === 'active') {
+      Alert.alert(
+        notification.request.content.title || 'Lost Pet Alert',
+        notification.request.content.body || 'A pet is missing in your area',
+        [
+          { text: 'Dismiss', style: 'cancel' },
+          { 
+            text: 'View Details', 
+            onPress: () => handleNotificationTapped(data)
+          },
+        ]
+      );
+    }
+  }, [handleNotificationTapped]);
 
-    return () => {
-      notificationListener.remove();
-      responseListener.remove();
-    };
-  }, [handleLostPetAlert]);
+  const refreshStatus = useCallback(async () => {
+    try {
+      const enabled = await NotificationHelpers.areNotificationsEnabled();
+      setNotificationsEnabled(enabled);
+
+      if (enabled) {
+        const token = notificationService.getCurrentPushToken();
+        if (!token) {
+          // Try to get new token
+          const newToken = await notificationService.getPushToken();
+          setPushToken(newToken);
+        } else {
+          setPushToken(token);
+        }
+      } else {
+        setPushToken(null);
+      }
+    } catch (err) {
+      console.error('Refresh status error:', err);
+    }
+  }, []);
 
   const initializeNotifications = useCallback(async () => {
     try {
@@ -105,7 +126,53 @@ export const useLostPetNotifications = (): UseLostPetNotificationsHook => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [updateNotificationCount]);
+
+  // Initialize notification status
+  useEffect(() => {
+    initializeNotifications();
+  }, [initializeNotifications]);
+
+  // Handle app state changes
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', (nextAppState) => {
+      if (nextAppState === 'active') {
+        refreshStatus();
+        updateNotificationCount();
+      }
+    });
+
+    return () => subscription?.remove();
+  }, [refreshStatus, updateNotificationCount]);
+
+  // Listen for incoming notifications
+  useEffect(() => {
+    const notificationListener = Notifications.addNotificationReceivedListener((notification) => {
+      const data = notification.request.content.data as PushNotificationData;
+      
+      if (data.type === 'lost_pet_alert') {
+        // Update pending notifications count
+        updateNotificationCount();
+        
+        // Handle lost pet alert
+        handleLostPetAlert(notification, data);
+      }
+    });
+
+    const responseListener = Notifications.addNotificationResponseReceivedListener((response) => {
+      const data = response.notification.request.content.data as PushNotificationData;
+      
+      if (data.type === 'lost_pet_alert') {
+        handleNotificationTapped(data);
+      }
+    });
+
+    return () => {
+      notificationListener.remove();
+      responseListener.remove();
+    };
+  }, [handleLostPetAlert, updateNotificationCount, handleNotificationTapped]);
+
 
   const requestPermissions = async (): Promise<boolean> => {
     try {
@@ -124,11 +191,15 @@ export const useLostPetNotifications = (): UseLostPetNotificationsHook => {
         if (user && token) {
           await notificationService.updateUserPushToken(user.id);
         }
+      } else {
+        setPushToken(null);
       }
 
       return granted;
     } catch (err) {
       setError('Failed to request permissions');
+      setNotificationsEnabled(false);
+      setPushToken(null);
       console.error('Permission request error:', err);
       return false;
     } finally {
@@ -188,70 +259,9 @@ export const useLostPetNotifications = (): UseLostPetNotificationsHook => {
     }
   };
 
-  const refreshStatus = async () => {
-    try {
-      const enabled = await NotificationHelpers.areNotificationsEnabled();
-      setNotificationsEnabled(enabled);
 
-      if (enabled) {
-        const token = notificationService.getCurrentPushToken();
-        if (!token) {
-          // Try to get new token
-          const newToken = await notificationService.getPushToken();
-          setPushToken(newToken);
-        } else {
-          setPushToken(token);
-        }
-      } else {
-        setPushToken(null);
-      }
-    } catch (err) {
-      console.error('Refresh status error:', err);
-    }
-  };
 
-  const updateNotificationCount = async () => {
-    try {
-      // Use getPresentedNotificationsAsync which is more widely supported
-      const notifications = await Notifications.getPresentedNotificationsAsync();
-      const lostPetNotifications = notifications.filter(
-        n => n.request.content.data?.type === 'lost_pet_alert'
-      );
-      setPendingNotifications(lostPetNotifications.length);
-    } catch (err) {
-      console.error('Update notification count error:', err);
-      // Fallback to 0 if the function is not available
-      setPendingNotifications(0);
-    }
-  };
 
-  const handleLostPetAlert = useCallback((notification: Notifications.Notification, data: PushNotificationData) => {
-    // Show in-app alert if app is active
-    if (AppState.currentState === 'active') {
-      Alert.alert(
-        notification.request.content.title || 'Lost Pet Alert',
-        notification.request.content.body || 'A pet is missing in your area',
-        [
-          { text: 'Dismiss', style: 'cancel' },
-          { 
-            text: 'View Details', 
-            onPress: () => handleNotificationTapped(data)
-          },
-        ]
-      );
-    }
-  }, []);
-
-  const handleNotificationTapped = (data: PushNotificationData) => {
-    // This would integrate with React Navigation
-    console.log('Navigate to lost pet details:', data);
-    
-    // Example navigation:
-    // navigation.navigate('NearbyLostPets', { 
-    //   highlightId: data.lostPetId,
-    //   petName: data.petName 
-    // });
-  };
 
   return {
     notificationsEnabled,

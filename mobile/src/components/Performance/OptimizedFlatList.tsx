@@ -121,7 +121,7 @@ function OptimizedFlatList<T>({
       pixelRatio,
     };
     
-    return renderItem(enhancedItemInfo);
+    return renderItem?.(enhancedItemInfo) ?? null;
   }, [renderItem, keyExtractor, visibleItems]);
 
   // PERFORMANCE OPTIMIZATION: Calculate optimal performance props based on device
@@ -168,7 +168,6 @@ function OptimizedFlatList<T>({
     getItemLayout,
     enableViewabilityCallbacks,
     handleViewabilityChanged,
-    pixelRatio,
   ]);
 
   // PERFORMANCE OPTIMIZATION: Monitor performance metrics

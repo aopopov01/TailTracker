@@ -48,8 +48,8 @@ const RECORD_TYPE_INFO = {
 export default function MedicalRecordsScreen() {
   const navigation = useNavigation();
   const route = useRoute();
-  const petId = route.params?.petId;
-  const petName = route.params?.petName || 'Pet';
+  const petId = (route.params as any)?.petId;
+  const petName = (route.params as any)?.petName || 'Pet';
 
   const [records, setRecords] = useState<MedicalRecord[]>([]);
   const [loading, setLoading] = useState(true);
@@ -147,7 +147,7 @@ export default function MedicalRecordsScreen() {
       
       <TouchableOpacity
         style={styles.addButton}
-        onPress={() => navigation.navigate('AddMedicalRecord', { petId })}
+        onPress={() => (navigation as any).navigate('AddMedicalRecord', { petId })}
       >
         <Ionicons name="add" size={24} color={colors.white} />
       </TouchableOpacity>
@@ -304,7 +304,7 @@ export default function MedicalRecordsScreen() {
         <View style={styles.cardActions}>
           <TouchableOpacity
             style={styles.actionButton}
-            onPress={() => navigation.navigate('AddMedicalRecord', { 
+            onPress={() => (navigation as any).navigate('AddMedicalRecord', { 
               petId,
               recordId: item.id
             })}
@@ -338,7 +338,7 @@ export default function MedicalRecordsScreen() {
       {selectedType === 'all' && (
         <TouchableOpacity
           style={styles.emptyActionButton}
-          onPress={() => navigation.navigate('AddMedicalRecord', { petId })}
+          onPress={() => (navigation as any).navigate('AddMedicalRecord', { petId })}
         >
           <Text style={styles.emptyActionButtonText}>Add First Record</Text>
         </TouchableOpacity>
@@ -492,7 +492,7 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
   },
   activeFilterTab: {
-    backgroundColor: colors.primaryLight,
+    backgroundColor: colors.primaryContainer,
     borderColor: colors.primary,
   },
   filterTabText: {
@@ -642,7 +642,7 @@ const styles = StyleSheet.create({
   attachmentButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.primaryLight,
+    backgroundColor: colors.primaryContainer,
     borderRadius: 8,
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.xs,
@@ -682,7 +682,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.primaryLight,
+    backgroundColor: colors.primaryContainer,
     borderRadius: 8,
     paddingVertical: spacing.sm,
     gap: spacing.xs,
@@ -693,7 +693,7 @@ const styles = StyleSheet.create({
     color: colors.primary,
   },
   deleteButton: {
-    backgroundColor: colors.errorLight,
+    backgroundColor: colors.errorContainer,
   },
   deleteButtonText: {
     color: colors.error,
@@ -703,7 +703,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: spacing.xl,
-    paddingVertical: spacing.xxxl,
+    paddingVertical: spacing['6xl'],
   },
   emptyTitle: {
     fontSize: 20,

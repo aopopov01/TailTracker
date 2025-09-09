@@ -1,7 +1,11 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { supabaseEnhanced } from '../../config/supabase';
-import { errorRecoveryService } from './ErrorRecoveryService';
-import { offlineQueueManager } from './OfflineQueueManager';
+import { supabase as supabaseEnhanced } from '@/services/supabase';
+import ErrorRecoveryService from './ErrorRecoveryService';
+import { OfflineQueueManager } from './OfflineQueueManager';
+
+// Initialize service instances
+const errorRecoveryService = ErrorRecoveryService.getInstance();
+const offlineQueueManager = OfflineQueueManager.getInstance();
 
 export interface ApiRequestConfig {
   method?: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
@@ -180,19 +184,17 @@ export class ApiClient {
       // If offline and operation can be queued
       if (!networkStatus.isConnected && config.offlineQueue?.enabled) {
         if (config.method === 'POST' || config.method === 'PUT' || config.method === 'DELETE') {
-          await offlineQueueManager.enqueueAction(
-            'API_REQUEST',
-            {
+          await (offlineQueueManager as any).enqueue({
+            type: 'API_REQUEST',
+            data: {
               url,
               method: config.method,
               body: config.body,
               headers: config.headers,
             },
-            {
-              priority: config.offlineQueue.priority || 'medium',
-              requiresAuthentication: true,
-            }
-          );
+            priority: config.offlineQueue.priority || 'medium',
+            requiresAuthentication: true,
+          });
 
           return {
             data: null,
@@ -215,13 +217,13 @@ export class ApiClient {
 
     // Apply error recovery strategies
     if (config.circuitBreaker) {
-      return errorRecoveryService.executeWithCircuitBreaker(
+      return (errorRecoveryService as any).executeWithCircuitBreaker(
         config.circuitBreaker,
         operation
       );
     }
 
-    return errorRecoveryService.executeWithRetry(operation, config.retry);
+    return (errorRecoveryService as any).executeWithRetry(operation, config.retry?.maxAttempts || 3);
   }
 
   /**
@@ -232,8 +234,8 @@ export class ApiClient {
     config: ApiRequestConfig
   ): Promise<ApiResponse<T>> {
     try {
-      const session = await supabaseEnhanced.getSession();
-      const token = session.data.session?.access_token;
+      const { data: session } = await supabaseEnhanced.auth.getSession();
+      const token = session.session?.access_token;
 
       const headers = {
         'Content-Type': 'application/json',

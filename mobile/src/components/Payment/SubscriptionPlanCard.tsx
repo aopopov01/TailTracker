@@ -52,15 +52,16 @@ export const SubscriptionPlanCard: React.FC<SubscriptionPlanCardProps> = ({
 
   const formatFeature = (feature: string) => {
     const featureLabels: Record<string, string> = {
-      unlimited_pets: 'Unlimited pets',
-      unlimited_photos: 'Unlimited photos per pet',
-      lost_pet_alerts: 'Lost pet alerts',
-      vaccination_reminders: 'Vaccination reminders',
-      medication_tracking: 'Medication tracking',
-      advanced_health_tracking: 'Advanced health tracking',
-      family_sharing_unlimited: 'Family sharing (up to 10 members)',
-      basic_profiles: 'Basic pet profiles',
-      basic_vaccination_tracking: 'Basic vaccination tracking',
+      maxPets: 'Pet profiles',
+      maxFamilyMembers: 'Family members',
+      photosPerPet: 'Photos per pet',
+      lostPetReporting: 'Lost pet reporting & alerts',
+      healthRecordExport: 'Health record PDF export',
+      enhancedFamilyCoordination: 'Enhanced family coordination',
+      cloudBackup: 'Cloud backup & sync',
+      basic_profiles: '1 pet profile',
+      basic_family_sharing: '2 family members total',
+      basic_photos: '1 photo per pet',
     };
 
     return featureLabels[feature] || feature.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());

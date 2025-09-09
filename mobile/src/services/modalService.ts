@@ -1,23 +1,8 @@
 import { EventEmitter } from 'events';
+import { Ionicons } from '@expo/vector-icons';
+import { ModalAction, ModalConfig, ModalType, ModalActionStyle } from '../types/Modal';
 
-export type ModalType = 'info' | 'success' | 'warning' | 'error';
-export type ModalActionStyle = 'primary' | 'default' | 'destructive';
-
-export interface ModalAction {
-  text: string;
-  style?: ModalActionStyle;
-  onPress?: () => void;
-}
-
-export interface ModalConfig {
-  visible: boolean;
-  title: string;
-  message?: string;
-  type?: ModalType;
-  actions?: ModalAction[];
-  showCloseButton?: boolean;
-  icon?: string;
-}
+export type { ModalAction, ModalConfig, ModalType, ModalActionStyle };
 
 class ModalService extends EventEmitter {
   private static instance: ModalService;
@@ -46,7 +31,7 @@ class ModalService extends EventEmitter {
       title,
       message,
       type: 'info',
-      icon: icon || 'information-circle',
+      icon: (icon as keyof typeof Ionicons.glyphMap) || 'information-circle',
       actions: [
         {
           text: 'Got it',
@@ -62,7 +47,7 @@ class ModalService extends EventEmitter {
       title,
       message,
       type: 'success',
-      icon: icon || 'checkmark-circle',
+      icon: (icon as keyof typeof Ionicons.glyphMap) || 'checkmark-circle',
       actions: [
         {
           text: 'OK',
@@ -78,7 +63,7 @@ class ModalService extends EventEmitter {
       title,
       message,
       type: 'error',
-      icon: icon || 'alert-circle',
+      icon: (icon as keyof typeof Ionicons.glyphMap) || 'alert-circle',
       actions: [
         {
           text: 'OK',
@@ -94,7 +79,7 @@ class ModalService extends EventEmitter {
       title,
       message,
       type: 'warning',
-      icon: icon || 'warning',
+      icon: (icon as keyof typeof Ionicons.glyphMap) || 'warning',
       actions: [
         {
           text: 'OK',

@@ -12,10 +12,16 @@ export interface OfflineDataConfig {
 export interface OfflineDataState {
   isLoading: boolean;
   error: string | null;
-  lastSyncTime: number;
+  lastSyncTime: string | null;
   syncInProgress: boolean;
   pendingUpdates: number;
   cacheSize: number;
+  storageUsage: {
+    totalKeys: number;
+    cacheKeys: number;
+    queueItems: number;
+    estimatedSizeKB: number;
+  };
 }
 
 export const useOfflineData = (
@@ -26,10 +32,16 @@ export const useOfflineData = (
   const [state, setState] = useState<OfflineDataState>({
     isLoading: false,
     error: null,
-    lastSyncTime: 0,
+    lastSyncTime: null,
     syncInProgress: false,
     pendingUpdates: 0,
     cacheSize: 0,
+    storageUsage: {
+      totalKeys: 0,
+      cacheKeys: 0,
+      queueItems: 0,
+      estimatedSizeKB: 0,
+    },
   });
   
   const configRef = useRef<OfflineDataConfig>({
@@ -40,59 +52,44 @@ export const useOfflineData = (
     ...config,
   });
 
-  // Update state from data layer
+  // Update state from data layer using actual available methods
   const updateState = useCallback(async () => {
     try {
-      const status = await dataLayer.getStatus();
+      setState(prev => ({ ...prev, isLoading: true }));
+      
+      const [lastSyncTime, queue, storageUsage] = await Promise.all([
+        dataLayer.getLastSyncTimestamp(),
+        dataLayer.getOfflineQueue(),
+        dataLayer.getStorageUsage(),
+      ]);
+
       setState(prev => ({
         ...prev,
-        lastSyncTime: status.lastSyncTime,
-        syncInProgress: status.syncInProgress,
-        pendingUpdates: status.pendingUpdates,
-        cacheSize: status.cacheSize,
+        isLoading: false,
+        lastSyncTime,
+        syncInProgress: false, // Default to false since we don't have sync status
+        pendingUpdates: queue.filter(item => item.syncStatus === 'pending').length,
+        cacheSize: storageUsage.cacheKeys,
+        storageUsage,
       }));
     } catch (error) {
       console.warn('Failed to update offline data state:', error);
+      setState(prev => ({ 
+        ...prev, 
+        isLoading: false, 
+        error: error instanceof Error ? error.message : 'Failed to update state' 
+      }));
     }
   }, [dataLayer]);
 
-  // Setup data layer event listeners
+  // Clean up expired cache periodically
   useEffect(() => {
-    const handleSyncStarted = () => {
-      setState(prev => ({ ...prev, syncInProgress: true, error: null }));
-    };
+    const interval = setInterval(() => {
+      dataLayer.clearExpiredCache().catch(console.error);
+    }, 30 * 60 * 1000); // Every 30 minutes
 
-    const handleSyncCompleted = () => {
-      setState(prev => ({ ...prev, syncInProgress: false, error: null }));
-      updateState();
-    };
-
-    const handleSyncFailed = (error: any) => {
-      setState(prev => ({ 
-        ...prev, 
-        syncInProgress: false, 
-        error: error.message || 'Sync failed' 
-      }));
-    };
-
-    const handleOptimisticUpdate = () => {
-      updateState();
-    };
-
-    dataLayer.on('syncStarted', handleSyncStarted);
-    dataLayer.on('syncCompleted', handleSyncCompleted);
-    dataLayer.on('syncFailed', handleSyncFailed);
-    dataLayer.on('optimisticUpdateApplied', handleOptimisticUpdate);
-    dataLayer.on('optimisticUpdateSynced', handleOptimisticUpdate);
-
-    return () => {
-      dataLayer.off('syncStarted', handleSyncStarted);
-      dataLayer.off('syncCompleted', handleSyncCompleted);
-      dataLayer.off('syncFailed', handleSyncFailed);
-      dataLayer.off('optimisticUpdateApplied', handleOptimisticUpdate);
-      dataLayer.off('optimisticUpdateSynced', handleOptimisticUpdate);
-    };
-  }, [dataLayer, updateState]);
+    return () => clearInterval(interval);
+  }, [dataLayer]);
 
   // Sync on connection restore
   useEffect(() => {
@@ -105,12 +102,13 @@ export const useOfflineData = (
       const timer = setTimeout(() => {
         if (state.pendingUpdates > 0) {
           console.log('Connection restored, triggering sync...');
+          updateState();
         }
       }, 1000);
 
       return () => clearTimeout(timer);
     }
-  }, [networkStatus.isConnected, networkStatus.canSync, state.pendingUpdates, configRef]);
+  }, [networkStatus.isConnected, networkStatus.canSync, state.pendingUpdates, updateState]);
 
   // Initial state update
   useEffect(() => {
@@ -124,119 +122,127 @@ export const useOfflineData = (
   };
 };
 
-// Hook for pet data operations
-export const usePetData = (dataLayer: OfflineDataLayer) => {
+// Hook for pet data operations using actual OfflineDataLayer methods
+export const usePetData = (dataLayer: OfflineDataLayer, userId?: number) => {
   const [pets, setPets] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { state } = useOfflineData(dataLayer);
 
-  // Load all pets
+  // Load all pets from cache
   const loadPets = useCallback(async (useCache = true) => {
+    if (!userId) return;
+    
     setLoading(true);
     setError(null);
     
     try {
-      const petsData = await dataLayer.getAllPets({ useCache });
-      setPets(petsData);
+      let petsData = null;
+      if (useCache) {
+        petsData = await dataLayer.getCachedPets(userId);
+      }
+      
+      if (petsData) {
+        setPets(petsData);
+      } else {
+        setPets([]);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load pets');
     } finally {
       setLoading(false);
     }
-  }, [dataLayer]);
+  }, [dataLayer, userId]);
 
-  // Create pet with optimistic update
+  // Create pet with offline queue support
   const createPet = useCallback(async (petData: any) => {
     setError(null);
     
     try {
-      const id = await dataLayer.createPet(petData);
+      // Add to offline queue
+      await dataLayer.addToOfflineQueue({
+        type: 'pet',
+        data: petData,
+        syncStatus: 'pending',
+        action: 'create',
+      });
       
       // Optimistically update local state
-      const newPet = { ...petData, id, createdAt: new Date().toISOString() };
+      const newPet = { 
+        ...petData, 
+        id: `temp_${Date.now()}`, 
+        createdAt: new Date().toISOString() 
+      };
       setPets(prev => [newPet, ...prev]);
       
-      return id;
+      return newPet.id;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create pet');
       throw err;
     }
   }, [dataLayer]);
 
-  // Update pet with optimistic update
+  // Update pet with offline queue support
   const updatePet = useCallback(async (id: string, updates: any) => {
     setError(null);
     
     try {
+      // Add to offline queue
+      await dataLayer.addToOfflineQueue({
+        type: 'pet',
+        data: { id, ...updates },
+        syncStatus: 'pending',
+        action: 'update',
+      });
+      
       // Optimistically update local state
       setPets(prev => prev.map(pet => 
         pet.id === id ? { ...pet, ...updates, updatedAt: new Date().toISOString() } : pet
       ));
-      
-      await dataLayer.updatePet(id, updates);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update pet');
-      // Rollback optimistic update by reloading
-      loadPets(false);
       throw err;
     }
-  }, [dataLayer, loadPets]);
+  }, [dataLayer]);
 
-  // Delete pet with optimistic update
+  // Delete pet with offline queue support
   const deletePet = useCallback(async (id: string) => {
     setError(null);
     
     try {
+      // Add to offline queue
+      await dataLayer.addToOfflineQueue({
+        type: 'pet',
+        data: { id },
+        syncStatus: 'pending',
+        action: 'delete',
+      });
+      
       // Optimistically remove from local state
       setPets(prev => prev.filter(pet => pet.id !== id));
-      
-      await dataLayer.deletePet(id);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to delete pet');
-      // Rollback optimistic update by reloading
-      loadPets(false);
       throw err;
     }
-  }, [dataLayer, loadPets]);
+  }, [dataLayer]);
 
-  // Get single pet
-  const getPet = useCallback(async (id: string, useCache = true) => {
+  // Get single pet from cache
+  const getPet = useCallback(async (id: number) => {
     try {
-      return await dataLayer.getPet(id, { useCache });
+      return await dataLayer.getCachedPet(id);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to get pet');
       throw err;
     }
   }, [dataLayer]);
 
-  // Listen for data layer events
-  useEffect(() => {
-    const handlePetCreated = (pet: any) => {
-      setPets(prev => {
-        const exists = prev.some(p => p.id === pet.id);
-        return exists ? prev : [pet, ...prev];
-      });
-    };
-
-    const handlePetUpdated = (pet: any) => {
-      setPets(prev => prev.map(p => p.id === pet.id ? pet : p));
-    };
-
-    const handlePetDeleted = ({ id }: { id: string }) => {
-      setPets(prev => prev.filter(p => p.id !== id));
-    };
-
-    dataLayer.on('petCreated', handlePetCreated);
-    dataLayer.on('petUpdated', handlePetUpdated);
-    dataLayer.on('petDeleted', handlePetDeleted);
-
-    return () => {
-      dataLayer.off('petCreated', handlePetCreated);
-      dataLayer.off('petUpdated', handlePetUpdated);
-      dataLayer.off('petDeleted', handlePetDeleted);
-    };
-  }, [dataLayer]);
+  // Cache pets helper
+  const cachePets = useCallback(async (petsData: any[]) => {
+    if (userId) {
+      await dataLayer.cachePets(userId, petsData);
+      setPets(petsData);
+    }
+  }, [dataLayer, userId]);
 
   // Initial load
   useEffect(() => {
@@ -252,26 +258,28 @@ export const usePetData = (dataLayer: OfflineDataLayer) => {
     updatePet,
     deletePet,
     getPet,
+    cachePets,
     syncState: state,
   };
 };
 
-// Hook for health records
-export const useHealthRecords = (dataLayer: OfflineDataLayer, petId: string) => {
+// Hook for health records using cache and offline queue
+export const useHealthRecords = (dataLayer: OfflineDataLayer, petId?: number) => {
   const [records, setRecords] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Load health records for pet
-  const loadRecords = useCallback(async (useCache = true) => {
+  // Load health records for pet from cache
+  const loadRecords = useCallback(async () => {
     if (!petId) return;
     
     setLoading(true);
     setError(null);
     
     try {
-      const recordsData = await dataLayer.getHealthRecords(petId, { useCache });
-      setRecords(recordsData);
+      // Try to get cached records (this would need to be implemented in a real app)
+      const recordsData = await dataLayer.getCache<any[]>(`health_records_${petId}`);
+      setRecords(recordsData || []);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load health records');
     } finally {
@@ -279,42 +287,43 @@ export const useHealthRecords = (dataLayer: OfflineDataLayer, petId: string) => 
     }
   }, [dataLayer, petId]);
 
-  // Create health record
+  // Create health record with offline queue support
   const createRecord = useCallback(async (recordData: any) => {
     if (!petId) throw new Error('Pet ID required');
     
     setError(null);
     
     try {
-      const id = await dataLayer.createHealthRecord(petId, recordData);
+      // Add to offline queue
+      await dataLayer.addToOfflineQueue({
+        type: 'health_record' as any, // Extended type
+        data: { ...recordData, petId },
+        syncStatus: 'pending',
+        action: 'create',
+      });
       
       // Optimistically update local state
-      const newRecord = { ...recordData, id, petId, createdAt: new Date().toISOString() };
+      const newRecord = { 
+        ...recordData, 
+        id: `temp_${Date.now()}`, 
+        petId, 
+        createdAt: new Date().toISOString() 
+      };
       setRecords(prev => [newRecord, ...prev]);
       
-      return id;
+      return newRecord.id;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create health record');
       throw err;
     }
   }, [dataLayer, petId]);
 
-  // Listen for health record events
-  useEffect(() => {
-    const handleRecordCreated = (record: any) => {
-      if (record.petId === petId) {
-        setRecords(prev => {
-          const exists = prev.some(r => r.id === record.id);
-          return exists ? prev : [record, ...prev];
-        });
-      }
-    };
-
-    dataLayer.on('healthRecordCreated', handleRecordCreated);
-
-    return () => {
-      dataLayer.off('healthRecordCreated', handleRecordCreated);
-    };
+  // Cache health records helper
+  const cacheRecords = useCallback(async (recordsData: any[]) => {
+    if (petId) {
+      await dataLayer.setCache(`health_records_${petId}`, recordsData);
+      setRecords(recordsData);
+    }
   }, [dataLayer, petId]);
 
   // Load records when petId changes
@@ -328,27 +337,34 @@ export const useHealthRecords = (dataLayer: OfflineDataLayer, petId: string) => 
     error,
     loadRecords,
     createRecord,
+    cacheRecords,
   };
 };
 
-// Hook for lost pet reports
+// Hook for lost pet reports using cache and offline queue
 export const useLostPetReports = (dataLayer: OfflineDataLayer) => {
   const [reports, setReports] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { networkStatus } = useNetworkStatus();
 
-  // Create lost pet report with immediate sync attempt
+  // Create lost pet report with immediate offline queue storage
   const createLostPetReport = useCallback(async (petId: string, reportData: any) => {
     setError(null);
     
     try {
-      const id = await dataLayer.createLostPetReport(petId, reportData);
+      // Add to offline queue with high priority
+      await dataLayer.addToOfflineQueue({
+        type: 'lost_pet_report' as any, // Extended type
+        data: { ...reportData, petId },
+        syncStatus: 'pending',
+        action: 'create',
+      });
       
       // Optimistically add to state
       const newReport = { 
         ...reportData, 
-        id, 
+        id: `temp_${Date.now()}`,
         petId, 
         createdAt: new Date().toISOString(),
         status: 'ACTIVE',
@@ -363,104 +379,40 @@ export const useLostPetReports = (dataLayer: OfflineDataLayer) => {
         console.log('Lost pet report created. Waiting for better connection to sync.');
       }
       
-      return id;
+      return newReport.id;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create lost pet report');
       throw err;
     }
   }, [dataLayer, networkStatus]);
 
-  // Listen for lost pet report events
-  useEffect(() => {
-    const handleReportCreated = (report: any) => {
-      setReports(prev => {
-        const exists = prev.some(r => r.id === report.id);
-        return exists ? prev : [report, ...prev];
-      });
-    };
-
-    dataLayer.on('lostPetReportCreated', handleReportCreated);
-
-    return () => {
-      dataLayer.off('lostPetReportCreated', handleReportCreated);
-    };
+  // Load reports from cache
+  const loadReports = useCallback(async () => {
+    setLoading(true);
+    try {
+      const cachedReports = await dataLayer.getCache<any[]>('lost_pet_reports');
+      setReports(cachedReports || []);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load reports');
+    } finally {
+      setLoading(false);
+    }
   }, [dataLayer]);
+
+  useEffect(() => {
+    loadReports();
+  }, [loadReports]);
 
   return {
     reports,
     loading,
     error,
     createLostPetReport,
+    loadReports,
   };
 };
 
-// Hook for image operations
-export const useImageData = (dataLayer: OfflineDataLayer) => {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  // Save image with offline support
-  const saveImage = useCallback(async (imageUri: string, metadata: any = {}) => {
-    setLoading(true);
-    setError(null);
-    
-    try {
-      const id = await dataLayer.saveImage(imageUri, metadata);
-      return id;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save image');
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  }, [dataLayer]);
-
-  // Get image from offline storage
-  const getImage = useCallback(async (id: string) => {
-    try {
-      return await dataLayer.getImage(id);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to get image');
-      throw err;
-    }
-  }, [dataLayer]);
-
-  return {
-    loading,
-    error,
-    saveImage,
-    getImage,
-  };
-};
-
-// Hook for batch operations
-export const useBatchOperations = (dataLayer: OfflineDataLayer) => {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const executeBatch = useCallback(async (operations: (() => Promise<any>)[]) => {
-    setLoading(true);
-    setError(null);
-    
-    try {
-      const results = await dataLayer.batch(operations);
-      return results;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Batch operation failed');
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  }, [dataLayer]);
-
-  return {
-    loading,
-    error,
-    executeBatch,
-  };
-};
-
-// Hook for data export/import
+// Hook for cache-based data management
 export const useDataManagement = (dataLayer: OfflineDataLayer) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -470,7 +422,7 @@ export const useDataManagement = (dataLayer: OfflineDataLayer) => {
     setError(null);
     
     try {
-      const data = await dataLayer.exportData();
+      const data = await dataLayer.exportOfflineData();
       return data;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Export failed');
@@ -480,9 +432,23 @@ export const useDataManagement = (dataLayer: OfflineDataLayer) => {
     }
   }, [dataLayer]);
 
+  const importData = useCallback(async (data: any) => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      await dataLayer.importOfflineData(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Import failed');
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, [dataLayer]);
+
   const clearCache = useCallback(async () => {
     try {
-      await dataLayer.clearCache();
+      await dataLayer.clearAllCache();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to clear cache');
       throw err;
@@ -491,9 +457,32 @@ export const useDataManagement = (dataLayer: OfflineDataLayer) => {
 
   const clearOfflineData = useCallback(async () => {
     try {
-      await dataLayer.clearOfflineData();
+      await dataLayer.clearOfflineQueue();
+      await dataLayer.clearAllCache();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to clear offline data');
+      throw err;
+    }
+  }, [dataLayer]);
+
+  const getStorageUsage = useCallback(async () => {
+    try {
+      return await dataLayer.getStorageUsage();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to get storage usage');
+      throw err;
+    }
+  }, [dataLayer]);
+
+  const cleanupStorage = useCallback(async (options?: {
+    clearExpiredCache?: boolean;
+    clearFailedQueueItems?: boolean;
+    maxQueueAge?: number;
+  }) => {
+    try {
+      await dataLayer.cleanupStorage(options);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to cleanup storage');
       throw err;
     }
   }, [dataLayer]);
@@ -502,7 +491,10 @@ export const useDataManagement = (dataLayer: OfflineDataLayer) => {
     loading,
     error,
     exportData,
+    importData,
     clearCache,
     clearOfflineData,
+    getStorageUsage,
+    cleanupStorage,
   };
 };

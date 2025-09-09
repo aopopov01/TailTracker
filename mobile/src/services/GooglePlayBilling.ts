@@ -1,4 +1,5 @@
 import { Platform } from 'react-native';
+import React from 'react';
 
 // Types for billing
 export interface Product {
@@ -106,57 +107,13 @@ class GooglePlayBillingService {
       const productIds = Object.values(PRODUCT_IDS);
       const subscriptionIds = Object.values(SUBSCRIPTION_IDS);
 
-      // Mock data - replace with actual billing API calls
-      const products: Product[] = [
-        {
-          productId: PRODUCT_IDS.PREMIUM_MONTHLY,
-          price: '5.99',
-          currency: 'EUR',
-          localizedPrice: '€5.99',
-          title: 'Premium Monthly',
-          description: 'Premium features for one month',
-          type: 'subs',
-        },
-        {
-          productId: PRODUCT_IDS.PREMIUM_YEARLY,
-          price: '50.00',
-          currency: 'EUR',
-          localizedPrice: '€50.00',
-          title: 'Premium Yearly',
-          description: 'Premium features for one year (Save 30%!)',
-          type: 'subs',
-        },
-        {
-          productId: PRODUCT_IDS.PRO_MONTHLY,
-          price: '8.99',
-          currency: 'EUR',
-          localizedPrice: '€8.99',
-          title: 'Pro Monthly',
-          description: 'Pro features for one month',
-          type: 'subs',
-        },
-        {
-          productId: PRODUCT_IDS.PRO_YEARLY,
-          price: '80.00',
-          currency: 'EUR',
-          localizedPrice: '€80.00',
-          title: 'Pro Yearly',
-          description: 'Pro features for one year (Save 26%!)',
-          type: 'subs',
-        },
-        {
-          productId: PRODUCT_IDS.EXTRA_PETS,
-          price: '1.99',
-          currency: 'USD',
-          localizedPrice: '$1.99',
-          title: 'Extra Pets Pack',
-          description: 'Track unlimited pets',
-          type: 'inapp',
-        },
-      ];
-
-      this.availableProducts = products;
-      return products;
+      // NOTE: Google Play Billing API integration pending
+      // const skuDetails = await RNIap.getSubscriptions(subscriptionIds);
+      // const productDetails = await RNIap.getProducts(productIds);
+      
+      // For now, return empty array until real billing is implemented
+      this.availableProducts = [];
+      return [];
     } catch (error) {
       console.error('Failed to get products:', error);
       throw error;

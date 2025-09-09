@@ -389,7 +389,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingTop: Platform.OS === 'ios' ? 60 : 40,
     paddingHorizontal: 20,
-    paddingBottom: 20,
+    paddingBottom: 25,
     backgroundColor: COLORS.lightCyan,
   },
   headerBackButton: {
@@ -425,7 +425,7 @@ const styles = StyleSheet.create({
   photoSection: {
     alignItems: 'center',
     marginBottom: 30,
-    marginTop: -40,
+    marginTop: 20,
   },
   petPhotoContainer: {
     width: 120,

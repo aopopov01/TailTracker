@@ -45,8 +45,8 @@ const RECORD_TYPES = [
 export default function AddMedicalRecordScreen() {
   const navigation = useNavigation();
   const route = useRoute();
-  const petId = route.params?.petId;
-  const recordId = route.params?.recordId;
+  const petId = (route.params as any)?.petId;
+  const recordId = (route.params as any)?.recordId;
   const isEditing = !!recordId;
 
   const [saving, setSaving] = useState(false);
@@ -84,7 +84,7 @@ export default function AddMedicalRecordScreen() {
 
         const { error: uploadError } = await supabase.storage
           .from('medical-attachments')
-          .upload(filePath, file);
+          .upload(filePath, file as any);
 
         if (uploadError) throw uploadError;
 
@@ -508,7 +508,7 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   selectedTypeOption: {
-    backgroundColor: colors.primaryLight,
+    backgroundColor: colors.primaryContainer,
     borderColor: colors.primary,
   },
   typeOptionText: {
@@ -566,7 +566,7 @@ const styles = StyleSheet.create({
   addAttachmentButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.primaryLight,
+    backgroundColor: colors.primaryContainer,
     borderRadius: 16,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
@@ -604,7 +604,7 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: colors.errorLight,
+    backgroundColor: colors.errorContainer,
     alignItems: 'center',
     justifyContent: 'center',
   },

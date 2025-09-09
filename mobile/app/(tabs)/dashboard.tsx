@@ -30,6 +30,9 @@ import Svg, { Path, Circle, Ellipse, Polygon, Rect, LinearGradient as SvgLinearG
 
 import { databaseService, StoredPetProfile } from '../../services/database';
 import { useAuth } from '../../src/contexts/AuthContext';
+import { useSubscriptionGate, usePetCreationGate } from '../../src/hooks/useSubscriptionGate';
+import SubscriptionUpgradeModal from '../../src/components/SubscriptionUpgradeModal';
+import { useSubscription } from '../../src/contexts/SubscriptionContext';
 import { log } from '../../src/utils/Logger';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -346,10 +349,16 @@ const SwipeablePetCard: React.FC<SwipeablePetCardProps> = ({
 function DashboardScreen() {
   const router = useRouter();
   const { user } = useAuth();
+  const { tier } = useSubscription();
   const [pets, setPets] = useState<StoredPetProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [newlyCreatedPetId, setNewlyCreatedPetId] = useState<number | null>(null);
+
+  // Subscription gates for premium features
+  const lostPetGate = useSubscriptionGate('lostPetReporting', 'Lost Pet Community Alerts');
+  const petCreationGate = usePetCreationGate();
+  const familySharingGate = useSubscriptionGate('enhancedFamilyCoordination', 'Family Account Sharing');
 
   // Calculate real statistics
   const stats = {
@@ -404,9 +413,99 @@ function DashboardScreen() {
     setRefreshing(false);
   };
 
-  const handleAddPet = () => {
+  const handleAddPet = async () => {
+    // Check if user can add more pets
+    const canAdd = await petCreationGate.canAddPet(pets.length);
+    if (!canAdd) {
+      // Show tier-specific upgrade message
+      const upgradeMessage = petCreationGate.getUpgradeMessage(pets.length);
+      Alert.alert(
+        'Upgrade Required',
+        upgradeMessage,
+        [
+          { text: 'Maybe Later', style: 'cancel' },
+          { 
+            text: 'View Plans', 
+            onPress: () => petCreationGate.showUpgradeModal() 
+          }
+        ]
+      );
+      return;
+    }
     router.push('/onboarding/welcome' as any);
   };
+
+  const handleLostPetAlert = () => {
+    // Check subscription access
+    if (!lostPetGate.hasAccess) {
+      lostPetGate.showUpgradeModal();
+      return;
+    }
+    // Navigate to Lost Pet Alert feature
+    Alert.alert(
+      'Lost Pet Alert',
+      'Report a lost pet to notify the community in your area.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Report Lost Pet', 
+          onPress: () => {
+            // TODO: Navigate to lost pet reporting screen
+            Alert.alert('Coming Soon', 'Lost pet reporting feature will be available soon!');
+          }
+        }
+      ]
+    );
+  };
+
+  const handleSchedule = () => {
+    router.push('/features/schedule' as any);
+  };
+
+  const handleHealthLog = () => {
+    router.push('/features/health-log' as any);
+  };
+
+
+  // Premium feature handlers
+
+  const handleVaccinationTracking = () => {
+    Alert.alert(
+      'Vaccination Tracking',
+      'Manage vaccination records and get automatic reminders for upcoming shots.',
+      [{ text: 'OK' }]
+    );
+  };
+
+  const handleDigitalPassport = () => {
+    if (pets.length === 0) {
+      Alert.alert(
+        'Digital Pet Passport',
+        'Add a pet first to view their digital passport!',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Add Pet', onPress: handleAddPet }
+        ]
+      );
+      return;
+    }
+    
+    // Navigate to first pet's profile as an example
+    router.push(`/pet-detail/${pets[0].id}` as any);
+  };
+
+  const handleFamilySharing = () => {
+    if (!familySharingGate.hasAccess) {
+      familySharingGate.showUpgradeModal();
+      return;
+    }
+    Alert.alert(
+      'Family Sharing',
+      'Share pet care responsibilities with family members and get collaborative updates.',
+      [{ text: 'OK' }]
+    );
+  };
+
 
   const isNewlyCreated = (pet: StoredPetProfile) => {
     return pet.id === newlyCreatedPetId;
@@ -623,7 +722,7 @@ function DashboardScreen() {
               </LinearGradient>
             </TouchableOpacity>
             
-            <TouchableOpacity style={styles.quickActionCard} activeOpacity={0.8}>
+            <TouchableOpacity style={styles.quickActionCard} activeOpacity={0.8} onPress={handleSchedule}>
               <LinearGradient
                 colors={[COLORS.success, '#0D9488']}
                 style={styles.quickActionGradient}
@@ -635,7 +734,7 @@ function DashboardScreen() {
               </LinearGradient>
             </TouchableOpacity>
             
-            <TouchableOpacity style={styles.quickActionCard} activeOpacity={0.8}>
+            <TouchableOpacity style={styles.quickActionCard} activeOpacity={0.8} onPress={handleHealthLog}>
               <LinearGradient
                 colors={[COLORS.warning, '#D97706']}
                 style={styles.quickActionGradient}
@@ -647,20 +746,115 @@ function DashboardScreen() {
               </LinearGradient>
             </TouchableOpacity>
             
-            <TouchableOpacity style={styles.quickActionCard} activeOpacity={0.8}>
+            <TouchableOpacity style={styles.quickActionCard} activeOpacity={0.8} onPress={handleLostPetAlert}>
               <LinearGradient
-                colors={[COLORS.deepNavy, '#0F172A']}
+                colors={['#EF4444', '#DC2626']}
                 style={styles.quickActionGradient}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
               >
-                <Ionicons name="location" size={28} color={COLORS.white} />
-                <Text style={styles.quickActionText}>Find Vet</Text>
+                <View style={styles.premiumFeatureIndicator}>
+                  <Ionicons name="alert-circle" size={28} color={COLORS.white} />
+                  {!lostPetGate.hasAccess && (
+                    <View style={styles.premiumBadge}>
+                      <Text style={styles.premiumBadgeText}>PRO</Text>
+                    </View>
+                  )}
+                </View>
+                <Text style={styles.quickActionText}>Lost Pet Alert</Text>
               </LinearGradient>
             </TouchableOpacity>
           </View>
         </Animated.View>
+
+        {/* Premium Features Section */}
+        <Animated.View
+          entering={SlideInDown.delay(1300).springify()}
+          style={styles.premiumFeaturesSection}
+        >
+          <Text style={styles.sectionTitle}>Premium Features</Text>
+          
+          <View style={styles.premiumGrid}>
+            <TouchableOpacity style={styles.premiumFeatureCard} activeOpacity={0.8} onPress={handleVaccinationTracking}>
+              <View style={styles.premiumCardContent}>
+                <View style={styles.premiumIconContainer}>
+                  <Ionicons name="medical-outline" size={24} color={COLORS.success} />
+                  <View style={styles.premiumBadge}>
+                    <Text style={styles.premiumBadgeText}>FREE</Text>
+                  </View>
+                </View>
+                <Text style={styles.premiumFeatureTitle}>Vaccination Records</Text>
+                <Text style={styles.premiumFeatureDesc}>Track vaccines & medical notes</Text>
+              </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.premiumFeatureCard} activeOpacity={0.8} onPress={handleDigitalPassport}>
+              <View style={styles.premiumCardContent}>
+                <View style={styles.premiumIconContainer}>
+                  <Ionicons name="card" size={24} color={COLORS.deepNavy} />
+                  <View style={styles.premiumBadge}>
+                    <Text style={styles.premiumBadgeText}>FREE</Text>
+                  </View>
+                </View>
+                <Text style={styles.premiumFeatureTitle}>Pet Profiles</Text>
+                <Text style={styles.premiumFeatureDesc}>Complete pet profiles with photos</Text>
+              </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.premiumFeatureCard} activeOpacity={0.8} onPress={handleFamilySharing}>
+              <View style={styles.premiumCardContent}>
+                <View style={styles.premiumIconContainer}>
+                  <Ionicons name="people" size={24} color={COLORS.warning} />
+                  {tier === 'free' && (
+                    <View style={styles.premiumBadge}>
+                      <Text style={styles.premiumBadgeText}>PREMIUM</Text>
+                    </View>
+                  )}
+                </View>
+                <Text style={styles.premiumFeatureTitle}>Family Sharing</Text>
+                <Text style={styles.premiumFeatureDesc}>Share pet care with family</Text>
+              </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.premiumFeatureCard} activeOpacity={0.8} onPress={handleLostPetAlert}>
+              <View style={styles.premiumCardContent}>
+                <View style={styles.premiumIconContainer}>
+                  <Ionicons name="alert-circle" size={24} color="#EF4444" />
+                  {!lostPetGate.hasAccess && (
+                    <View style={styles.premiumBadge}>
+                      <Text style={styles.premiumBadgeText}>PRO</Text>
+                    </View>
+                  )}
+                </View>
+                <Text style={styles.premiumFeatureTitle}>Lost Pet Reporting</Text>
+                <Text style={styles.premiumFeatureDesc}>Report lost pets to community</Text>
+              </View>
+            </TouchableOpacity>
+          </View>
+        </Animated.View>
       </ScrollView>
+
+      {/* Subscription Upgrade Modals */}
+      <SubscriptionUpgradeModal
+        visible={lostPetGate.isUpgradeModalVisible}
+        onClose={lostPetGate.hideUpgradeModal}
+        currentTier={tier}
+        restrictedFeature={lostPetGate.restrictedFeatureName}
+      />
+
+      <SubscriptionUpgradeModal
+        visible={petCreationGate.isUpgradeModalVisible}
+        onClose={petCreationGate.hideUpgradeModal}
+        currentTier={tier}
+        restrictedFeature={petCreationGate.restrictedFeatureName}
+      />
+
+      <SubscriptionUpgradeModal
+        visible={familySharingGate.isUpgradeModalVisible}
+        onClose={familySharingGate.hideUpgradeModal}
+        currentTier={tier}
+        restrictedFeature={familySharingGate.restrictedFeatureName}
+      />
     </View>
   );
 }
@@ -989,6 +1183,70 @@ const styles = StyleSheet.create({
   },
   deleteBackgroundFull: {
     height: '100%',
+  },
+  premiumFeatureIndicator: {
+    position: 'relative',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  premiumBadge: {
+    position: 'absolute',
+    top: -8,
+    right: -8,
+    backgroundColor: COLORS.warning,
+    paddingHorizontal: 4,
+    paddingVertical: 2,
+    borderRadius: 6,
+    minWidth: 20,
+    alignItems: 'center',
+  },
+  premiumBadgeText: {
+    fontSize: 8,
+    fontWeight: 'bold',
+    color: COLORS.white,
+  },
+  // Premium Features Section Styles
+  premiumFeaturesSection: {
+    marginTop: 24,
+    paddingHorizontal: 4,
+  },
+  premiumGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    marginTop: 12,
+  },
+  premiumFeatureCard: {
+    width: (SCREEN_WIDTH - 56) / 2, // Account for padding and gap
+    backgroundColor: COLORS.white,
+    borderRadius: 16,
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  premiumCardContent: {
+    padding: 16,
+    alignItems: 'center',
+  },
+  premiumIconContainer: {
+    position: 'relative',
+    marginBottom: 12,
+  },
+  premiumFeatureTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.deepNavy,
+    textAlign: 'center',
+    marginBottom: 4,
+  },
+  premiumFeatureDesc: {
+    fontSize: 12,
+    color: COLORS.mediumGray,
+    textAlign: 'center',
+    lineHeight: 16,
   },
 });
 

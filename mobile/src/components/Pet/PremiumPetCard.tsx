@@ -372,7 +372,7 @@ export const PremiumPetCard: React.FC<PremiumPetCardProps> = ({
       <Text style={[styles.petDetails, { color: theme.colors.onSurfaceVariant }]}>
         {pet.species}
         {pet.breed && ` • ${pet.breed}`}
-        {pet.date_of_birth && ` • ${getAge(pet.date_of_birth)}`}
+        {pet.date_of_birth && ` • ${getAge(pet.date_of_birth.toISOString())}`}
       </Text>
       
       <View style={styles.indicators}>

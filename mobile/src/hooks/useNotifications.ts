@@ -35,11 +35,7 @@ export const useNotificationService = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Initialize the notification service
-  useEffect(() => {
-    initializeService();
-  }, []);
-
+  // Define functions first to avoid hoisting issues
   const initializeService = async () => {
     try {
       setIsLoading(true);
@@ -53,7 +49,8 @@ export const useNotificationService = () => {
         
         // Load current state
         setPushToken(unifiedNotificationService.getPushToken());
-        setPermissionState(unifiedNotificationService.getPermissionState());
+        const currentPermissionState = unifiedNotificationService.getPermissionState();
+        setPermissionState(currentPermissionState);
         setPreferences(unifiedNotificationService.getUserPreferences());
         setAnalytics(unifiedNotificationService.getAnalytics());
         
@@ -74,7 +71,7 @@ export const useNotificationService = () => {
       }
     } catch (err) {
       console.error('Error initializing notification service:', err);
-      setError(err.message || 'Unknown error occurred');
+      setError(err instanceof Error ? err.message : 'Unknown error occurred');
     } finally {
       setIsLoading(false);
     }
@@ -108,6 +105,12 @@ export const useNotificationService = () => {
     if (!isInitialized) return;
     return await unifiedNotificationService.testNotification();
   }, [isInitialized]);
+
+  // Effects placed after function declarations to avoid hoisting issues
+  // Initialize the notification service
+  useEffect(() => {
+    initializeService();
+  }, []);
 
   return {
     // State

@@ -51,16 +51,7 @@ export const useLostPetAlerts = (radiusKm: number = 25): LostPetAlertsHook => {
 
   const { hasPremiumAccess } = usePremiumAccess();
 
-  // Check location permission on mount
-  useEffect(() => {
-    checkLocationPermission();
-  }, [checkLocationPermission]);
-
-  // Load nearby alerts on mount and when radius changes
-  useEffect(() => {
-    loadNearbyAlerts(radiusKm);
-  }, [radiusKm, loadNearbyAlerts]);
-
+  // Define functions first to avoid hoisting issues
   const checkLocationPermission = useCallback(async () => {
     try {
       const hasPermission = await premiumLostPetService.checkLocationPermission();
@@ -103,6 +94,25 @@ export const useLostPetAlerts = (radiusKm: number = 25): LostPetAlertsHook => {
       setIsLoading(false);
     }
   }, [radiusKm]);
+
+  const showPremiumUpgrade = useCallback(() => {
+    Alert.alert(
+      'Premium Feature - Lost Pet Alerts',
+      'Report lost pets with location pins, contact info, and photos. Premium users can post alerts and the entire community receives notifications to help find your pet.',
+      [
+        {
+          text: 'Maybe Later',
+          style: 'cancel',
+        },
+        {
+          text: 'Upgrade to Premium',
+          onPress: () => {
+            router.push('/(tabs)/settings');
+          },
+        },
+      ]
+    );
+  }, []);
 
   const refreshAlerts = useCallback(async () => {
     try {
@@ -159,7 +169,7 @@ export const useLostPetAlerts = (radiusKm: number = 25): LostPetAlertsHook => {
         // Remove the alert from local state
         setNearbyAlerts(prev => prev.filter(alert => alert.id !== alertId));
         
-        if (!result.queued) {
+        if (!(result as any).queued) {
           Alert.alert(
             'Thank You!',
             'The pet owner has been notified that their pet was found. Thank you for helping reunite them!',
@@ -178,24 +188,16 @@ export const useLostPetAlerts = (radiusKm: number = 25): LostPetAlertsHook => {
     }
   }, []);
 
-  const showPremiumUpgrade = useCallback(() => {
-    Alert.alert(
-      'Premium Feature - Lost Pet Alerts',
-      'Report lost pets with location pins, contact info, and photos. Premium users can post alerts and the entire community receives notifications to help find your pet.',
-      [
-        {
-          text: 'Maybe Later',
-          style: 'cancel',
-        },
-        {
-          text: 'Upgrade to Premium',
-          onPress: () => {
-            router.push('/subscription?feature=lost_pet_alerts');
-          },
-        },
-      ]
-    );
-  }, []);
+  // Effects placed after function declarations to avoid hoisting issues
+  // Check location permission on mount
+  useEffect(() => {
+    checkLocationPermission();
+  }, [checkLocationPermission]);
+
+  // Load nearby alerts on mount and when radius changes
+  useEffect(() => {
+    loadNearbyAlerts(radiusKm);
+  }, [radiusKm, loadNearbyAlerts]);
 
   return {
     // State

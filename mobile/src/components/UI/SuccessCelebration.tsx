@@ -90,33 +90,66 @@ export const SuccessCelebration: React.FC<CelebrationProps> = ({
   // ANIMATION SEQUENCE
   // ====================================
   
+  const hideCelebration = useCallback(() => {
+    // Clear timeout
+    if (hideTimeoutRef.current) {
+      clearTimeout(hideTimeoutRef.current);
+    }
+    
+    // Exit animation
+    overlayOpacity.value = withTiming(0, premiumAnimations.timings.fast);
+    containerScale.value = withTiming(0.8, premiumAnimations.timings.fast);
+    
+    // Call completion callbacks
+    setTimeout(() => {
+      config.onComplete?.();
+      onHide?.();
+    }, premiumAnimations.timings.fast.duration);
+  }, [config, containerScale, overlayOpacity, onHide]);
+
   const startCelebration = useCallback(() => {
     // Haptic feedback
     hapticUtils.success();
     
     // Entry animation sequence
-    overlayOpacity.value = withTiming(1, { duration: premiumAnimations.timings.fast });
+    overlayOpacity.value = withTiming(1, premiumAnimations.timings.fast);
     
     containerScale.value = withSequence(
       withTiming(0, { duration: 0 }),
-      withSpring(1.1, premiumAnimations.springs.playful),
-      withSpring(1, premiumAnimations.springs.gentle)
+      withSpring(1.1, { 
+        damping: 15,
+        stiffness: 150,
+        mass: 1 
+      }),
+      withSpring(1, { 
+        damping: 20,
+        stiffness: 120,
+        mass: 1 
+      })
     );
     
     // Icon animation
     iconScale.value = withSequence(
-      withDelay(200, withSpring(1.3, premiumAnimations.springs.playful)),
-      withSpring(1, premiumAnimations.springs.gentle)
+      withDelay(200, withSpring(1.3, { 
+        damping: 10,
+        stiffness: 300,
+        mass: 1 
+      })),
+      withSpring(1, { 
+        damping: 20,
+        stiffness: 120,
+        mass: 1 
+      })
     );
     
     iconRotation.value = withSequence(
       withTiming(0, { duration: 0 }),
-      withDelay(300, withTiming(360, { duration: premiumAnimations.timings.celebration }))
+      withDelay(300, withTiming(360, premiumAnimations.timings.celebration))
     );
     
     // Text animations
-    titleOpacity.value = withDelay(400, withTiming(1, { duration: premiumAnimations.timings.standard }));
-    messageOpacity.value = withDelay(600, withTiming(1, { duration: premiumAnimations.timings.standard }));
+    titleOpacity.value = withDelay(400, withTiming(1, premiumAnimations.timings.standard));
+    messageOpacity.value = withDelay(600, withTiming(1, premiumAnimations.timings.standard));
     
     // Pulse effect
     pulseScale.value = withDelay(
@@ -144,23 +177,6 @@ export const SuccessCelebration: React.FC<CelebrationProps> = ({
       }, hideDuration);
     }
   }, [config.autoHide, config.duration, containerScale, hideCelebration, iconRotation, iconScale, messageOpacity, overlayOpacity, pulseScale, titleOpacity]);
-  
-  const hideCelebration = useCallback(() => {
-    // Clear timeout
-    if (hideTimeoutRef.current) {
-      clearTimeout(hideTimeoutRef.current);
-    }
-    
-    // Exit animation
-    overlayOpacity.value = withTiming(0, { duration: premiumAnimations.timings.fast });
-    containerScale.value = withTiming(0.8, { duration: premiumAnimations.timings.fast });
-    
-    // Call completion callbacks
-    setTimeout(() => {
-      config.onComplete?.();
-      onHide?.();
-    }, premiumAnimations.timings.fast);
-  }, [config, containerScale, overlayOpacity, onHide]);
   
   // ====================================
   // EFFECTS
@@ -309,7 +325,11 @@ const ConfettiAnimation: React.FC<ConfettiProps> = ({
         
         // Animate each piece
         piece.opacity.value = withDelay(delay, withTiming(1, { duration: 200 }));
-        piece.scale.value = withDelay(delay, withSpring(1, premiumAnimations.springs.playful));
+        piece.scale.value = withDelay(delay, withSpring(1, { 
+          damping: 10,
+          stiffness: 300,
+          mass: 1 
+        }));
         
         piece.translateX.value = withDelay(
           delay,
@@ -392,17 +412,25 @@ export const SuccessToast: React.FC<{
     if (isVisible) {
       hapticUtils.success();
       
-      opacity.value = withTiming(1, { duration: premiumAnimations.timings.fast });
-      scale.value = withSpring(1, premiumAnimations.springs.gentle);
+      opacity.value = withTiming(1, premiumAnimations.timings.fast);
+      scale.value = withSpring(1, { 
+        damping: 20,
+        stiffness: 120,
+        mass: 1 
+      });
       
       const yPosition = position === 'top' ? 0 : position === 'bottom' ? 0 : 0;
-      translateY.value = withSpring(yPosition, premiumAnimations.springs.smooth);
+      translateY.value = withSpring(yPosition, { 
+        damping: 10,
+        stiffness: 100,
+        mass: 1 
+      });
       
       // Auto-hide after 2 seconds
       setTimeout(() => {
-        opacity.value = withTiming(0, { duration: premiumAnimations.timings.fast });
-        translateY.value = withTiming(-100, { duration: premiumAnimations.timings.fast });
-        setTimeout(onHide, premiumAnimations.timings.fast);
+        opacity.value = withTiming(0, premiumAnimations.timings.fast);
+        translateY.value = withTiming(-100, premiumAnimations.timings.fast);
+        setTimeout(() => onHide?.(), premiumAnimations.timings.fast.duration);
       }, 2000);
     }
   }, [isVisible, position, onHide, opacity, scale, translateY]);

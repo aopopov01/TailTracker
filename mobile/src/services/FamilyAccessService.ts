@@ -1,5 +1,5 @@
 // TailTracker Family Access Service with QR Code Invitation System
-import { randomBytes } from 'expo-crypto';
+import { getRandomBytes } from 'expo-crypto';
 import * as Crypto from 'expo-crypto';
 import { supabase } from '@/lib/supabase';
 
@@ -304,7 +304,7 @@ class FamilyAccessService {
         .eq('id', familyMemberId)
         .single();
 
-      if (!member || member.families.owner_id !== user.user.id) {
+      if (!member || (member.families as any)[0]?.owner_id !== user.user.id) {
         throw new Error('Only family owners can update access levels');
       }
 
@@ -337,7 +337,7 @@ class FamilyAccessService {
         .eq('id', familyMemberId)
         .single();
 
-      if (!member || member.families.owner_id !== user.user.id) {
+      if (!member || (member.families as any)[0]?.owner_id !== user.user.id) {
         throw new Error('Only family owners can remove members');
       }
 
@@ -409,7 +409,7 @@ class FamilyAccessService {
       .eq('family_id', familyId);
 
     const count = memberCount?.length || 0;
-    const subscriptionStatus = family.users.subscription_status;
+    const subscriptionStatus = (family.users as any).subscription_status;
 
     if (subscriptionStatus === 'free' && count >= 1) {
       throw new Error('Free tier allows main user + 1 additional family member (2 total). Upgrade to Premium for main user + 2 additional members (3 total) or Pro for unlimited members.');

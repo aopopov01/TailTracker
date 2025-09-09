@@ -45,6 +45,36 @@ export class ErrorRecoveryService {
   async clearErrorState(): Promise<void> {
     console.log('ErrorRecoveryService: Clearing error state (stub)');
   }
+
+  // Execute with circuit breaker (stub)
+  async executeWithCircuitBreaker<T>(operation: () => Promise<T>): Promise<T> {
+    return await operation();
+  }
+
+  // Deduplicate request (stub)
+  async deduplicateRequest<T>(key: string, operation: () => Promise<T>): Promise<T> {
+    return await operation();
+  }
+
+  // Execute with retry (stub)
+  async executeWithRetry<T>(operation: () => Promise<T>, maxRetries: number = 3): Promise<T> {
+    let lastError: Error;
+    for (let i = 0; i < maxRetries; i++) {
+      try {
+        return await operation();
+      } catch (error) {
+        lastError = error as Error;
+        if (i === maxRetries - 1) throw lastError;
+        await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, i)));
+      }
+    }
+    throw lastError!;
+  }
+
+  // Get network status (stub)
+  getNetworkStatus(): { isConnected: boolean } {
+    return { isConnected: true };
+  }
 }
 
 export default ErrorRecoveryService;

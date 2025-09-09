@@ -1,11 +1,13 @@
 // Predictive Loading Service - Stub implementation for simplified feature set
 
 export interface LoadingPattern {
-  userId: string;
-  resourceType: string;
-  accessFrequency: number;
-  lastAccessed: Date;
-  predictedNextAccess: Date;
+  userId?: string;
+  resourceType?: string;
+  dataType?: string;
+  probability?: number;
+  accessFrequency?: number;
+  lastAccessed?: Date;
+  predictedNextAccess?: Date;
 }
 
 export interface PreloadConfig {
@@ -43,6 +45,41 @@ export class PredictiveLoadingService {
   // Update prediction model (stub)
   updatePredictionModel(): void {
     console.log('PredictiveLoadingService: Updating prediction model (stub)');
+  }
+
+  // Get current predictions (stub) - Make userId optional for backwards compatibility
+  getCurrentPredictions(userId?: string): LoadingPattern[] {
+    console.log('PredictiveLoadingService: Getting current predictions (stub)', { userId });
+    return userId ? this.getPredictedResources(userId) : [
+      { dataType: 'pets', probability: 0.8 },
+      { dataType: 'health_records', probability: 0.6 }
+    ];
+  }
+
+  // Get metrics (stub)
+  getMetrics(): { 
+    accuracy: number; 
+    averagePredictionAccuracy: number;
+    totalPredictions: number; 
+    successfulPreloads: number;
+  } {
+    console.log('PredictiveLoadingService: Getting metrics (stub)');
+    return {
+      accuracy: 0.85,
+      averagePredictionAccuracy: 0.85,
+      totalPredictions: 100,
+      successfulPreloads: 85
+    };
+  }
+
+  // Update context (stub)
+  updateContext(context: Record<string, any>): void {
+    console.log('PredictiveLoadingService: Updating context (stub)', { context });
+  }
+
+  // Record user action (stub) - Support optional priority parameter
+  recordUserAction(action: string, metadata: Record<string, any>, priority?: number): void {
+    console.log('PredictiveLoadingService: Recording user action (stub)', { action, metadata, priority });
   }
 }
 

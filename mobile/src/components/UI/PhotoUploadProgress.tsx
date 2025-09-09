@@ -103,6 +103,66 @@ export const PhotoUploadProgress: React.FC<PhotoUploadProps> = ({
   const [imageLoaded, setImageLoaded] = useState(false);
   
   // ====================================
+  // STATE ANIMATION HANDLERS
+  // ====================================
+  
+  const handleSelectingState = useCallback(() => {
+    containerScale.value = withSequence(
+      withTiming(0.95, premiumAnimations.timings.quick),
+      withSpring(1)
+    );
+    
+    if (hapticFeedback) {
+      runOnJS(hapticUtils.feedback)('light');
+    }
+  }, [hapticFeedback, containerScale]);
+  
+  const handleUploadingState = useCallback(() => {
+    overlayOpacity.value = withTiming(0.8, premiumAnimations.timings.standard);
+    progressOpacity.value = withTiming(1, premiumAnimations.timings.standard);
+    
+    if (hapticFeedback) {
+      runOnJS(hapticUtils.feedback)('medium');
+    }
+  }, [hapticFeedback, overlayOpacity, progressOpacity]);
+  
+  const handleSuccessState = useCallback(() => {
+    overlayOpacity.value = withTiming(0, premiumAnimations.timings.standard);
+    progressOpacity.value = withTiming(0, premiumAnimations.timings.fast);
+    
+    const successAnimation = premiumAnimations.success.checkmark();
+    successScale.value = withTiming(successAnimation.scale, premiumAnimations.timings.standard);
+    
+    if (hapticFeedback) {
+      runOnJS(hapticUtils.success)();
+    }
+    
+    // Hide success indicator after animation
+    setTimeout(() => {
+      successScale.value = withTiming(0, premiumAnimations.timings.standard);
+    }, 2000);
+  }, [hapticFeedback, overlayOpacity, progressOpacity, successScale]);
+  
+  const handleErrorState = useCallback(() => {
+    overlayOpacity.value = withTiming(0, premiumAnimations.timings.fast);
+    progressOpacity.value = withTiming(0, premiumAnimations.timings.fast);
+    
+    const errorAnimation = premiumAnimations.forms.error();
+    errorShake.value = withSequence(...errorAnimation.translateX.map((x: number) => withTiming(x, { duration: 50 })));
+    
+    if (hapticFeedback) {
+      runOnJS(hapticUtils.error)();
+    }
+  }, [hapticFeedback, errorShake, overlayOpacity, progressOpacity]);
+  
+  const handleIdleState = useCallback(() => {
+    overlayOpacity.value = withTiming(0, premiumAnimations.timings.standard);
+    progressOpacity.value = withTiming(0, premiumAnimations.timings.fast);
+    successScale.value = withTiming(0, premiumAnimations.timings.fast);
+    errorShake.value = withTiming(0, premiumAnimations.timings.fast);
+  }, [errorShake, overlayOpacity, progressOpacity, successScale]);
+  
+  // ====================================
   // ANIMATION EFFECTS
   // ====================================
   
@@ -131,8 +191,7 @@ export const PhotoUploadProgress: React.FC<PhotoUploadProps> = ({
   useEffect(() => {
     if (status === 'uploading' && showProgress) {
       progressWidth.value = withSpring(
-        (progress.percentage / 100) * (maxWidth - 32),
-        premiumAnimations.springs.smooth
+        (progress.percentage / 100) * (maxWidth - 32)
       );
     }
   }, [progress.percentage, status, showProgress, maxWidth, progressWidth]);
@@ -140,73 +199,13 @@ export const PhotoUploadProgress: React.FC<PhotoUploadProps> = ({
   // Handle photo changes
   useEffect(() => {
     if (photo?.uri) {
-      placeholderOpacity.value = withTiming(0, { duration: premiumAnimations.timings.fast });
+      placeholderOpacity.value = withTiming(0, premiumAnimations.timings.fast);
       setImageLoaded(false);
     } else {
-      placeholderOpacity.value = withTiming(1, { duration: premiumAnimations.timings.fast });
-      imageOpacity.value = withTiming(0, { duration: premiumAnimations.timings.fast });
+      placeholderOpacity.value = withTiming(1, premiumAnimations.timings.fast);
+      imageOpacity.value = withTiming(0, premiumAnimations.timings.fast);
     }
   }, [photo?.uri, imageOpacity, placeholderOpacity]);
-  
-  // ====================================
-  // STATE ANIMATION HANDLERS
-  // ====================================
-  
-  const handleSelectingState = useCallback(() => {
-    containerScale.value = withSequence(
-      withTiming(0.95, { duration: premiumAnimations.timings.quick }),
-      withSpring(1, premiumAnimations.springs.gentle)
-    );
-    
-    if (hapticFeedback) {
-      runOnJS(hapticUtils.feedback)('light');
-    }
-  }, [hapticFeedback, containerScale]);
-  
-  const handleUploadingState = useCallback(() => {
-    overlayOpacity.value = withTiming(0.8, { duration: premiumAnimations.timings.standard });
-    progressOpacity.value = withTiming(1, { duration: premiumAnimations.timings.standard });
-    
-    if (hapticFeedback) {
-      runOnJS(hapticUtils.feedback)('medium');
-    }
-  }, [hapticFeedback, overlayOpacity, progressOpacity]);
-  
-  const handleSuccessState = useCallback(() => {
-    overlayOpacity.value = withTiming(0, { duration: premiumAnimations.timings.standard });
-    progressOpacity.value = withTiming(0, { duration: premiumAnimations.timings.fast });
-    
-    const successAnimation = premiumAnimations.success.checkmark();
-    successScale.value = successAnimation.scale;
-    
-    if (hapticFeedback) {
-      runOnJS(hapticUtils.success)();
-    }
-    
-    // Hide success indicator after animation
-    setTimeout(() => {
-      successScale.value = withTiming(0, { duration: premiumAnimations.timings.standard });
-    }, 2000);
-  }, [hapticFeedback, overlayOpacity, progressOpacity, successScale]);
-  
-  const handleErrorState = useCallback(() => {
-    overlayOpacity.value = withTiming(0, { duration: premiumAnimations.timings.fast });
-    progressOpacity.value = withTiming(0, { duration: premiumAnimations.timings.fast });
-    
-    const errorAnimation = premiumAnimations.forms.error();
-    errorShake.value = withSequence(...errorAnimation.translateX.map((x: number) => withTiming(x, { duration: 50 })));
-    
-    if (hapticFeedback) {
-      runOnJS(hapticUtils.error)();
-    }
-  }, [hapticFeedback, errorShake, overlayOpacity, progressOpacity]);
-  
-  const handleIdleState = useCallback(() => {
-    overlayOpacity.value = withTiming(0, { duration: premiumAnimations.timings.standard });
-    progressOpacity.value = withTiming(0, { duration: premiumAnimations.timings.fast });
-    successScale.value = withTiming(0, { duration: premiumAnimations.timings.fast });
-    errorShake.value = withTiming(0, { duration: premiumAnimations.timings.fast });
-  }, [errorShake, overlayOpacity, progressOpacity, successScale]);
   
   // ====================================
   // EVENT HANDLERS
@@ -222,7 +221,7 @@ export const PhotoUploadProgress: React.FC<PhotoUploadProps> = ({
   
   const handleImageLoad = useCallback(() => {
     setImageLoaded(true);
-    imageOpacity.value = withSpring(1, premiumAnimations.springs.gentle);
+    imageOpacity.value = withSpring(1);
   }, [imageOpacity]);
   
   // ====================================

@@ -11,7 +11,7 @@ interface OptimizedImageProps {
   width?: number;
   height?: number;
   quality?: number;
-  format?: 'webp' | 'jpg' | 'png' | 'avif';
+  format?: 'webp' | 'jpeg' | 'png';
   priority?: 'high' | 'normal' | 'low';
   lazy?: boolean;
   blur?: number;
@@ -29,7 +29,7 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
   width,
   height,
   quality = 0.85,
-  format = 'webp',
+  format = 'jpeg',
   priority = 'normal',
   lazy = false,
   blur,
@@ -57,14 +57,11 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
 
   // Optimization options
   const optimizationOptions = useMemo(() => ({
-    width,
-    height,
+    maxWidth: width,
+    maxHeight: height,
     quality,
-    format,
-    priority,
-    blur,
-    placeholder
-  }), [width, height, quality, format, priority, blur, placeholder]);
+    format
+  }), [width, height, quality, format]);
 
   // Handle image loading
   const loadOptimizedImage = useCallback(async () => {
@@ -74,12 +71,13 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
       setIsLoading(true);
       setHasError(false);
 
-      const optimized = await ImageOptimizationService.optimizeImage(
+      const imageService = ImageOptimizationService.getInstance();
+      const optimized = await imageService.optimizeImage(
         sourceUri,
         optimizationOptions
       );
 
-      setOptimizedUri(optimized);
+      setOptimizedUri(optimized.uri);
       setIsLoading(false);
       onLoad?.();
 
@@ -113,15 +111,15 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
   const containerStyle = useMemo(() => [
     styles.container,
     style,
-    width && { width },
-    height && { height }
-  ], [style, width, height]);
+    width ? { width } : undefined,
+    height ? { height } : undefined
+  ].filter(Boolean), [style, width, height]);
 
   const imageStyle = useMemo(() => [
     styles.image,
-    width && { width },
-    height && { height }
-  ], [width, height]);  // Render placeholder
+    width ? { width } : undefined,
+    height ? { height } : undefined
+  ].filter(Boolean), [width, height]);  // Render placeholder
   if (isLoading || !optimizedUri) {
     return (
       <View style={containerStyle} testID={`${testID}-loading`}>
@@ -160,12 +158,10 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
         accessible={accessible}
         accessibilityLabel={accessibilityLabel}
         onLoad={() => {
-          performanceMonitor.recordMetric({
-            name: 'image_render_complete',
-            value: Date.now(),
-            timestamp: Date.now(),
-            category: 'image',
-            metadata: { imageId, uri: sourceUri }
+          performanceMonitor.recordMetrics({
+            componentRenderTime: Date.now() - Date.now(),
+            memoryUsage: 0,
+            timestamp: Date.now()
           });
           onLoad?.();
         }}

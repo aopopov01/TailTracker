@@ -30,14 +30,14 @@ interface SubscriptionPlan {
 }
 
 export const SubscriptionManagementScreen: React.FC = () => {
-  const { isPremium, isLoading: premiumLoading } = usePremiumStatus();
+  const { isPremium, loading: premiumLoading } = usePremiumStatus();
   const {
-    currentSubscription,
+    subscription: currentSubscription,
     availablePlans,
     loading: subscriptionLoading,
-    purchasePlan,
+    upgradeSubscription: purchasePlan,
     cancelSubscription,
-    restorePurchases,
+    refetch: restorePurchases,
   } = useSubscription();
 
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
@@ -69,7 +69,7 @@ export const SubscriptionManagementScreen: React.FC = () => {
       name: 'Premium Monthly',
       price: 5.99,
       period: 'month',
-      current: isPremium && currentSubscription?.plan_id === 'premium_monthly',
+      current: isPremium && currentSubscription?.planId === 'premium_monthly',
       features: [
         { text: 'Unlimited pets', included: true },
         { text: 'Cloud sync and backup', included: true },
@@ -90,7 +90,7 @@ export const SubscriptionManagementScreen: React.FC = () => {
       period: 'year',
       originalPrice: 59.88,
       popular: true,
-      current: isPremium && currentSubscription?.plan_id === 'premium_yearly',
+      current: isPremium && currentSubscription?.planId === 'premium_yearly',
       features: [
         { text: 'All Premium Monthly features', included: true },
         { text: '33% savings vs monthly', included: true },
@@ -128,15 +128,13 @@ export const SubscriptionManagementScreen: React.FC = () => {
 
     setIsPurchasing(true);
     try {
-      const success = await purchasePlan(planId);
+      await purchasePlan(planId);
       
-      if (success) {
-        Alert.alert(
-          'Subscription Activated',
-          'Welcome to TailTracker Premium! You now have access to all premium features.',
-          [{ text: 'Great!', onPress: () => setSelectedPlan(null) }]
-        );
-      }
+      Alert.alert(
+        'Subscription Activated',
+        'Welcome to TailTracker Premium! You now have access to all premium features.',
+        [{ text: 'Great!', onPress: () => setSelectedPlan(null) }]
+      );
     } catch (error: any) {
       console.error('Purchase error:', error);
       Alert.alert(
@@ -161,15 +159,13 @@ export const SubscriptionManagementScreen: React.FC = () => {
           onPress: async () => {
             setIsCanceling(true);
             try {
-              const success = await cancelSubscription();
+              await cancelSubscription();
               
-              if (success) {
-                Alert.alert(
-                  'Subscription Canceled',
-                  'Your subscription has been canceled. You will continue to have access to premium features until the end of your current billing period.',
-                  [{ text: 'OK' }]
-                );
-              }
+              Alert.alert(
+                'Subscription Canceled',
+                'Your subscription has been canceled. You will continue to have access to premium features until the end of your current billing period.',
+                [{ text: 'OK' }]
+              );
             } catch (error: any) {
               Alert.alert(
                 'Cancellation Failed',
@@ -187,21 +183,13 @@ export const SubscriptionManagementScreen: React.FC = () => {
 
   const handleRestorePurchases = async () => {
     try {
-      const restored = await restorePurchases();
+      await restorePurchases();
       
-      if (restored) {
-        Alert.alert(
-          'Purchases Restored',
-          'Your previous purchases have been restored successfully.',
-          [{ text: 'OK' }]
-        );
-      } else {
-        Alert.alert(
-          'No Purchases Found',
-          'No previous purchases were found to restore.',
-          [{ text: 'OK' }]
-        );
-      }
+      Alert.alert(
+        'Purchases Restored',
+        'Your previous purchases have been restored successfully.',
+        [{ text: 'OK' }]
+      );
     } catch (error: any) {
       Alert.alert(
         'Restore Failed',
@@ -350,12 +338,12 @@ export const SubscriptionManagementScreen: React.FC = () => {
             
             <View style={styles.subscriptionDetails}>
               <Text style={styles.subscriptionPlan}>
-                {currentSubscription.plan_name}
+                {(currentSubscription as any).plan_name || 'Premium Plan'}
               </Text>
               <Text style={styles.subscriptionStatus}>
-                {currentSubscription.will_renew 
-                  ? `Renews on ${new Date(currentSubscription.expires_at).toLocaleDateString()}`
-                  : `Expires on ${new Date(currentSubscription.expires_at).toLocaleDateString()}`
+                {!(currentSubscription as any).cancelAtPeriodEnd 
+                  ? `Renews on ${new Date(currentSubscription.currentPeriodEnd || '').toLocaleDateString()}`
+                  : `Expires on ${new Date(currentSubscription.currentPeriodEnd || '').toLocaleDateString()}`
                 }
               </Text>
             </View>

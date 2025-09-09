@@ -282,7 +282,7 @@ const OptimizedImage: React.FC<OptimizedImageProps> = React.memo(({
     onLoad: handleLoad,
     onError: handleError,
     priority: priority,
-    cachePolicy: enableMemoryCache ? 'memory-disk' : 'disk',
+    cachePolicy: enableMemoryCache ? 'memory-disk' as const : 'disk' as const,
     ...optimizedDimensions,
   }), [
     imageSource,

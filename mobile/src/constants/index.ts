@@ -304,15 +304,20 @@ export const API_CONFIG = {
 // ===================================
 
 export const FEATURE_LIMITS = {
-  // Free tier limits
-  MAX_PETS_FREE: 3,
+  // Free tier limits (updated to match approved pricing model)
+  MAX_PETS_FREE: 1,
   MAX_PHOTOS_PER_PET_FREE: 5,
-  MAX_FAMILY_MEMBERS_FREE: 3,
+  MAX_FAMILY_MEMBERS_FREE: 2,
   
-  // Premium tier limits
-  MAX_PETS_PREMIUM: 20,
-  MAX_PHOTOS_PER_PET_PREMIUM: 50,
-  MAX_FAMILY_MEMBERS_PREMIUM: 10,
+  // Premium tier limits (updated to match approved pricing model)
+  MAX_PETS_PREMIUM: 2,
+  MAX_PHOTOS_PER_PET_PREMIUM: 12,
+  MAX_FAMILY_MEMBERS_PREMIUM: 3,
+  
+  // Pro tier limits (unlimited)
+  MAX_PETS_PRO: Infinity,
+  MAX_PHOTOS_PER_PET_PRO: Infinity,
+  MAX_FAMILY_MEMBERS_PRO: Infinity,
   
   // General limits
   MAX_ONBOARDING_STEPS: 7,
@@ -484,6 +489,13 @@ export const STORAGE_KEYS = {
   BIOMETRIC_ENABLED: '@TailTracker:biometricEnabled',
   PASSCODE_ENABLED: '@TailTracker:passcodeEnabled',
 } as const;
+
+// ===================================
+// SUBSCRIPTION EXPORTS
+// ===================================
+
+// Export all subscription-related constants and utilities
+export * from './subscription';
 
 // ===================================
 // DEFAULT EXPORTS

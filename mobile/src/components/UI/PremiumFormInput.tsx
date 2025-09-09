@@ -129,7 +129,7 @@ export const PremiumFormInput: React.FC<PremiumFormInputProps> = ({
   }>({ isValid: true, errorMessage: '' });
   
   // Animation values
-  const borderColor = useSharedValue(theme.colors.outline);
+  const borderColor = useSharedValue<string>(theme.colors.neutral.gray300);
   const borderWidth = useSharedValue(1);
   const labelY = useSharedValue(0);
   const labelScale = useSharedValue(1);
@@ -175,37 +175,37 @@ export const PremiumFormInput: React.FC<PremiumFormInputProps> = ({
   const animateToFocused = useCallback(() => {
     if (animateOnFocus) {
       const focusAnimation = premiumAnimations.forms.focus();
-      borderWidth.value = withSpring(focusAnimation.borderWidth, premiumAnimations.springs.crisp);
-      borderColor.value = withTiming(theme.colors.primary, { duration: premiumAnimations.timings.fast });
+      borderWidth.value = withSpring(focusAnimation.borderWidth);
+      borderColor.value = withTiming(theme.colors.primary, premiumAnimations.timings.fast);
     }
     
     if (floatingLabel) {
       const labelAnimation = premiumAnimations.forms.floatingLabel(true, !!value);
-      labelY.value = labelAnimation.translateY;
-      labelScale.value = labelAnimation.scale;
-      labelOpacity.value = labelAnimation.opacity;
+      labelY.value = withSpring(labelAnimation.translateY);
+      labelScale.value = withSpring(labelAnimation.scale);
+      labelOpacity.value = withTiming(labelAnimation.opacity, premiumAnimations.timings.fast);
     }
   }, [animateOnFocus, floatingLabel, value, theme.colors.primary, borderColor, borderWidth, labelOpacity, labelScale, labelY]);
   
   const animateToUnfocused = useCallback(() => {
     if (animateOnFocus) {
-      borderWidth.value = withSpring(1, premiumAnimations.springs.gentle);
-      borderColor.value = withTiming(theme.colors.outline, { duration: premiumAnimations.timings.fast });
+      borderWidth.value = withSpring(1);
+      borderColor.value = withTiming(theme.colors.neutral.gray300, premiumAnimations.timings.fast);
     }
     
     if (floatingLabel) {
       const labelAnimation = premiumAnimations.forms.floatingLabel(false, !!value);
-      labelY.value = labelAnimation.translateY;
-      labelScale.value = labelAnimation.scale;
-      labelOpacity.value = labelAnimation.opacity;
+      labelY.value = withSpring(labelAnimation.translateY);
+      labelScale.value = withSpring(labelAnimation.scale);
+      labelOpacity.value = withTiming(labelAnimation.opacity, premiumAnimations.timings.fast);
     }
-  }, [animateOnFocus, floatingLabel, value, theme.colors.outline, borderColor, borderWidth, labelOpacity, labelScale, labelY]);
+  }, [animateOnFocus, floatingLabel, value, theme.colors.neutral.gray300, borderColor, borderWidth, labelOpacity, labelScale, labelY]);
   
   const animateError = useCallback(() => {
     const errorAnimation = premiumAnimations.forms.error();
     shakeTranslateX.value = withSequence(...errorAnimation.translateX.map((x: number) => withTiming(x, { duration: 50 })));
-    borderColor.value = withTiming(theme.colors.error, { duration: premiumAnimations.timings.fast });
-    errorOpacity.value = withTiming(1, { duration: premiumAnimations.timings.standard });
+    borderColor.value = withTiming(theme.colors.error, premiumAnimations.timings.fast);
+    errorOpacity.value = withTiming(1, premiumAnimations.timings.standard);
     
     if (hapticFeedback) {
       runOnJS(hapticUtils.error)();
@@ -214,9 +214,9 @@ export const PremiumFormInput: React.FC<PremiumFormInputProps> = ({
   
   const animateSuccess = useCallback(() => {
     const successAnimation = premiumAnimations.success.checkmark();
-    successScale.value = successAnimation.scale;
-    borderColor.value = withTiming(theme.colors.primary, { duration: premiumAnimations.timings.fast });
-    errorOpacity.value = withTiming(0, { duration: premiumAnimations.timings.fast });
+    successScale.value = withSpring(successAnimation.scale);
+    borderColor.value = withTiming(theme.colors.primary, premiumAnimations.timings.fast);
+    errorOpacity.value = withTiming(0, premiumAnimations.timings.fast);
     
     if (hapticFeedback) {
       runOnJS(hapticUtils.success)();
@@ -324,7 +324,7 @@ export const PremiumFormInput: React.FC<PremiumFormInputProps> = ({
   
   const getEmotionStyles = (): ViewStyle => {
     const colors = {
-      neutral: theme.colors.outline,
+      neutral: theme.colors.neutral.gray300,
       trust: theme.colors.primary,
       love: '#F87171',
       success: '#10B981',

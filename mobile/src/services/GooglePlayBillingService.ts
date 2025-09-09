@@ -1,7 +1,7 @@
 import React from 'react';
 import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { modalService } from '../utils/modalService';
+import { modalService } from './modalService';
 
 // Note: This would typically use react-native-purchases or @react-native-google-play/billing
 // For this implementation, we'll create the interface and mock the functionality
@@ -453,7 +453,7 @@ class GooglePlayBillingService {
         type: 'info',
         icon: 'storefront-outline',
         actions: [
-          { text: 'Cancel', style: 'cancel', onPress: () => {} },
+          { text: 'Cancel', style: 'default', onPress: () => {} },
           {
             text: 'Open Play Store',
             style: 'primary',

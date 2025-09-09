@@ -24,9 +24,13 @@ export class ImageOptimizationService {
     return ImageOptimizationService.instance;
   }
 
-  // Optimize image (stub)
-  async optimizeImage(uri: string, options: OptimizationOptions = {}): Promise<OptimizationResult> {
-    console.log('ImageOptimizationService: Optimizing image (stub)', { uri, options });
+  // Optimize image (stub) - Support multiple call patterns
+  async optimizeImage(
+    uri: string, 
+    optionsOrQualities?: OptimizationOptions | string[] | string, 
+    extraOptions?: { priority?: number }
+  ): Promise<OptimizationResult> {
+    console.log('ImageOptimizationService: Optimizing image (stub)', { uri, optionsOrQualities, extraOptions });
     
     // Return original image info as stub
     return {
@@ -47,6 +51,46 @@ export class ImageOptimizationService {
   async compressImage(uri: string, quality: number = 0.8): Promise<string> {
     console.log('ImageOptimizationService: Compressing image (stub)', { uri, quality });
     return uri; // Return original URI as stub
+  }
+
+  // Get optimized image URL (stub) - Support quality string or options object
+  getOptimizedImageUrl(uri: string, qualityOrOptions?: string | OptimizationOptions): string {
+    console.log('ImageOptimizationService: Getting optimized image URL (stub)', { uri, qualityOrOptions });
+    return uri; // Return original URI as stub
+  }
+
+  // Get image metadata (stub) - Synchronous for compatibility
+  getImageMetadata(uri: string): { 
+    width: number; 
+    height: number; 
+    fileSize: number; 
+    format: string;
+    variants?: { quality: string; url: string; }[];
+  } {
+    console.log('ImageOptimizationService: Getting image metadata (stub)', { uri });
+    return {
+      width: 800,
+      height: 600,
+      fileSize: 1024 * 500, // 500KB
+      format: 'jpeg',
+      variants: [
+        { quality: 'thumbnail', url: uri },
+        { quality: 'small', url: uri },
+        { quality: 'medium', url: uri },
+        { quality: 'large', url: uri }
+      ]
+    };
+  }
+
+  // Preload images (stub) - Support priority parameter
+  preloadImages(uris: string[], priority?: string): Promise<void> {
+    console.log('ImageOptimizationService: Preloading images (stub)', { uris, priority });
+    return Promise.resolve();
+  }
+
+  // Handle image intersection (stub) - Support ratio parameter
+  handleImageIntersection(uri: string, isIntersecting: boolean, intersectionRatio?: number): void {
+    console.log('ImageOptimizationService: Handling image intersection (stub)', { uri, isIntersecting, intersectionRatio });
   }
 }
 

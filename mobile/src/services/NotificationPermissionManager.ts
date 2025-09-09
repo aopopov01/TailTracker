@@ -5,11 +5,22 @@
  * addressing the permission flow inconsistencies identified in the QA report.
  */
 
-import React from 'react';
+import * as React from 'react';
 import { Platform, Alert, Linking, AppState } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Notifications from 'expo-notifications';
-import { unifiedNotificationService, PermissionState } from './UnifiedNotificationService';
+import UnifiedNotificationService from './UnifiedNotificationService';
+
+type PermissionState = 'granted' | 'denied' | 'undetermined';
+
+type DetailedPermissionState = {
+  granted: boolean;
+  requestedAt: Date | null;
+  deniedCount: number;
+  shouldShowRationale: boolean;
+  criticalAlertsEnabled: boolean;
+};
+const unifiedNotificationService = new UnifiedNotificationService();
 
 // Storage key for permission flow state
 const PERMISSION_FLOW_STORAGE_KEY = '@TailTracker:notification_permission_flow';
@@ -44,7 +55,7 @@ interface PermissionFlowConfig {
 }
 
 // Permission flow result
-interface PermissionResult {
+export interface PermissionResult {
   granted: boolean;
   flowState: PermissionFlowState;
   showedRationale: boolean;
@@ -110,26 +121,26 @@ export class NotificationPermissionManager {
       }
 
       // Request permissions through unified service
-      const permissionState = await unifiedNotificationService.requestPermissions({
-        criticalAlerts: options?.criticalAlerts,
-      });
+      const granted = await unifiedNotificationService.requestPermissions();
 
       // Update flow state based on result
-      if (permissionState.granted) {
+      if (granted) {
         this.flowState = 'granted';
       } else {
-        this.flowState = permissionState.deniedCount === 1 ? 'denied_once' : 'denied_multiple';
+        // Count denials from flow state
+        const wasFirstDenial = this.flowState === 'initial' || this.flowState === 'explained';
+        this.flowState = wasFirstDenial ? 'denied_once' : 'denied_multiple';
       }
 
       await this.saveFlowState();
 
       // Show post-denial guidance if needed
-      if (!permissionState.granted) {
+      if (!granted) {
         await this.handlePermissionDenied(config);
       }
 
       return {
-        granted: permissionState.granted,
+        granted,
         flowState: this.flowState,
         showedRationale: shouldShowRationale,
         needsSettings: this.flowState === 'denied_multiple',
@@ -189,8 +200,8 @@ export class NotificationPermissionManager {
     try {
       if (Platform.OS === 'ios') {
         // Try to use openSettingsAsync if available, otherwise show alert
-        if (Notifications.openSettingsAsync) {
-          await Notifications.openSettingsAsync();
+        if ((Notifications as any).openSettingsAsync) {
+          await (Notifications as any).openSettingsAsync();
         } else {
           Alert.alert(
             'Notification Settings',
@@ -249,16 +260,16 @@ export class NotificationPermissionManager {
 
   // Private methods
 
-  private async getCurrentPermissionStatus(): Promise<PermissionState> {
+  private async getCurrentPermissionStatus(): Promise<DetailedPermissionState> {
     const { status } = await Notifications.getPermissionsAsync();
-    const existing = unifiedNotificationService.getPermissionState();
+    const existing = await unifiedNotificationService.getPermissionState();
     
     return {
       granted: status === 'granted',
-      requestedAt: existing?.requestedAt,
-      deniedCount: existing?.deniedCount || 0,
-      shouldShowRationale: status === 'denied' && (existing?.deniedCount || 0) > 0,
-      criticalAlertsEnabled: existing?.criticalAlertsEnabled,
+      requestedAt: null,
+      deniedCount: 0,
+      shouldShowRationale: status === 'denied',
+      criticalAlertsEnabled: false,
     };
   }
 
@@ -491,7 +502,7 @@ export const useNotificationPermissions = () => {
       const currentPermissionState = unifiedNotificationService.getPermissionState();
       const currentFlowState = notificationPermissionManager.getFlowState();
       
-      setPermissionState(currentPermissionState);
+      setPermissionState(currentPermissionState.status);
       setFlowState(currentFlowState);
     } catch (error) {
       console.error('Error loading initial permission state:', error);
@@ -512,7 +523,7 @@ export const useNotificationPermissions = () => {
       // Update local state
       setFlowState(result.flowState);
       const updatedPermissionState = unifiedNotificationService.getPermissionState();
-      setPermissionState(updatedPermissionState);
+      setPermissionState(updatedPermissionState.status);
       
       return result;
     } catch (error) {
@@ -551,7 +562,7 @@ export const useNotificationPermissions = () => {
     permissionState,
     flowState,
     isLoading,
-    hasPermission: permissionState?.granted || false,
+    hasPermission: permissionState === 'granted',
     canPrompt: notificationPermissionManager.canPromptForPermissions(),
     requestPermissions,
     checkPermissions,

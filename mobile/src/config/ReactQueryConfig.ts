@@ -1,8 +1,12 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import NetInfo from '@react-native-community/netinfo';
-import { QueryClient, QueryCache, MutationCache, DefaultOptions } from 'react-query';
-import { errorRecoveryService } from '../services/ErrorRecoveryService';
-import { offlineQueueManager } from '../services/OfflineQueueManager';
+import { QueryClient, QueryCache, MutationCache, DefaultOptions, useQuery, useMutation } from 'react-query';
+import ErrorRecoveryService from '../services/ErrorRecoveryService';
+import { OfflineQueueManager } from '../services/OfflineQueueManager';
+
+// Initialize service instances
+const errorRecoveryService = ErrorRecoveryService.getInstance();
+const offlineQueueManager = OfflineQueueManager.getInstance();
 
 export interface QueryErrorWithRetry extends Error {
   isRetryable?: boolean;
@@ -23,6 +27,10 @@ export interface EnhancedQueryOptions {
 export class EnhancedQueryClient extends QueryClient {
   private isOnline = true;
   private retryFailures = new Map<string, number>();
+
+  public resumePausedMutations() {
+    return this.resumePausedMutationsImpl();
+  }
 
   constructor() {
     super({
@@ -45,8 +53,8 @@ export class EnhancedQueryClient extends QueryClient {
 
       // Resume paused queries when connection is restored
       if (!wasOnline && this.isOnline) {
-        this.resumePausedMutations();
-        this.invalidateQueries({ type: 'active' });
+        this.resumePausedMutationsImpl();
+        this.invalidateQueries({ stale: true });
       }
     });
   }
@@ -60,7 +68,7 @@ export class EnhancedQueryClient extends QueryClient {
 
     // Persist important queries
     this.getQueryCache().subscribe(event => {
-      if (event.type === 'updated' && event.query.state.data) {
+      if (event && event.type === 'queryUpdated' && event.query?.state.data) {
         this.persistQuery(event.query);
       }
     });
@@ -152,7 +160,7 @@ export class EnhancedQueryClient extends QueryClient {
   /**
    * Resume paused mutations when connection is restored
    */
-  private resumePausedMutations(): void {
+  private async resumePausedMutationsImpl(): Promise<void> {
     this.getMutationCache().getAll().forEach(mutation => {
       if (mutation.state.isPaused) {
         mutation.continue();
@@ -170,10 +178,7 @@ export class EnhancedQueryClient extends QueryClient {
   ): Promise<T> {
     const enhancedQueryFn = async () => {
       if (options.circuitBreaker) {
-        return errorRecoveryService.executeWithCircuitBreaker(
-          options.circuitBreaker,
-          queryFn
-        );
+        return errorRecoveryService.executeWithCircuitBreaker(queryFn);
       }
 
       if (options.deduplicationKey) {
@@ -201,24 +206,18 @@ export class EnhancedQueryClient extends QueryClient {
   ): Promise<T> {
     try {
       if (options.circuitBreaker) {
-        return await errorRecoveryService.executeWithCircuitBreaker(
-          options.circuitBreaker,
-          mutationFn
-        );
+        return await errorRecoveryService.executeWithCircuitBreaker(mutationFn);
       }
 
       return await errorRecoveryService.executeWithRetry(mutationFn);
     } catch (error) {
       // Queue for offline retry if network is down
       if (options.offlineSupport && !this.isOnline && options.actionType) {
-        await offlineQueueManager.enqueueAction(
-          options.actionType,
-          options.actionPayload || {},
-          {
-            priority: options.priority,
-            requiresAuthentication: true,
-          }
-        );
+        await offlineQueueManager.addToQueue({
+          type: options.actionType,
+          data: options.actionPayload || {},
+          maxRetries: 3,
+        });
 
         // Return optimistic result or throw specific error
         throw new Error('Operation queued for offline retry');
@@ -247,10 +246,11 @@ function createEnhancedQueryCache(): QueryCache {
       
       (global as any).queryFailures.set(queryKey, currentFailures + 1);
       
-      // Disable query if too many consecutive failures
+      // Mark query as failed if too many consecutive failures
       if (currentFailures >= 5) {
-        query.disable();
-        console.warn(`Query ${queryKey} disabled due to repeated failures`);
+        console.warn(`Query ${queryKey} marked as failed due to repeated failures`);
+        // In newer versions, we can use query.cancel() or handle this differently
+        query.cancel();
       }
     },
     onSuccess: (data, query) => {
@@ -290,19 +290,21 @@ function createEnhancedDefaultOptions(): DefaultOptions {
   return {
     queries: {
       // Retry configuration
-      retry: (failureCount: number, error: QueryErrorWithRetry) => {
+      retry: (failureCount: number, error: unknown) => {
+        const err = error as any;
+        
         // Don't retry on authentication errors
-        if (error.statusCode === 401 || error.statusCode === 403) {
+        if (err?.statusCode === 401 || err?.statusCode === 403) {
           return false;
         }
 
         // Don't retry on client errors (4xx except 401, 403, 429)
-        if (error.statusCode && error.statusCode >= 400 && error.statusCode < 500 && error.statusCode !== 429) {
+        if (err?.statusCode && err.statusCode >= 400 && err.statusCode < 500 && err.statusCode !== 429) {
           return false;
         }
 
         // Retry up to 3 times for retryable errors
-        return failureCount < 3 && (error.isRetryable !== false);
+        return failureCount < 3 && (err?.isRetryable !== false);
       },
 
       // Retry delay with exponential backoff
@@ -321,14 +323,15 @@ function createEnhancedDefaultOptions(): DefaultOptions {
       refetchOnMount: true,
       refetchOnReconnect: true,
 
-      // Network mode configuration
-      networkMode: 'offlineFirst',
+      // Network mode is handled by the client itself
     },
     mutations: {
       // Retry configuration for mutations
-      retry: (failureCount: number, error: QueryErrorWithRetry) => {
+      retry: (failureCount: number, error: unknown) => {
+        const err = error as any;
+        
         // Don't retry mutations on client errors
-        if (error.statusCode && error.statusCode >= 400 && error.statusCode < 500) {
+        if (err?.statusCode && err.statusCode >= 400 && err.statusCode < 500) {
           return false;
         }
 
@@ -341,8 +344,7 @@ function createEnhancedDefaultOptions(): DefaultOptions {
         return Math.min(2000 * Math.pow(2, attemptIndex), 10000);
       },
 
-      // Network mode for mutations
-      networkMode: 'offlineFirst',
+      // Network mode handled by client
     },
   };
 }
@@ -377,10 +379,7 @@ export const useEnhancedQuery = (queryKey: any, queryFn: any, options: any = {})
     ...options,
     queryFn: () => {
       if (options.circuitBreaker) {
-        return errorRecoveryService.executeWithCircuitBreaker(
-          options.circuitBreaker,
-          queryFn
-        );
+        return errorRecoveryService.executeWithCircuitBreaker(queryFn);
       }
 
       if (options.deduplicationKey) {
@@ -394,31 +393,25 @@ export const useEnhancedQuery = (queryKey: any, queryFn: any, options: any = {})
     },
   };
 
-  return queryClient.useQuery(queryKey, enhancedOptions.queryFn, enhancedOptions);
+  return useQuery(queryKey, enhancedOptions.queryFn, enhancedOptions);
 };
 
 export const useEnhancedMutation = (mutationFn: any, options: any = {}) => {
   const enhancedMutationFn = async (variables: any) => {
     try {
       if (options.circuitBreaker) {
-        return await errorRecoveryService.executeWithCircuitBreaker(
-          options.circuitBreaker,
-          () => mutationFn(variables)
-        );
+        return await errorRecoveryService.executeWithCircuitBreaker(() => mutationFn(variables));
       }
 
       return await errorRecoveryService.executeWithRetry(() => mutationFn(variables));
     } catch (error) {
       // Queue for offline retry if network is down
       if (options.offlineSupport && !navigator.onLine && options.actionType) {
-        await offlineQueueManager.enqueueAction(
-          options.actionType,
-          variables,
-          {
-            priority: options.priority || 'medium',
-            requiresAuthentication: true,
-          }
-        );
+        await offlineQueueManager.addToQueue({
+          type: options.actionType,
+          data: variables,
+          maxRetries: 3,
+        });
 
         throw new Error('Operation queued for offline retry');
       }
@@ -427,5 +420,5 @@ export const useEnhancedMutation = (mutationFn: any, options: any = {}) => {
     }
   };
 
-  return queryClient.useMutation(enhancedMutationFn, options);
+  return useMutation(enhancedMutationFn, options);
 };

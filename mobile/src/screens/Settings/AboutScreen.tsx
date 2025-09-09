@@ -103,7 +103,7 @@ export default function AboutScreen() {
           <Text style={styles.tagline}>Where Every Tail Has a Story</Text>
           <Text style={styles.version}>Version {Constants.expoConfig?.version || '1.0.0'}</Text>
           <Text style={styles.buildInfo}>
-            Build {Constants.expoConfig?.runtimeVersion || '1'} • 
+            Build {(Constants.expoConfig?.runtimeVersion as string) || '1'} • 
             {Constants.platform?.ios ? ' iOS' : ' Android'}
           </Text>
         </View>
@@ -238,7 +238,7 @@ const styles = StyleSheet.create({
   appIcon: {
     width: 80,
     height: 80,
-    backgroundColor: colors.primaryLight,
+    backgroundColor: colors.primaryContainer,
     borderRadius: 40,
     alignItems: 'center',
     justifyContent: 'center',

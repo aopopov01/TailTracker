@@ -4,6 +4,12 @@ import { CacheOrchestrator } from '../services/CacheOrchestrator';
 import { ImageOptimizationService } from '../services/ImageOptimizationService';
 import { PredictiveLoadingService } from '../services/PredictiveLoadingService';
 
+// Initialize service instances
+const cacheOrchestrator = CacheOrchestrator.getInstance();
+const cacheAnalyticsService = CacheAnalyticsService.getInstance();
+const imageOptimizationService = ImageOptimizationService.getInstance();
+const predictiveLoadingService = PredictiveLoadingService.getInstance();
+
 interface CacheOptions {
   ttl?: number;
   priority?: 'critical' | 'high' | 'medium' | 'low';
@@ -77,7 +83,7 @@ export function useAdvancedCache<T>(
 
     try {
       // Try to get from cache first
-      const cachedData = await CacheOrchestrator.get<T>(key, {
+      const cachedData = await cacheOrchestrator.get<T>(key, {
         strategy: { 
           level: 'auto', 
           priority: options.priority || 'medium',
@@ -105,7 +111,7 @@ export function useAdvancedCache<T>(
         if (abortControllerRef.current?.signal.aborted) return;
         
         // Cache the fresh data
-        await CacheOrchestrator.set(key, freshData, {
+        await cacheOrchestrator.set(key, freshData, {
           strategy: {
             level: 'auto',
             priority: options.priority || 'medium',
@@ -156,7 +162,7 @@ export function useAdvancedCache<T>(
         const freshData = await options.fallback();
         
         // Update cache
-        await CacheOrchestrator.set(key, freshData, {
+        await cacheOrchestrator.set(key, freshData, {
           strategy: {
             level: 'auto',
             priority: options.priority || 'medium',
@@ -196,7 +202,7 @@ export function useAdvancedCache<T>(
 
   // Update cache with new data
   const updateCache = useCallback(async (newData: T) => {
-    await CacheOrchestrator.set(key, newData, {
+    await cacheOrchestrator.set(key, newData, {
       strategy: {
         level: 'auto',
         priority: options.priority || 'medium',
@@ -216,7 +222,7 @@ export function useAdvancedCache<T>(
 
   // Get cache statistics
   const cacheStats = useCallback(() => {
-    return CacheAnalyticsService.getCurrentMetrics();
+    return cacheAnalyticsService.getCurrentMetrics();
   }, []);
 
   // Load data on mount and key change
@@ -275,14 +281,14 @@ export function useImageCache(
         setError(null);
 
         // Get optimized URL
-        const optimized = await ImageOptimizationService.getOptimizedImageUrl(imageUrl, quality);
+        const optimized = await imageOptimizationService.getOptimizedImageUrl(imageUrl, quality);
         
         if (mounted) {
           setOptimizedUrl(optimized);
         }
 
         // Get metadata with all variants
-        const metadata = ImageOptimizationService.getImageMetadata(imageUrl);
+        const metadata = imageOptimizationService.getImageMetadata(imageUrl);
         if (metadata && metadata.variants && mounted) {
           const variantData = metadata.variants.map(variant => ({
             quality: variant.quality,
@@ -294,7 +300,7 @@ export function useImageCache(
 
         // Optimize image if needed
         if (options.optimizeOnLoad) {
-          await ImageOptimizationService.optimizeImage(imageUrl, [quality]);
+          await imageOptimizationService.optimizeImage(imageUrl, [quality]);
         }
 
         // Preload other variants if requested
@@ -302,7 +308,7 @@ export function useImageCache(
           const variantsToPreload: any[] = ['thumbnail'];
           if (quality !== 'large') variantsToPreload.push('large');
           
-          await ImageOptimizationService.optimizeImage(imageUrl, variantsToPreload, {
+          await imageOptimizationService.optimizeImage(imageUrl, variantsToPreload, {
             priority: 2
           });
         }
@@ -330,7 +336,7 @@ export function useImageCache(
   // Preload image
   const preload = useCallback(async () => {
     try {
-      await ImageOptimizationService.preloadImages([imageUrl], 'high');
+      await imageOptimizationService.preloadImages([imageUrl], 'high');
     } catch (err) {
       console.error('Image preload failed:', err);
     }
@@ -346,7 +352,7 @@ export function useImageCache(
   useEffect(() => {
     if (options.enableLazyLoading) {
       // This would integrate with the lazy loading system
-      ImageOptimizationService.handleImageIntersection(imageUrl, true, 0);
+      imageOptimizationService.handleImageIntersection(imageUrl, true, 0);
     }
   }, [imageUrl, options.enableLazyLoading]);
 
@@ -384,10 +390,10 @@ export function usePredictiveCache(
   // Load current predictions
   useEffect(() => {
     const loadPredictions = () => {
-      const currentPredictions = PredictiveLoadingService.getCurrentPredictions();
+      const currentPredictions = predictiveLoadingService.getCurrentPredictions();
       setPredictions(currentPredictions.map(p => ({
-        dataType: p.dataType,
-        probability: p.probability,
+        dataType: p.dataType || 'unknown',
+        probability: p.probability || 0,
         preloaded: false // Would check if actually preloaded
       })));
     };
@@ -403,7 +409,7 @@ export function usePredictiveCache(
   // Load accuracy metrics
   useEffect(() => {
     const loadAccuracy = () => {
-      const metrics = PredictiveLoadingService.getMetrics();
+      const metrics = predictiveLoadingService.getMetrics();
       setAccuracy(metrics.averagePredictionAccuracy);
     };
 
@@ -434,7 +440,7 @@ export function usePredictiveCache(
 
   // Update user context
   const updateContext = useCallback((context: Record<string, any>) => {
-    PredictiveLoadingService.updateContext(context);
+    predictiveLoadingService.updateContext(context);
   }, []);
 
   // Record user action for learning
@@ -442,7 +448,7 @@ export function usePredictiveCache(
     setIsLearning(true);
     
     try {
-      await PredictiveLoadingService.recordUserAction(action, data, 0);
+      await predictiveLoadingService.recordUserAction(action, data, 0);
     } catch (error) {
       console.error('Failed to record action:', error);
     } finally {
@@ -484,7 +490,7 @@ export function useCachePerformance(): {
   // Load performance metrics
   const loadMetrics = useCallback(async () => {
     try {
-      const report = await CacheOrchestrator.getPerformanceReport();
+      const report = await cacheOrchestrator.getPerformanceReport();
       setMetrics(report.systems);
       setScore(report.overall.score);
       setGrade(report.overall.grade);
@@ -499,7 +505,7 @@ export function useCachePerformance(): {
     setIsOptimizing(true);
     
     try {
-      await CacheOrchestrator.optimizePerformance();
+      await cacheOrchestrator.optimizePerformance();
       await loadMetrics(); // Reload metrics after optimization
     } catch (error) {
       console.error('Performance optimization failed:', error);
@@ -538,7 +544,7 @@ export function useNavigationCache(routeName: string): {
 
   const trackNavigation = useCallback(async (fromRoute: string, loadTime: number) => {
     try {
-      await CacheOrchestrator.trackNavigation(fromRoute, routeName, loadTime);
+      await cacheOrchestrator.trackNavigation(fromRoute, routeName, loadTime);
     } catch (error) {
       console.error('Navigation tracking failed:', error);
     }
@@ -548,7 +554,7 @@ export function useNavigationCache(routeName: string): {
     setIsPrefetching(true);
     
     try {
-      await CacheOrchestrator.prefetchForRoute(routeName);
+      await cacheOrchestrator.prefetchForRoute(routeName);
     } catch (error) {
       console.error('Route prefetch failed:', error);
     } finally {

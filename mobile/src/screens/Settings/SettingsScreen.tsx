@@ -53,9 +53,9 @@ interface SettingItem {
 
 export const SettingsScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
-  const { user, signOut } = useAuth();
+  const { user, logout } = useAuth();
   const { profile, loading: profileLoading } = useUserProfile();
-  const { isPremium, isLoading: premiumLoading } = usePremiumStatus();
+  const { isPremium, loading: premiumLoading } = usePremiumStatus();
   const { settings, updateSetting, loading: settingsLoading } = useAppSettings();
 
   const [isSigningOut, setIsSigningOut] = useState(false);
@@ -72,7 +72,7 @@ export const SettingsScreen: React.FC = () => {
           onPress: async () => {
             setIsSigningOut(true);
             try {
-              await signOut();
+              await logout();
             } catch (error) {
               console.error('Error signing out:', error);
               Alert.alert('Error', 'Failed to sign out. Please try again.');
@@ -183,8 +183,8 @@ export const SettingsScreen: React.FC = () => {
           icon: 'location',
           iconColor: '#007AFF',
           type: 'toggle',
-          value: settings?.locationSharingEnabled || false,
-          onToggle: (value) => updateSetting('locationSharingEnabled', value),
+          value: (settings as any)?.locationSharingEnabled || settings?.locationTracking || false,
+          onToggle: (value) => updateSetting('locationTracking' as any, value),
         },
       ],
     },
@@ -207,8 +207,8 @@ export const SettingsScreen: React.FC = () => {
           icon: 'cloud-offline',
           iconColor: '#8E8E93',
           type: 'toggle',
-          value: settings?.offlineMode || false,
-          onToggle: (value) => updateSetting('offlineMode', value),
+          value: (settings as any)?.offlineMode || false,
+          onToggle: (value) => updateSetting('dataSharing' as any, !value),
           premium: true,
         },
         {
@@ -218,8 +218,8 @@ export const SettingsScreen: React.FC = () => {
           icon: 'sync',
           iconColor: '#34C759',
           type: 'toggle',
-          value: settings?.autoSync !== false,
-          onToggle: (value) => updateSetting('autoSync', value),
+          value: (settings as any)?.autoSync || settings?.autoBackup || false,
+          onToggle: (value) => updateSetting('autoBackup' as any, value),
         },
       ],
     },

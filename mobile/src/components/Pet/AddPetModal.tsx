@@ -223,19 +223,34 @@ export const AddPetModal: React.FC<AddPetModalProps> = ({
       if (pet) {
         // Update existing pet
         result = await petService.updatePet(pet.id, petData);
+        
+        if (!result.success) {
+          Alert.alert('Error', result.error || 'Failed to save pet');
+          return;
+        }
+
+        onSuccess();
+        onClose();
+        Alert.alert('Success', 'Pet updated successfully');
       } else {
-        // Create new pet
-        result = await petService.createPet(petData);
-      }
+        // Use upsert method to prevent duplicates during onboarding
+        result = await petService.upsertPetFromOnboarding(petData);
+        
+        if (!result.success) {
+          Alert.alert('Error', result.error || 'Failed to save pet');
+          return;
+        }
 
-      if (!result.success) {
-        Alert.alert('Error', result.error || 'Failed to save pet');
-        return;
+        onSuccess();
+        onClose();
+        
+        // Show appropriate message based on whether pet was new or existing
+        if (result.isExisting) {
+          Alert.alert('Pet Found', 'This pet already exists! We\'ve updated it with the new information instead of creating a duplicate.');
+        } else {
+          Alert.alert('Success', 'Pet created successfully');
+        }
       }
-
-      onSuccess();
-      onClose();
-      Alert.alert('Success', `Pet ${pet ? 'updated' : 'created'} successfully`);
 
     } catch (error: any) {
       Alert.alert('Error', error.message || 'Failed to save pet');
@@ -245,9 +260,19 @@ export const AddPetModal: React.FC<AddPetModalProps> = ({
   };
 
   const onDateChange = (event: any, selectedDate?: Date) => {
-    setShowDatePicker(false);
+    // On iOS, don't close the picker automatically to allow full date selection
+    if (Platform.OS === 'ios' && event.type === 'dismissed') {
+      setShowDatePicker(false);
+      return;
+    }
+    
     if (selectedDate) {
       setDateOfBirth(selectedDate);
+      // On Android, close after selection as it handles date picking differently
+      if (Platform.OS === 'android') {
+        setShowDatePicker(false);
+      }
+      // On iOS, keep picker open until user explicitly closes it
     }
   };
 
@@ -328,19 +353,391 @@ export const AddPetModal: React.FC<AddPetModalProps> = ({
                 </View>
               </View>
 
+              <View style={styles.row}>
+                <View style={[styles.inputGroup, styles.halfWidth]}>
+                  <Text style={styles.label}>Gender</Text>
+                  <View style={styles.pickerContainer}>
+                    <Picker
+                      style={styles.picker}
+                      selectedValue={gender}
+                      onValueChange={setGender}
+                    >
+                      <Picker.Item label="Select gender" value="" />
+                      <Picker.Item label="Male" value="male" />
+                      <Picker.Item label="Female" value="female" />
+                      <Picker.Item label="Unknown" value="unknown" />
+                    </Picker>
+                  </View>
+                </View>
+
+                <View style={[styles.inputGroup, styles.halfWidth]}>
+                  <Text style={styles.label}>Weight (kg)</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={weight}
+                    onChangeText={setWeight}
+                    placeholder="e.g., 25.5"
+                    keyboardType="decimal-pad"
+                    maxLength={10}
+                  />
+                </View>
+              </View>
+
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>Dietary Notes</Text>
+                <Text style={styles.label}>Date of Birth</Text>
+                <TouchableOpacity
+                  style={styles.dateButton}
+                  onPress={() => setShowDatePicker(true)}
+                >
+                  <Text style={styles.dateText}>
+                    {dateOfBirth ? dateOfBirth.toDateString() : 'Select date of birth'}
+                  </Text>
+                </TouchableOpacity>
+                {showDatePicker && (
+                  <View>
+                    <DateTimePicker
+                      value={dateOfBirth || new Date()}
+                      mode="date"
+                      display="default"
+                      onChange={onDateChange}
+                      maximumDate={new Date()}
+                    />
+                    {/* Show Done button for both iOS and Android to give users explicit control */}
+                    <TouchableOpacity
+                      style={styles.datePickerCloseButton}
+                      onPress={() => setShowDatePicker(false)}
+                    >
+                      <Text style={styles.datePickerCloseText}>Done</Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Microchip Number</Text>
+                <TextInput
+                  style={styles.input}
+                  value={microchipNumber}
+                  onChangeText={setMicrochipNumber}
+                  placeholder="e.g., 123456789012345"
+                  maxLength={50}
+                />
+              </View>
+            </View>
+
+            {/* Personality & Behavior */}
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Personality & Behavior</Text>
+              
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Personality Traits</Text>
                 <TextInput
                   style={[styles.input, styles.textArea]}
-                  value={dietaryNotes}
-                  onChangeText={setDietaryNotes}
-                  placeholder="Food allergies, dietary preferences, special diet requirements, etc."
+                  value={personalityTraits}
+                  onChangeText={setPersonalityTraits}
+                  placeholder="e.g., Friendly, energetic, loves children, shy with strangers..."
+                  multiline={true}
+                  numberOfLines={3}
+                  maxLength={500}
+                />
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Behavioral Notes</Text>
+                <TextInput
+                  style={[styles.input, styles.textArea]}
+                  value={behavioralNotes}
+                  onChangeText={setBehavioralNotes}
+                  placeholder="Behavioral patterns, training notes, special behaviors..."
                   multiline={true}
                   numberOfLines={3}
                   maxLength={500}
                 />
               </View>
             </View>
+
+            {/* Health Information */}
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Health & Medical</Text>
+              
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Special Needs</Text>
+                <TextInput
+                  style={[styles.input, styles.textArea]}
+                  value={specialNeeds}
+                  onChangeText={setSpecialNeeds}
+                  placeholder="Special care requirements, mobility issues, medications..."
+                  multiline={true}
+                  numberOfLines={3}
+                  maxLength={500}
+                />
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Allergies</Text>
+                <TextInput
+                  style={[styles.input, styles.textArea]}
+                  value={allergies}
+                  onChangeText={setAllergies}
+                  placeholder="Food allergies, environmental allergies, medication allergies..."
+                  multiline={true}
+                  numberOfLines={2}
+                  maxLength={500}
+                />
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Dietary Notes</Text>
+                <TextInput
+                  style={[styles.input, styles.textArea]}
+                  value={dietaryNotes}
+                  onChangeText={setDietaryNotes}
+                  placeholder="Food preferences, special diet requirements, feeding schedule..."
+                  multiline={true}
+                  numberOfLines={3}
+                  maxLength={500}
+                />
+              </View>
+            </View>
+
+            {/* Emergency Contacts */}
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Emergency Contact</Text>
+              
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Contact Name</Text>
+                <TextInput
+                  style={styles.input}
+                  value={emergencyContactName}
+                  onChangeText={setEmergencyContactName}
+                  placeholder="Full name"
+                  maxLength={100}
+                />
+              </View>
+
+              <View style={styles.row}>
+                <View style={[styles.inputGroup, styles.halfWidth]}>
+                  <Text style={styles.label}>Phone Number</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={emergencyContactPhone}
+                    onChangeText={setEmergencyContactPhone}
+                    placeholder="Phone number"
+                    keyboardType="phone-pad"
+                    maxLength={20}
+                  />
+                </View>
+
+                <View style={[styles.inputGroup, styles.halfWidth]}>
+                  <Text style={styles.label}>Email</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={emergencyContactEmail}
+                    onChangeText={setEmergencyContactEmail}
+                    placeholder="Email address"
+                    keyboardType="email-address"
+                    maxLength={255}
+                  />
+                </View>
+              </View>
+            </View>
+
+            {/* Premium Features */}
+            {subscriptionStatus.canUsePremiumFeatures && (
+              <>
+                <View style={styles.section}>
+                  <Text style={styles.sectionTitle}>Secondary Emergency Contact</Text>
+                  
+                  <View style={styles.inputGroup}>
+                    <Text style={styles.label}>Contact Name</Text>
+                    <TextInput
+                      style={styles.input}
+                      value={emergencyContact2Name}
+                      onChangeText={setEmergencyContact2Name}
+                      placeholder="Full name"
+                      maxLength={100}
+                    />
+                  </View>
+
+                  <View style={styles.row}>
+                    <View style={[styles.inputGroup, styles.halfWidth]}>
+                      <Text style={styles.label}>Phone Number</Text>
+                      <TextInput
+                        style={styles.input}
+                        value={emergencyContact2Phone}
+                        onChangeText={setEmergencyContact2Phone}
+                        placeholder="Phone number"
+                        keyboardType="phone-pad"
+                        maxLength={20}
+                      />
+                    </View>
+
+                    <View style={[styles.inputGroup, styles.halfWidth]}>
+                      <Text style={styles.label}>Email</Text>
+                      <TextInput
+                        style={styles.input}
+                        value={emergencyContact2Email}
+                        onChangeText={setEmergencyContact2Email}
+                        placeholder="Email address"
+                        keyboardType="email-address"
+                        maxLength={255}
+                      />
+                    </View>
+                  </View>
+                </View>
+
+                <View style={styles.section}>
+                  <Text style={styles.sectionTitle}>Pet Insurance</Text>
+                  
+                  <View style={styles.inputGroup}>
+                    <Text style={styles.label}>Insurance Provider</Text>
+                    <TextInput
+                      style={styles.input}
+                      value={insuranceProvider}
+                      onChangeText={setInsuranceProvider}
+                      placeholder="e.g., Petplan, Trupanion"
+                      maxLength={100}
+                    />
+                  </View>
+
+                  <View style={styles.row}>
+                    <View style={[styles.inputGroup, styles.halfWidth]}>
+                      <Text style={styles.label}>Policy Number</Text>
+                      <TextInput
+                        style={styles.input}
+                        value={insurancePolicyNumber}
+                        onChangeText={setInsurancePolicyNumber}
+                        placeholder="Policy number"
+                        maxLength={50}
+                      />
+                    </View>
+
+                    <View style={[styles.inputGroup, styles.halfWidth]}>
+                      <Text style={styles.label}>Contact Phone</Text>
+                      <TextInput
+                        style={styles.input}
+                        value={insuranceContactPhone}
+                        onChangeText={setInsuranceContactPhone}
+                        placeholder="Insurance phone"
+                        keyboardType="phone-pad"
+                        maxLength={20}
+                      />
+                    </View>
+                  </View>
+
+                  <View style={styles.inputGroup}>
+                    <Text style={styles.label}>Coverage Details</Text>
+                    <TextInput
+                      style={[styles.input, styles.textArea]}
+                      value={insuranceCoverageDetails}
+                      onChangeText={setInsuranceCoverageDetails}
+                      placeholder="Coverage details, deductibles, limits..."
+                      multiline={true}
+                      numberOfLines={3}
+                      maxLength={500}
+                    />
+                  </View>
+                </View>
+              </>
+            )}
+
+            {/* Pro Features */}
+            {subscriptionStatus.canUseProFeatures && (
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Breeding Information</Text>
+                
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Breeding Status</Text>
+                  <View style={styles.pickerContainer}>
+                    <Picker
+                      style={styles.picker}
+                      selectedValue={breedingStatus}
+                      onValueChange={setBreedingStatus}
+                    >
+                      <Picker.Item label="Not Applicable" value="not_applicable" />
+                      <Picker.Item label="Intact" value="intact" />
+                      <Picker.Item label="Neutered/Spayed" value="neutered" />
+                      <Picker.Item label="Breeding" value="breeding" />
+                    </Picker>
+                  </View>
+                </View>
+
+                {breedingStatus !== 'not_applicable' && (
+                  <>
+                    <View style={styles.row}>
+                      <View style={[styles.inputGroup, styles.halfWidth]}>
+                        <Text style={styles.label}>Sire Name</Text>
+                        <TextInput
+                          style={styles.input}
+                          value={sireName}
+                          onChangeText={setSireName}
+                          placeholder="Father's name"
+                          maxLength={100}
+                        />
+                      </View>
+
+                      <View style={[styles.inputGroup, styles.halfWidth]}>
+                        <Text style={styles.label}>Dam Name</Text>
+                        <TextInput
+                          style={styles.input}
+                          value={damName}
+                          onChangeText={setDamName}
+                          placeholder="Mother's name"
+                          maxLength={100}
+                        />
+                      </View>
+                    </View>
+
+                    <View style={styles.row}>
+                      <View style={[styles.inputGroup, styles.halfWidth]}>
+                        <Text style={styles.label}>Registration Number</Text>
+                        <TextInput
+                          style={styles.input}
+                          value={registrationNumber}
+                          onChangeText={setRegistrationNumber}
+                          placeholder="Registration #"
+                          maxLength={50}
+                        />
+                      </View>
+
+                      <View style={[styles.inputGroup, styles.halfWidth]}>
+                        <Text style={styles.label}>Organization</Text>
+                        <TextInput
+                          style={styles.input}
+                          value={registrationOrganization}
+                          onChangeText={setRegistrationOrganization}
+                          placeholder="e.g., AKC, UKC"
+                          maxLength={100}
+                        />
+                      </View>
+                    </View>
+
+                    <View style={styles.inputGroup}>
+                      <Text style={styles.label}>Breeding Notes</Text>
+                      <TextInput
+                        style={[styles.input, styles.textArea]}
+                        value={breedingNotes}
+                        onChangeText={setBreedingNotes}
+                        placeholder="Breeding history, genetic testing results, etc."
+                        multiline={true}
+                        numberOfLines={3}
+                        maxLength={500}
+                      />
+                    </View>
+                  </>
+                )}
+              </View>
+            )}
+
+            {/* Upgrade prompt for free users */}
+            {!subscriptionStatus.canUsePremiumFeatures && (
+              <View style={styles.upgradePrompt}>
+                <Text style={styles.upgradeTitle}>🚀 Unlock Advanced Features</Text>
+                <Text style={styles.upgradeText}>
+                  Upgrade to Premium for multiple emergency contacts, pet insurance tracking, and more detailed health records. Pro tier includes breeding information and lineage tracking.
+                </Text>
+              </View>
+            )}
           </ScrollView>
         </View>
       </KeyboardAvoidingView>
@@ -457,5 +854,18 @@ export const AddPetModal: React.FC<AddPetModalProps> = ({
     fontSize: 14,
     color: '#EF6C00',
     lineHeight: 20,
+  },
+  datePickerCloseButton: {
+    alignSelf: 'flex-end',
+    marginTop: 10,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    backgroundColor: '#007AFF',
+    borderRadius: 8,
+  },
+  datePickerCloseText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });

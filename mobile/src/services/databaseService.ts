@@ -208,6 +208,22 @@ export class DatabaseService {
     }
   }
 
+  /**
+   * Updates the auth_user_id for an existing user (for linking existing profiles)
+   */
+  async updateUserAuthId(userId: number, authUserId: string): Promise<void> {
+    try {
+      const { error } = await supabase
+        .from('users')
+        .update({ auth_user_id: authUserId })
+        .eq('id', userId);
+
+      if (error) throw error;
+    } catch (error) {
+      throw handleServiceError(error, 'Failed to update user auth ID');
+    }
+  }
+
   // Pet Management Methods
   async getPetsByUserId(userId: number, includeFamily: boolean = false): Promise<DatabasePet[]> {
     try {
