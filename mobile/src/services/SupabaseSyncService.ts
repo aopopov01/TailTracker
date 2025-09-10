@@ -150,6 +150,9 @@ class SupabaseSyncService {
       // Get local pet profile
       const localProfile = await databaseService.getPetById(localPetId, user.id);
       if (!localProfile) {
+        // Clear pending sync for non-existent pet
+        console.log(`Pet ID ${localPetId} not found locally, clearing pending sync data`);
+        await AsyncStorage.removeItem(this.PENDING_SYNC_KEY);
         throw new Error('Local pet profile not found');
       }
 
@@ -560,7 +563,9 @@ class SupabaseSyncService {
     const nonRecoverableErrors = [
       'Local pet profile not found',
       'User not authenticated - please log in',
-      'Invalid pet data'
+      'Invalid pet data',
+      'Pet ID',
+      'not found locally'
     ];
     
     // Check if this is a non-recoverable error
