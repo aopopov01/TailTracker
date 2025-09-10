@@ -80,4 +80,10 @@ export interface RegistrationResult {
   user?: User;
   /** Error message if failed */
   error?: string;
+  /** Whether email verification is required */
+  requiresEmailVerification?: boolean;
+  /** Whether SMTP timeout occurred during registration */
+  smtpDelay?: boolean;
+  /** Refresh token if session created */
+  refreshToken?: string;
 }

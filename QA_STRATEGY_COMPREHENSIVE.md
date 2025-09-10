@@ -157,7 +157,7 @@ describe('Premium Subscription Flow', () => {
 - **Free Tier Limitations**: 2 pets, 25 photos, basic alerts
 - **Premium Gate Testing**: Feature access control at 15 upgrade points
 - **Pro Tier Validation**: Unlimited access, business features
-- **Pricing Compliance**: Regional pricing accuracy ($8.99 US, €7.99 EU)
+- **Pricing Compliance**: Regional pricing accuracy (Premium: $5.99 US, €5.99 EU; Pro: $8.99 US, €8.99 EU)
 
 ### 2. Non-Functional Testing Strategy
 

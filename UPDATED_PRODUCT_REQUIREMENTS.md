@@ -139,14 +139,14 @@ Core focus areas:
 - Simple health record sharing capabilities
 - Basic notification system
 
-### 💎 **PREMIUM TIER - €9.99/month**
+### 💎 **PREMIUM TIER - €5.99/month (€50/year)**
 
 **F004: Enhanced Family Coordination**
-- **2 family members** with role-based access
+- **3 family members** with role-based access
 - Real-time family chat and photo sharing
 - Shared task management for pet care
 - Enhanced notification system with instant alerts
-- **Limitation**: Up to 3 pets
+- **Limitation**: Up to 2 pets
 
 **F005: Advanced Health Management**
 - Enhanced health data visualization
@@ -160,19 +160,19 @@ Core focus areas:
 - Basic resource sharing
 - Simple community messaging
 
-### 🏆 **PRO TIER - €19.99/month**
+### 🏆 **PRO TIER - €8.99/month (€80/year)**
 
 **F007: Extended Family Management**
-- **4+ family members** with advanced permissions
+- **Unlimited family members** with advanced permissions
 - Advanced family coordination tools
 - Family performance and participation tracking
 - **Unlimited pets**
 
-**F008: Full Community Network**
-- Complete local pet parent network access
-- Advanced resource sharing and recommendations
-- Community-wide health alerts and support
-- Emergency pet care coordination
+**F008: Lost Pet Creation**
+- Create lost pet alerts and reports
+- Community notification system
+- Location-based alert distribution
+- Photo sharing for lost pet identification
 
 **F009: Professional Business Tools**
 - Client management system for pet care providers
@@ -262,13 +262,14 @@ Core focus areas:
 
 ## 🎯 Updated Feature Comparison
 
-| **Feature** | **Free** | **Premium** | **Pro** |
+| **Feature** | **Free** | **Premium (€5.99/month)** | **Pro (€8.99/month)** |
 |-------------|----------|-------------|---------|
-| **Pets** | 1 pet | 3 pets | Unlimited |
-| **Users** | 1 user | 2 users | 4+ users |
+| **Pets** | 1 pet | 2 pets | Unlimited |
+| **Users** | 2 family members | 3 family members | Unlimited family members |
 | **Health Tracking** | Basic | Enhanced | Professional |
-| **Family Features** | None | Real-time coordination | Advanced management |
+| **Family Features** | Basic | Real-time coordination | Advanced management |
 | **Community** | None | Basic access | Full network |
+| **Lost Pet Creation** | None | None | Yes |
 | **Business Tools** | None | None | Professional suite |
 | **~~AI Features~~** | ~~None~~ | ~~None~~ | ~~None~~ |
 | **~~Scheduling~~** | ~~None~~ | ~~None~~ | ~~None~~ |

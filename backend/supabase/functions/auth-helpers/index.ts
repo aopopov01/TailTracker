@@ -3,7 +3,7 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-import { corsHeaders } from '../_shared/cors.ts'
+import { responseHeaders, getCorsHeaders } from '../_shared/cors.ts'
 
 interface JoinFamilyRequest {
   invite_code: string
@@ -24,8 +24,11 @@ interface CompleteOnboardingRequest {
 
 serve(async (req) => {
   // Handle CORS
+  const origin = req.headers.get('origin');
+  const responseHeaders = getCorsHeaders(origin);
+  
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
+    return new Response('ok', { headers: responseHeaders })
   }
 
   try {
@@ -45,7 +48,7 @@ serve(async (req) => {
     if (authError || !user) {
       return new Response(
         JSON.stringify({ error: 'Unauthorized' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 401, headers: { ...responseHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
@@ -77,13 +80,13 @@ serve(async (req) => {
 
     return new Response(
       JSON.stringify({ error: 'Invalid endpoint' }),
-      { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { status: 404, headers: { ...responseHeaders, 'Content-Type': 'application/json' } }
     )
   } catch (error) {
     console.error('Auth helpers function error:', error)
     return new Response(
       JSON.stringify({ error: 'Internal server error' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { status: 500, headers: { ...responseHeaders, 'Content-Type': 'application/json' } }
     )
   }
 })
@@ -98,7 +101,7 @@ async function handleGetOnboardingStatus(supabaseClient: any, userId: string) {
       console.error('Onboarding status error:', error)
       return new Response(
         JSON.stringify({ error: 'Failed to check onboarding status' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 500, headers: { ...responseHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
@@ -137,13 +140,13 @@ async function handleGetOnboardingStatus(supabaseClient: any, userId: string) {
           user_data: userData
         }
       }),
-      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { status: 200, headers: { ...responseHeaders, 'Content-Type': 'application/json' } }
     )
   } catch (error) {
     console.error('Get onboarding status error:', error)
     return new Response(
       JSON.stringify({ error: 'Failed to get onboarding status' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { status: 500, headers: { ...responseHeaders, 'Content-Type': 'application/json' } }
     )
   }
 }
@@ -157,19 +160,19 @@ async function handleGetEmailVerificationStatus(supabaseClient: any, userId: str
       console.error('Email verification status error:', error)
       return new Response(
         JSON.stringify({ error: 'Failed to check email verification status' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 500, headers: { ...responseHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
     return new Response(
       JSON.stringify({ data: { email_confirmed: data || false } }),
-      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { status: 200, headers: { ...responseHeaders, 'Content-Type': 'application/json' } }
     )
   } catch (error) {
     console.error('Get email verification status error:', error)
     return new Response(
       JSON.stringify({ error: 'Failed to get email verification status' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { status: 500, headers: { ...responseHeaders, 'Content-Type': 'application/json' } }
     )
   }
 }
@@ -181,7 +184,7 @@ async function handleJoinFamily(supabaseClient: any, userId: string, req: Reques
     if (!invite_code || invite_code.trim() === '') {
       return new Response(
         JSON.stringify({ error: 'Invite code is required' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 400, headers: { ...responseHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
@@ -196,14 +199,14 @@ async function handleJoinFamily(supabaseClient: any, userId: string, req: Reques
       console.error('Join family error:', error)
       return new Response(
         JSON.stringify({ error: 'Failed to join family' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 500, headers: { ...responseHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
     if (!data.success) {
       return new Response(
         JSON.stringify({ error: data.error }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 400, headers: { ...responseHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
@@ -215,13 +218,13 @@ async function handleJoinFamily(supabaseClient: any, userId: string, req: Reques
         },
         message: data.message 
       }),
-      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { status: 200, headers: { ...responseHeaders, 'Content-Type': 'application/json' } }
     )
   } catch (error) {
     console.error('Join family error:', error)
     return new Response(
       JSON.stringify({ error: 'Failed to join family' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { status: 500, headers: { ...responseHeaders, 'Content-Type': 'application/json' } }
     )
   }
 }
@@ -245,7 +248,7 @@ async function handleCompleteOnboarding(supabaseClient: any, userId: string, req
     if (userError || !userData) {
       return new Response(
         JSON.stringify({ error: 'User not found' }),
-        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 404, headers: { ...responseHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
@@ -265,7 +268,7 @@ async function handleCompleteOnboarding(supabaseClient: any, userId: string, req
       console.error('Profile update error:', updateError)
       return new Response(
         JSON.stringify({ error: 'Failed to update profile' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 500, headers: { ...responseHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
@@ -305,13 +308,13 @@ async function handleCompleteOnboarding(supabaseClient: any, userId: string, req
         },
         message: 'Onboarding completed successfully'
       }),
-      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { status: 200, headers: { ...responseHeaders, 'Content-Type': 'application/json' } }
     )
   } catch (error) {
     console.error('Complete onboarding error:', error)
     return new Response(
       JSON.stringify({ error: 'Failed to complete onboarding' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { status: 500, headers: { ...responseHeaders, 'Content-Type': 'application/json' } }
     )
   }
 }
@@ -327,19 +330,19 @@ async function handleResendConfirmation(supabaseClient: any, userEmail: string) 
       console.error('Resend confirmation error:', error)
       return new Response(
         JSON.stringify({ error: 'Failed to resend confirmation email' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 500, headers: { ...responseHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
     return new Response(
       JSON.stringify({ message: 'Confirmation email sent' }),
-      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { status: 200, headers: { ...responseHeaders, 'Content-Type': 'application/json' } }
     )
   } catch (error) {
     console.error('Resend confirmation error:', error)
     return new Response(
       JSON.stringify({ error: 'Failed to resend confirmation email' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { status: 500, headers: { ...responseHeaders, 'Content-Type': 'application/json' } }
     )
   }
 }
@@ -351,7 +354,7 @@ async function handleRequestPasswordReset(supabaseClient: any, req: Request) {
     if (!email) {
       return new Response(
         JSON.stringify({ error: 'Email is required' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 400, headers: { ...responseHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
@@ -363,19 +366,19 @@ async function handleRequestPasswordReset(supabaseClient: any, req: Request) {
       console.error('Password reset error:', error)
       return new Response(
         JSON.stringify({ error: 'Failed to send password reset email' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 500, headers: { ...responseHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
     return new Response(
       JSON.stringify({ message: 'Password reset email sent' }),
-      { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { status: 200, headers: { ...responseHeaders, 'Content-Type': 'application/json' } }
     )
   } catch (error) {
     console.error('Request password reset error:', error)
     return new Response(
       JSON.stringify({ error: 'Failed to request password reset' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { status: 500, headers: { ...responseHeaders, 'Content-Type': 'application/json' } }
     )
   }
 }

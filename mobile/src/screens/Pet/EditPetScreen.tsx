@@ -343,13 +343,14 @@ export default function EditPetScreen() {
   const handleDateChange = (event: any, selectedDate?: Date) => {
     // Handle date picker changes properly for both iOS and Android
     if (Platform.OS === 'android') {
-      // On Android, close picker after user confirms or cancels
-      setShowDatePicker(false);
-      if (event.type === 'set' && selectedDate) {
-        // User confirmed the date selection
-        updateField('birth_date', selectedDate.toISOString().split('T')[0]);
+      // On Android, only close picker when user explicitly dismisses
+      if (event.type === 'dismissed') {
+        // User cancelled - close without saving
+        setShowDatePicker(false);
+      } else if (selectedDate) {
+        // User is still selecting - keep picker open and update temp date
+        setTempDate(selectedDate);
       }
-      // If event.type === 'dismissed', user cancelled - do nothing
     } else {
       // On iOS, store the selected date temporarily but don't update form yet
       if (selectedDate) {
@@ -358,8 +359,8 @@ export default function EditPetScreen() {
     }
   };
 
-  const handleiOSDateConfirm = () => {
-    // Only update the form data when user confirms on iOS
+  const handleDateConfirm = () => {
+    // Update the form data when user confirms
     if (tempDate) {
       updateField('birth_date', tempDate.toISOString().split('T')[0]);
     }
@@ -367,7 +368,7 @@ export default function EditPetScreen() {
     setTempDate(null);
   };
 
-  const handleiOSDateCancel = () => {
+  const handleDateCancel = () => {
     // Cancel without saving changes
     setShowDatePicker(false);
     setTempDate(null);
@@ -405,24 +406,21 @@ export default function EditPetScreen() {
             mode="date"
             display={Platform.OS === 'ios' ? 'spinner' : 'default'}
             onChange={handleDateChange}
-            maximumDate={new Date()}
           />
-          {Platform.OS === 'ios' && (
-            <View style={styles.iosDatePickerActions}>
-              <TouchableOpacity
-                style={[styles.datePickerButton, styles.cancelButton]}
-                onPress={handleiOSDateCancel}
-              >
-                <Text style={[styles.datePickerButtonText, styles.cancelButtonText]}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.datePickerButton}
-                onPress={handleiOSDateConfirm}
-              >
-                <Text style={styles.datePickerButtonText}>Done</Text>
-              </TouchableOpacity>
-            </View>
-          )}
+          <View style={styles.datePickerActions}>
+            <TouchableOpacity
+              style={[styles.datePickerButton, styles.cancelButton]}
+              onPress={handleDateCancel}
+            >
+              <Text style={[styles.datePickerButtonText, styles.cancelButtonText]}>Cancel</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.datePickerButton}
+              onPress={handleDateConfirm}
+            >
+              <Text style={styles.datePickerButtonText}>Done</Text>
+            </TouchableOpacity>
+          </View>
         </>
       )}
     </View>
@@ -832,7 +830,7 @@ const styles = StyleSheet.create({
     fontFamily: fonts.regular,
     color: colors.text,
   },
-  iosDatePickerActions: {
+  datePickerActions: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     paddingTop: spacing.sm,

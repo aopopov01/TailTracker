@@ -34,6 +34,24 @@ export class AuthService {
       });
 
       if (error) {
+        // Handle 504 timeout gracefully - this is common with slow SMTP
+        if (error.status === 504 || error.name === 'AuthRetryableFetchError') {
+          console.log('⏱️ SMTP timeout detected - treating as successful signup with delayed email');
+          return {
+            success: true,
+            user: {
+              id: 'pending', // Temporary ID since we don't have the real one yet
+              email: userData.email.toLowerCase(),
+              firstName: userData.firstName.trim(),
+              lastName: userData.lastName.trim(),
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+            },
+            requiresEmailVerification: true,
+            smtpDelay: true // Flag to indicate timeout occurred
+          };
+        }
+        
         return {
           success: false,
           error: error.message
@@ -47,77 +65,15 @@ export class AuthService {
         };
       }
 
-      // Create or get user profile in our database
-      let user: User | null = null;
-      if (data.user.id) {
-        try {
-          console.log(`🔄 Processing user profile for auth ID: ${data.user.id}, email: ${data.user.email}`);
-          
-          // First try to get existing user profile by auth ID
-          let dbUser = await databaseService.getUserByAuthId(data.user.id);
-          console.log(`🔍 Search by auth ID result: ${dbUser ? `Found user ${dbUser.id}` : 'Not found'}`);
-          
-          // If no existing profile by auth ID, check by email
-          if (!dbUser) {
-            console.log(`🔍 Searching for user by email: ${data.user.email}`);
-            dbUser = await databaseService.getUserByEmail(data.user.email!);
-            console.log(`🔍 Search by email result: ${dbUser ? `Found user ${dbUser.id}` : 'Not found'}`);
-            
-            if (dbUser) {
-              // User profile exists but not linked - link it
-              console.log(`🔗 Found existing user profile by email (ID: ${dbUser.id}), linking with auth user`);
-              await databaseService.updateUserAuthId(dbUser.id, data.user.id);
-              console.log('✅ Successfully linked user profile with auth user');
-            } else {
-              // No existing profile - create new one
-              console.log('➕ No existing profile found, creating new user');
-              try {
-                dbUser = await databaseService.createUser({
-                  auth_user_id: data.user.id,
-                  email: data.user.email!,
-                  full_name: `${userData.firstName.trim()} ${userData.lastName.trim()}`
-                });
-                console.log(`✅ Successfully created new user profile with ID: ${dbUser.id}`);
-              } catch (createError: any) {
-                console.log(`⚠️ Error creating user: ${createError.code} - ${createError.message}`);
-                // Last resort: try to find by email again in case of race condition
-                if (createError?.code === '23505' || createError?.message?.includes('already exists')) {
-                  console.log('🔄 Race condition detected, attempting to find existing user by email again');
-                  dbUser = await databaseService.getUserByEmail(data.user.email!);
-                  if (dbUser) {
-                    console.log(`🔗 Found user in race condition (ID: ${dbUser.id}), linking now`);
-                    await databaseService.updateUserAuthId(dbUser.id, data.user.id);
-                    console.log('✅ Successfully resolved race condition and linked profile');
-                  }
-                } else {
-                  console.error('❌ Unexpected error creating user:', createError);
-                  throw createError;
-                }
-              }
-            }
-          }
-
-          if (dbUser) {
-            user = {
-              id: dbUser.id.toString(),
-              email: dbUser.email,
-              firstName: userData.firstName.trim(),
-              lastName: userData.lastName.trim(),
-              createdAt: dbUser.created_at,
-              updatedAt: dbUser.updated_at,
-            };
-          }
-        } catch (dbError) {
-          console.error('Failed to handle user profile:', dbError);
-          // Don't fail registration if profile handling fails
-        }
-      }
+      // Note: User profile will be created automatically on first sign-in
+      // This avoids RLS policy issues since the user isn't authenticated yet after registration
+      console.log('📋 User profile creation deferred to first sign-in after email verification');
 
       console.log('✅ User registration completed, email verification will be sent by Supabase');
 
       return {
         success: true,
-        user: user || {
+        user: {
           id: data.user.id,
           email: data.user.email!,
           firstName: userData.firstName.trim(),

@@ -18,20 +18,25 @@ export interface DatabaseUser {
 }
 
 export interface DatabasePet {
-  id: number;
-  user_id: number;
-  family_id?: number;
+  id: string;
+  family_id: string;
   name: string;
   species: string;
   breed?: string;
-  birth_date?: string;
-  microchip_id?: string;
-  weight?: number;
   color?: string;
-  medical_conditions?: string[];
-  dietary_restrictions?: string[];
-  photo_url?: string;
-  is_lost: boolean;
+  gender?: string;
+  date_of_birth?: string;
+  weight_kg?: number;
+  microchip_number?: string;
+  insurance_provider?: string;
+  insurance_policy_number?: string;
+  status?: 'active' | 'lost' | 'found' | 'inactive' | 'deceased';
+  profile_photo_url?: string;
+  emergency_contact_name?: string;
+  emergency_contact_phone?: string;
+  special_needs?: string;
+  allergies?: string;
+  created_by: string;
   created_at: string;
   updated_at: string;
   deleted_at?: string;
@@ -50,32 +55,40 @@ export interface UpdateUserData {
 }
 
 export interface CreatePetData {
-  user_id: number;
-  family_id?: number;
+  created_by: string;  // UUID from auth.users
+  family_id: string;   // UUID from families table
   name: string;
   species: string;
   breed?: string;
-  birth_date?: string;
-  microchip_id?: string;
-  weight?: number;
+  date_of_birth?: string;  // Match database column name
+  microchip_number?: string; // Match database column name
+  weight_kg?: number;       // Match database column name
   color?: string;
-  medical_conditions?: string[];
-  dietary_restrictions?: string[];
-  photo_url?: string;
+  gender?: string;
+  allergies?: string;
+  special_needs?: string;
+  emergency_contact_name?: string;
+  emergency_contact_phone?: string;
+  profile_photo_url?: string;
 }
 
 export interface UpdatePetData {
   name?: string;
   species?: string;
   breed?: string;
-  birth_date?: string;
-  microchip_id?: string;
-  weight?: number;
   color?: string;
-  medical_conditions?: string[];
-  dietary_restrictions?: string[];
-  photo_url?: string;
-  is_lost?: boolean;
+  gender?: string;
+  date_of_birth?: string;
+  weight_kg?: number;
+  microchip_number?: string;
+  insurance_provider?: string;
+  insurance_policy_number?: string;
+  status?: 'active' | 'lost' | 'found' | 'inactive' | 'deceased';
+  profile_photo_url?: string;
+  emergency_contact_name?: string;
+  emergency_contact_phone?: string;
+  special_needs?: string;
+  allergies?: string;
 }
 
 export class DatabaseService {
@@ -225,7 +238,7 @@ export class DatabaseService {
   }
 
   // Pet Management Methods
-  async getPetsByUserId(userId: number, includeFamily: boolean = false): Promise<DatabasePet[]> {
+  async getPetsByUserId(userId: string, includeFamily: boolean = false): Promise<DatabasePet[]> {
     try {
       let query = supabase
         .from('pets')
@@ -234,9 +247,9 @@ export class DatabaseService {
 
       if (includeFamily) {
         // Include pets from family memberships
-        query = query.or(`user_id.eq.${userId},family_id.in.(SELECT family_id FROM family_memberships WHERE user_id = ${userId})`);
+        query = query.or(`created_by.eq.${userId},family_id.in.(SELECT family_id FROM family_memberships WHERE user_id = ${userId})`);
       } else {
-        query = query.eq('user_id', userId);
+        query = query.eq('created_by', userId);
       }
 
       const { data, error } = await query.order('created_at', { ascending: false });
@@ -249,7 +262,7 @@ export class DatabaseService {
     }
   }
 
-  async getPetById(petId: number): Promise<DatabasePet | null> {
+  async getPetById(petId: string): Promise<DatabasePet | null> {
     try {
       const { data, error } = await supabase
         .from('pets')
@@ -277,7 +290,7 @@ export class DatabaseService {
         .from('pets')
         .insert([{
           ...petData,
-          is_lost: false,
+          status: 'active',
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         }])
@@ -292,7 +305,7 @@ export class DatabaseService {
     }
   }
 
-  async updatePet(petId: number, petData: UpdatePetData): Promise<DatabasePet> {
+  async updatePet(petId: string, petData: UpdatePetData): Promise<DatabasePet> {
     try {
       const { data, error } = await supabase
         .from('pets')
@@ -312,7 +325,7 @@ export class DatabaseService {
     }
   }
 
-  async softDeletePet(petId: number): Promise<void> {
+  async softDeletePet(petId: string): Promise<void> {
     try {
       const { error } = await supabase
         .from('pets')
@@ -600,7 +613,7 @@ export class DatabaseService {
         .from('pets')
         .insert(pets.map(pet => ({
           ...pet,
-          is_lost: false,
+          status: 'active',
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         })))
@@ -614,7 +627,7 @@ export class DatabaseService {
     }
   }
 
-  async batchUpdatePets(updates: { id: number; data: UpdatePetData }[]): Promise<DatabasePet[]> {
+  async batchUpdatePets(updates: { id: string; data: UpdatePetData }[]): Promise<DatabasePet[]> {
     try {
       const results: DatabasePet[] = [];
 

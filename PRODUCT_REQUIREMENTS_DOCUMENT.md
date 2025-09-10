@@ -256,7 +256,7 @@ TailTracker focuses on core pet management features:
 
 ### Optional Premium Features (Simple Add-ons)
 
-### Premium Features (€2.99/month)
+### Premium Features (€5.99/month or €50/year)
 
 **F004: Lost Pet Information Sharing**
 - **Description**: QR code and link sharing system for when pets go missing
@@ -285,17 +285,45 @@ TailTracker focuses on core pet management features:
   - Automated backup scheduling
   - Export functionality
 
+### Pro Features (€8.99/month or €80/year)
+
+**F006: Unlimited Pet & Family Management**
+- **Description**: Remove all limits on pets and family members
+- **Requirements**:
+  - Unlimited pet profiles
+  - Unlimited family member invitations
+  - Advanced family coordination features
+  - Bulk management tools for multiple pets
+- **Success Criteria**: Power users can manage large pet families
+- **Technical Specifications**:
+  - Remove tier-based limitations
+  - Advanced multi-pet dashboard
+  - Enhanced family permission controls
+
+**F007: Lost Pet Creation**
+- **Description**: Ability to create lost pet alerts and reports
+- **Requirements**:
+  - Create lost pet alerts with detailed information
+  - Community notification system
+  - Location-based alert distribution
+  - Photo sharing for lost pet identification
+- **Success Criteria**: Effective lost pet recovery system
+- **Technical Specifications**:
+  - Lost pet alert creation interface
+  - Community notification system
+  - Location-based alert targeting
+
 ### Future Enhancements (Roadmap)
 
-**F006: Multi-Pet Dashboard** (Future release)
-- Consolidated view for households with multiple pets
-- Bulk family coordination across multiple pets
-- Comparative basic health tracking across pets
-
-**F007: Community Features** (Future release)
+**F008: Community Features** (Future release)
 - Connect with other pet owners in neighborhood
 - Share non-sensitive pet information with local community
-- Lost pet alert system with community notifications
+- Enhanced community-based lost pet recovery system
+
+**F009: Advanced Analytics** (Future release)
+- Pet health trends and insights
+- Family activity dashboards
+- Comparative health tracking across pets
 
 ---
 
@@ -695,8 +723,9 @@ CREATE POLICY "Family members can access pets" ON pets
 ### Pricing & Monetization Strategy
 
 **Simple Monetization Model**
-- **Free Version**: Basic pet passport, health records, reminders (1 photo limit)
-- **Premium**: Lost pet QR sharing + additional storage up to 10 photos (€2.99/month)
+- **Free Version**: 1 pet, 2 family members, basic pet passport, health records, reminders (1 photo limit)
+- **Premium**: 2 pets, 3 family members, lost pet QR sharing + additional storage up to 12 photos (€5.99/month or €50/year)
+- **Pro**: Unlimited pets, unlimited family members, lost pet creation capability (€8.99/month or €80/year)
 
 **Revenue Sources**
 - **Premium Subscriptions**: 80% of revenue (lost pet + storage features)

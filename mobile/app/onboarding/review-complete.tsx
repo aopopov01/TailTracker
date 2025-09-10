@@ -29,6 +29,7 @@ import { databaseService } from '../../services/database';
 import { TailTrackerModal } from '../../src/components/UI/TailTrackerModal';
 import { useAuth } from '../../src/contexts/AuthContext';
 import { useTailTrackerModal } from '../../src/hooks/useTailTrackerModal';
+import { useOnboardingSync } from '../../src/hooks/useOnboardingSync';
 import { log } from '../../src/utils/Logger';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -128,11 +129,21 @@ const ProgressStep: React.FC<ProgressStepProps> = ({
 
 function ReviewCompleteScreen() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const { modalConfig, showModal, hideModal, showError } = useTailTrackerModal();
-  const { profile, resetProfile } = usePetProfile();
+  const { profile, resetProfile, savePetProfileWithSync } = usePetProfile();
+  const { 
+    completeOnboardingWithSync, 
+    isInitialSyncComplete,
+    isSyncing: isSyncingToCloud,
+    syncError,
+    clearSyncError,
+    canRetrySync,
+    retrySync
+  } = useOnboardingSync();
   const [isCreating, setIsCreating] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [localPetId, setLocalPetId] = useState<number | null>(null);
   const progressWidth = useSharedValue(0);
   const celebrationScale = useSharedValue(0);
   const sparkleRotation = useSharedValue(0);
@@ -188,38 +199,41 @@ function ReviewCompleteScreen() {
 
   const handleCreateProfile = async () => {
     setIsCreating(true);
+    clearSyncError(); // Clear any previous sync errors
     
     try {
       // Debug: Log the profile data being saved
       log.debug('Saving pet profile:', JSON.stringify(profile, null, 2));
       
-      // Save pet profile to database
-      const petId = await databaseService.savePetProfile(profile, parseInt(user?.id || '0', 10));
+      // Use the new sync-enabled save method
+      const result = await savePetProfileWithSync(profile);
+      const petId = result.localId;
+      setLocalPetId(petId);
       
       if (petId) {
         log.debug('Pet profile saved with ID:', petId);
         
-        // Reset the profile context for next use
-        resetProfile();
-        
-        showModal({
-          title: '🎉 Profile Created!',
-          message: `${profile.name || 'Your pet'}\'s profile has been successfully created. Welcome to TailTracker!`,
-          type: 'success',
-          icon: 'checkmark-circle',
-          actions: [
-            {
-              text: 'Get Started',
-              style: 'primary',
-              onPress: () => {
-                hideModal();
-                setIsCreating(false);
-                router.push('/(tabs)/dashboard' as any);
-              }
+        // Try to sync to Supabase if authenticated
+        if (isAuthenticated) {
+          try {
+            log.debug('Attempting to sync to Supabase...');
+            const syncResult = await completeOnboardingWithSync(petId);
+            
+            if (syncResult.success) {
+              log.debug('Sync to Supabase successful:', syncResult.supabasePetId);
+              showSuccessModal(true); // Fully synced
+            } else {
+              log.warn('Sync to Supabase failed:', syncResult.error);
+              showSuccessModal(false); // Local only, can retry sync
             }
-          ],
-          showCloseButton: false
-        });
+          } catch (syncError) {
+            log.error('Sync error:', syncError);
+            showSuccessModal(false); // Local only, can retry sync
+          }
+        } else {
+          log.debug('User not authenticated, skipping sync');
+          showSuccessModal(false); // Local only
+        }
       } else {
         throw new Error('Failed to save profile');
       }
@@ -232,6 +246,74 @@ function ReviewCompleteScreen() {
         'alert-circle'
       );
     }
+  };
+
+  const showSuccessModal = (fullySynced: boolean) => {
+    // Reset the profile context for next use
+    resetProfile();
+    
+    const title = fullySynced ? '🎉 Profile Created & Synced!' : '✅ Profile Created!';
+    const message = fullySynced 
+      ? `${profile.name || 'Your pet'}\'s profile has been successfully created and synced to the cloud. Welcome to TailTracker!`
+      : `${profile.name || 'Your pet'}\'s profile has been created locally. ${isAuthenticated ? 'Cloud sync will be retried automatically.' : 'Sign in to sync to the cloud.'}`;
+    
+    const actions = [];
+    
+    // Add retry sync button if sync failed but user is authenticated
+    if (!fullySynced && isAuthenticated && canRetrySync) {
+      actions.push({
+        text: 'Retry Sync',
+        style: 'secondary' as const,
+        onPress: async () => {
+          hideModal();
+          if (localPetId) {
+            try {
+              const retryResults = await retrySync();
+              const success = retryResults.some(r => r.success);
+              if (success) {
+                showModal({
+                  title: '🎉 Sync Successful!',
+                  message: 'Your pet profile has been synced to the cloud.',
+                  type: 'success',
+                  icon: 'cloud-done',
+                  actions: [{
+                    text: 'Get Started',
+                    style: 'primary',
+                    onPress: () => {
+                      hideModal();
+                      setIsCreating(false);
+                      router.push('/(tabs)/dashboard' as any);
+                    }
+                  }],
+                  showCloseButton: false
+                });
+              }
+            } catch (error) {
+              log.error('Retry sync failed:', error);
+            }
+          }
+        }
+      });
+    }
+    
+    actions.push({
+      text: 'Get Started',
+      style: 'primary' as const,
+      onPress: () => {
+        hideModal();
+        setIsCreating(false);
+        router.push('/(tabs)/dashboard' as any);
+      }
+    });
+
+    showModal({
+      title,
+      message,
+      type: 'success',
+      icon: fullySynced ? 'cloud-done' : 'checkmark-circle',
+      actions,
+      showCloseButton: false
+    });
   };
 
   const handleEditProfile = () => {
@@ -399,14 +481,26 @@ function ReviewCompleteScreen() {
                       <Animated.View
                         style={[styles.loadingSpinner, sparkleStyle]}
                       >
-                        <Ionicons name="sync" size={20} color={COLORS.white} />
+                        <Ionicons 
+                          name={isSyncingToCloud ? "cloud-upload" : "sync"} 
+                          size={20} 
+                          color={COLORS.white} 
+                        />
                       </Animated.View>
-                      <Text style={styles.createText}>Creating...</Text>
+                      <Text style={styles.createText}>
+                        {isSyncingToCloud ? 'Syncing...' : 'Creating...'}
+                      </Text>
                     </View>
                   ) : (
                     <>
-                      <Text style={styles.createText}>Create Profile</Text>
-                      <Ionicons name="checkmark-circle" size={20} color={COLORS.white} />
+                      <Text style={styles.createText}>
+                        {isAuthenticated ? 'Create & Sync' : 'Create Profile'}
+                      </Text>
+                      <Ionicons 
+                        name={isAuthenticated ? "cloud-upload" : "checkmark-circle"} 
+                        size={20} 
+                        color={COLORS.white} 
+                      />
                     </>
                   )}
                 </LinearGradient>

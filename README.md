@@ -138,10 +138,9 @@ npm run build:android      # Build Android app
 ## 💰 Monetization
 
 ### Subscription Tiers
-- **Free**: 1 pet, 1 user - Core health tracking
-- **Premium**: €9.99/month - 3 pets, 2 users, enhanced alerts
-- **Pro**: €19.99/month - Unlimited pets, 4+ users, community access
-- **Business Tools**: Professional features for pet care providers
+- **Free**: 1 pet, 2 family members - Core health tracking
+- **Premium**: €5.99/month (€50/year) - 2 pets, 3 family members, enhanced features
+- **Pro**: €8.99/month (€80/year) - Unlimited pets, unlimited family members, lost pet creation
 
 ### Payment Integration
 - **Stripe**: Secure payment processing

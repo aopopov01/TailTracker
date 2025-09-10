@@ -96,7 +96,7 @@ TailTracker enters a **$2.8 billion pet care app market** growing at 18% CAGR wi
 - Need to create lost pet alerts (pro tier allows reporting lost pets)
 - Want PDF export of health records (premium/pro only)
 
-### Premium Tier: "Family Care" - €2.99/month
+### Premium Tier: "Family Care" - €5.99/month (€50/year)
 **Target**: Pet owners who want enhanced health tracking and family sharing
 **Strategy**: Enhanced health management and family coordination
 
@@ -119,7 +119,7 @@ TailTracker enters a **$2.8 billion pet care app market** growing at 18% CAGR wi
 - **Community Lost Pet Alerts** (receive notifications within 10km - cannot create alerts)
 - **Secure QR Code Family Sharing** (advanced access control)
 
-### Pro Tier: "Complete Family" - €4.99/month
+### Pro Tier: "Complete Family" - €8.99/month (€80/year)
 **Target**: Larger families who want unlimited pets and lost pet reporting
 **Strategy**: Same as Premium tier + lost pet reporting capability
 
@@ -142,8 +142,8 @@ TailTracker enters a **$2.8 billion pet care app market** growing at 18% CAGR wi
 - **Premium Support** (faster customer service response)
 
 ### Annual Pricing:
-- **Premium Annual**: €29.99/year (17% savings)
-- **Pro Annual**: €49.99/year (17% savings)
+- **Premium Annual**: €50/year (17% savings)
+- **Pro Annual**: €80/year (11% savings)
 **Psychology**: Annual subscriptions reduce churn and improve unit economics
 **Market Standard**: 40%+ of users choose annual when 15%+ discount offered
 
@@ -185,8 +185,8 @@ New User → Free Tier (60 days) → Family Upgrade Prompt → Premium/Pro Conve
 ```
 
 **Expected Conversion Rate**: 8% overall (simplified pricing drives higher conversion)
-- Premium (€2.99): 5% of active users
-- Pro (€4.99): 3% of active users
+- Premium (€5.99): 5% of active users
+- Pro (€8.99): 3% of active users
 
 ---
 
@@ -195,27 +195,27 @@ New User → Free Tier (60 days) → Family Upgrade Prompt → Premium/Pro Conve
 ### Year 1 Targets
 - **Total Users**: 150,000
 - **Premium Conversions**: 22,500 (15% conversion rate)
-- **Monthly Revenue**: $201,000 (22,500 × $8.99)
-- **Annual Recurring Revenue**: $2.4M
+- **Monthly Revenue**: €201,000 (22,500 × €8.99)
+- **Annual Recurring Revenue**: €2.4M
 
 ### Year 2 Targets
 - **Total Users**: 500,000
 - **Premium Conversions**: 60,000 (12% conversion rate - natural decline)
 - **Pro Tier**: 2,000 users
-- **Monthly Revenue**: $579,000
-- **Annual Recurring Revenue**: $7.7M
+- **Monthly Revenue**: €579,000
+- **Annual Recurring Revenue**: €7.7M
 
 ### Unit Economics
-- **Customer Acquisition Cost (CAC)**: $12 (paid marketing + organic)
-- **Monthly Revenue Per User (ARPU)**: $8.99
-- **Customer Lifetime Value (LTV)**: $227 (25 months average retention)
+- **Customer Acquisition Cost (CAC)**: €12 (paid marketing + organic)
+- **Monthly Revenue Per User (ARPU)**: €8.99
+- **Customer Lifetime Value (LTV)**: €227 (25 months average retention)
 - **LTV:CAC Ratio**: 18.9:1 (excellent unit economics)
 
 ### Revenue Mix Projection (Year 2)
-- **Premium Subscriptions**: $6.5M (85%)
-- **Pro Subscriptions**: $480K (6%)
-- **Annual Plan Uplift**: $720K (9%)
-- **Total**: $7.7M ARR
+- **Premium Subscriptions**: €6.5M (85%)
+- **Pro Subscriptions**: €480K (6%)
+- **Annual Plan Uplift**: €720K (9%)
+- **Total**: €7.7M ARR
 
 ---
 
@@ -267,23 +267,23 @@ Users get complete basic functionality for free, with premium features enhancing
 
 ## 🎯 Pricing Strategy Rationale
 
-### €7.99/month Premium Pricing
+### €5.99/month Premium Pricing
 
 **Market Analysis**:
 - **Below €10 psychological barrier** (market research shows resistance above €10)
 - **Premium positioning** vs €4-6 competitors
-- **Value perception** aligns with €96 annual cost vs €1,200+ annual pet spending
+- **Value perception** aligns with €72 annual cost vs €1,200+ annual pet spending
 
 **Competitor Comparison**:
 - **11pets**: €4-6/month (basic features)
 - **MyPet**: €0.99-7.99/month (limited functionality)
-- **TailTracker**: €7.99/month (comprehensive features)
+- **TailTracker**: €5.99/month Premium, €8.99/month Pro (comprehensive features)
 - **Value Proposition**: 40-50% more features for competitive price
 
 ### Annual Discount Strategy: 17% savings
 
 **Industry Standard**: 15-20% discount drives 40%+ annual adoption
-**TailTracker**: €79.99 annual (€6.67/month equivalent)
+**TailTracker**: €50 annual Premium (€4.17/month equivalent), €80 annual Pro (€6.67/month equivalent)
 **Cash Flow Benefit**: Immediate annual revenue improves unit economics
 **Churn Reduction**: Annual subscribers show 65% lower churn rates
 
@@ -346,15 +346,15 @@ Users get complete basic functionality for free, with premium features enhancing
 ### Geographic Pricing Strategy
 
 **Primary Markets**: US, Canada, UK, Australia
-- **Premium**: $8.99/month (no localization needed)
+- **Premium**: $5.99/month, **Pro**: $8.99/month (no localization needed)
 - **Rationale**: Similar pet spending patterns and app pricing expectations
 
 **Secondary Markets**: EU, Japan
-- **Premium**: €7.99/month, ¥980/month
+- **Premium**: €5.99/month, **Pro**: €8.99/month, ¥790/¥1180/month
 - **Rationale**: Adjust for local pricing psychology and purchasing power
 
 **Future Markets**: Latin America, Southeast Asia
-- **Premium**: Local currency equivalent to $4.99-6.99
+- **Premium**: Local currency equivalent to $4.99, **Pro**: $6.99
 - **Rationale**: Lower pricing tier for emerging markets
 
 ---
@@ -455,9 +455,9 @@ Users get complete basic functionality for free, with premium features enhancing
 ### Pricing Elasticity Analysis
 
 **Price Increase Scenarios**:
-- **$9.99/month**: 15-20% conversion decrease, 10% revenue increase
-- **$7.99/month**: 10-15% conversion increase, 5% revenue decrease
-- **$8.99 is optimal** balance of conversion and revenue
+- **Premium €7.99/month**: 15-20% conversion decrease from €5.99, revenue neutral
+- **Premium €4.99/month**: 10-15% conversion increase from €5.99, revenue decrease
+- **€5.99 Premium/€8.99 Pro is optimal** balance of conversion and revenue
 
 **Market Risks**:
 - **Competitor Price Wars**: 11pets could slash prices in response

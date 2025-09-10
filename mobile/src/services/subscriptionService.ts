@@ -110,11 +110,11 @@ class SubscriptionService {
         return cached.subscription;
       }
 
-      // Fetch from user_profiles table where subscription status is stored
+      // Fetch from users table where subscription status is stored
       const { data, error } = await supabase
-        .from('user_profiles')
-        .select('id, user_id, subscription_status, subscription_expires_at, created_at, updated_at')
-        .eq('user_id', userId)
+        .from('users')
+        .select('id, auth_user_id, subscription_status, subscription_expires_at, created_at, updated_at')
+        .eq('auth_user_id', userId)
         .single();
 
       if (error && error.code !== 'PGRST116') { // Not found is OK
@@ -124,7 +124,7 @@ class SubscriptionService {
 
       const subscription = data ? {
         id: data.id,
-        user_id: data.user_id,
+        user_id: data.auth_user_id,
         tier: this.mapStatusToTier(data.subscription_status),
         status: data.subscription_status,
         subscription_expires_at: data.subscription_expires_at ? new Date(data.subscription_expires_at) : undefined,
@@ -241,14 +241,14 @@ class SubscriptionService {
       const subscriptionExpiresAt = new Date(now.getTime() + monthlyDays * 24 * 60 * 60 * 1000);
 
       const { data, error } = await supabase
-        .from('user_profiles')
+        .from('users')
         .update({
-          subscription_status: 'active',
+          subscription_status: 'premium',
           subscription_expires_at: subscriptionExpiresAt.toISOString(),
           updated_at: now.toISOString(),
         })
-        .eq('user_id', userId)
-        .select('id, user_id, subscription_status, subscription_expires_at, created_at, updated_at')
+        .eq('auth_user_id', userId)
+        .select('id, auth_user_id, subscription_status, subscription_expires_at, created_at, updated_at')
         .single();
 
       if (error) {
@@ -258,7 +258,7 @@ class SubscriptionService {
 
       const subscription: UserSubscription = {
         id: data.id,
-        user_id: data.user_id,
+        user_id: data.auth_user_id,
         tier,
         status: data.subscription_status,
         subscription_expires_at: data.subscription_expires_at ? new Date(data.subscription_expires_at) : undefined,
@@ -286,12 +286,12 @@ class SubscriptionService {
   ): Promise<boolean> {
     try {
       const { error } = await supabase
-        .from('user_profiles')
+        .from('users')
         .update({
-          subscription_status: 'active',
+          subscription_status: 'premium',
           updated_at: new Date().toISOString(),
         })
-        .eq('user_id', userId);
+        .eq('auth_user_id', userId);
 
       if (error) {
         console.error('Error upgrading subscription:', error);

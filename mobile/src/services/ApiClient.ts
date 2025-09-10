@@ -514,10 +514,10 @@ export const TailTrackerAPI = {
 
   // User operations
   user: {
-    getProfile: () => apiClient.get('/user_profiles', {
+    getProfile: () => apiClient.get('/users', {
       cache: { enabled: true, ttl: 300000 }, // 5 minute cache
     }),
-    updateProfile: (profileData: any) => apiClient.put('/user_profiles', profileData),
+    updateProfile: (profileData: any) => apiClient.put('/users', profileData),
   },
 
   // Image upload

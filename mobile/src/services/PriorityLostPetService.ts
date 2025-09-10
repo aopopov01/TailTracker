@@ -10,8 +10,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export interface LostPetReport {
   id: string;
-  petId: number;
-  userId: number;
+  petId: string;
+  userId: string;
   reportedAt: string;
   lastSeenLocation?: {
     latitude: number;
@@ -148,7 +148,7 @@ export class PriorityLostPetService {
   }
 
   public async reportLostPet(
-    petId: number, 
+    petId: string, 
     reportData: Omit<LostPetReport, 'id' | 'petId' | 'createdAt' | 'updatedAt' | 'alertsSent' | 'status'>
   ): Promise<LostPetReport> {
     try {
@@ -168,7 +168,7 @@ export class PriorityLostPetService {
       };
 
       // Mark pet as lost in database
-      await databaseService.updatePet(petId, { is_lost: true });
+      await databaseService.updatePet(petId, { status: 'lost' });
 
       // Add to priority queue
       await this.addToPriorityQueue(report);
@@ -368,7 +368,7 @@ export class PriorityLostPetService {
 
       // If status changed to 'found', mark pet as no longer lost
       if (updates.status === 'found') {
-        await databaseService.updatePet(existingReport.petId, { is_lost: false });
+        await databaseService.updatePet(existingReport.petId, { status: 'found' });
         
         if (!offlineManager.isOnline()) {
           await offlineManager.queueForOfflineSync({
@@ -443,7 +443,7 @@ export class PriorityLostPetService {
     }
   }
 
-  private async petMatchesSpecies(petId: number, species: string): Promise<boolean> {
+  private async petMatchesSpecies(petId: string, species: string): Promise<boolean> {
     try {
       const pet = await databaseService.getPetById(petId);
       return pet?.species.toLowerCase() === species.toLowerCase();

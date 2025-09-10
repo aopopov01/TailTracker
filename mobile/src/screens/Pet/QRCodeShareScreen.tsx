@@ -99,7 +99,7 @@ export default function QRCodeShareScreen() {
     if (!petId) return;
     
     try {
-      const pet = await databaseService.getPetById(parseInt(petId));
+      const pet = await databaseService.getPetById(petId);
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
       const owner = await databaseService.getUserByAuthId(user.id);
@@ -111,7 +111,7 @@ export default function QRCodeShareScreen() {
           phone: (owner as any).phone || '',
           email: owner.email || '',
           emergencyContact: (owner as any).emergency_contact_name || '',
-          medicalInfo: pet.medical_conditions?.join(', ') || '',
+          medicalInfo: pet.allergies || '',
         };
         
         setShareData(prev => ({

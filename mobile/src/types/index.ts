@@ -59,6 +59,10 @@ export interface RegistrationResult {
   token?: string;
   error?: string;
   requiresEmailVerification?: boolean;
+  /** Whether SMTP timeout occurred during registration */
+  smtpDelay?: boolean;
+  /** Refresh token if session created */
+  refreshToken?: string;
 }
 
 /**

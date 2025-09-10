@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { supabase } from '../../src/lib/supabase';
+import { supabase } from '../../src/services/supabase';
 import { modalService } from '../../src/services/modalService';
 
 export default function VerifyScreen() {

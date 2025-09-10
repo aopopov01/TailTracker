@@ -84,19 +84,19 @@ export class MigrationService {
       for (const legacyPet of legacyPets) {
         try {
           const newPet = await databaseService.createPet({
-            user_id: parseInt(userId),
+            created_by: userId,
+            family_id: userId, // Use userId as family_id for now
             name: legacyPet.name,
             species: legacyPet.species || 'other',
             breed: legacyPet.breed,
-            birth_date: legacyPet.birthDate,
-            // gender: legacyPet.gender, // Remove if not in CreatePetData interface
-            weight: legacyPet.weight,
+            date_of_birth: legacyPet.birthDate,
+            gender: legacyPet.gender,
+            weight_kg: legacyPet.weight,
             color: legacyPet.color,
-            microchip_id: legacyPet.microchipId,
-            medical_conditions: legacyPet.medicalConditions || [],
-            dietary_restrictions: legacyPet.dietaryRestrictions || [],
-            photo_url: legacyPet.photoUrl
-            // status: 'active' // Remove if not in CreatePetData interface
+            microchip_number: legacyPet.microchipId,
+            allergies: legacyPet.medicalConditions?.join(', ') || '',
+            special_needs: legacyPet.dietaryRestrictions?.join(', ') || '',
+            profile_photo_url: legacyPet.photoUrl
           });
 
           if (newPet) {

@@ -52,7 +52,7 @@ This document outlines TailTracker as a **Simple Pet Management and Family Coord
 11. **notification_preferences** - Simple notification settings
 
 #### Subscription & Business
-12. **subscriptions** - Simple subscription management (Free/Premium €2.99/Pro €4.99)
+12. **subscriptions** - Simple subscription management (Free/Premium €5.99/Pro €8.99)
 13. **payments** - Basic payment processing
 
 ## 🔒 Security & Compliance Architecture
@@ -105,7 +105,7 @@ This document outlines TailTracker as a **Simple Pet Management and Family Coord
 
 ### Family Coordination Features
 - **Simple family sharing** - Add family members to share pet information
-- **Family member limits** - 1 member (free), 2 members (premium €2.99/month), 4+ members (pro €4.99/month)
+- **Family member limits** - 2 members (free), 3 members (premium €5.99/month), unlimited members (pro €8.99/month)
 - **Basic communication** - Share updates about pets within families
 - **Photo sharing** - Share pet photos and health records with family
 
@@ -167,12 +167,12 @@ This document outlines TailTracker as a **Simple Pet Management and Family Coord
 ## 💳 Business Model Integration
 
 ### Subscription Tiers
-- **Free Tier**: 1 family member, basic pet profiles, basic health records
-- **Premium Tier (€2.99/month)**: 2 family members, unlimited health records
-- **Pro Tier (€4.99/month)**: 4+ family members, priority lost pet alerts
+- **Free Tier**: 2 family members, 1 pet, basic health records
+- **Premium Tier (€5.99/month, €50/year)**: 3 family members, 2 pets, unlimited health records
+- **Pro Tier (€8.99/month, €80/year)**: Unlimited family members and pets, lost pet creation
 
 ### Premium Features
-- **Multiple family members** - Share pets with family (2 members premium, 4+ pro)
+- **Multiple family members** - Share pets with family (3 members premium, unlimited pro)
 - **Unlimited health records** - No limits on health record entries
 - **Priority lost pet alerts** - Enhanced visibility for lost pet reports
 - **Family coordination** - Advanced family sharing and communication features
@@ -254,10 +254,10 @@ This document outlines TailTracker as a **Simple Pet Management and Family Coord
 The TailTracker Simple Pet Management Platform provides a streamlined approach to pet care coordination and community engagement. This simplified architecture delivers:
 
 - **Essential pet management** with basic health record tracking
-- **Family coordination** with tiered member limits (1/2/4+ for free/premium/pro)
+- **Family coordination** with tiered member limits (2/3/unlimited for free/premium/pro)
 - **Community-based lost pet** reporting and alerts
 - **Simple, secure architecture** focused on core user needs
-- **Affordable pricing** at €2.99/€4.99 per month for premium features
+- **Affordable pricing** at €5.99/€8.99 per month for premium features
 
 The platform is positioned as an accessible pet management solution that focuses on essential features without overwhelming complexity, making it suitable for everyday pet owners who want simple coordination and community support.
 

@@ -17,6 +17,7 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: false,
+    flowType: 'pkce', // Use PKCE flow for mobile
   },
 });
 
@@ -34,7 +35,8 @@ export const supabaseHelpers = {
       email,
       password,
       options: {
-        data: metadata
+        data: metadata,
+        emailRedirectTo: 'tailtracker://auth/verify', // Mobile deep link for email verification
       }
     });
     if (error) throw error;
@@ -53,6 +55,18 @@ export const supabaseHelpers = {
   async signOut() {
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
+  },
+
+  async resendVerificationEmail(email: string) {
+    const { data, error } = await supabase.auth.resend({
+      type: 'signup',
+      email,
+      options: {
+        emailRedirectTo: 'tailtracker://auth/verify', // Mobile deep link for email verification
+      }
+    });
+    if (error) throw error;
+    return data;
   },
 
   // Pet operations

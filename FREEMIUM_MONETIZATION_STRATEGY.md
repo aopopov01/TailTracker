@@ -46,18 +46,17 @@ TailTracker's freemium wellness monetization strategy is designed to capture the
 **Philosophy:** Provide genuine wellness value to build trust and engagement while creating natural upgrade paths to comprehensive health management.
 
 #### Core Free Wellness Features:
-- **Digital Pet Wellness Passports** (up to 2 pets)
+- **Digital Pet Wellness Passports** (1 pet)
   - Basic wellness profile with photo, breed, age, weight
   - Essential wellness information
   - Health ID storage
 - **Basic Wellness Tracking**
   - Manual entry for core wellness metrics
   - Simple wellness reminder notifications (3 reminders max)
-- **Wellness Community Access** (Limited)
-  - Basic wellness community posting (24-hour visibility)
-  - Regional wellness alerts within local community
-  - Community wellness visibility only
-- **Photo Storage** (25 wellness photos per pet)
+- **Family Access** (2 family members)
+  - Basic family sharing of pet information
+  - Read-only access for family members
+- **Photo Storage** (Limited wellness photos per pet)
 - **Basic Wellness Records**
   - Weight and wellness tracking (manual entry)
   - Simple wellness notes and observations
@@ -69,12 +68,13 @@ TailTracker's freemium wellness monetization strategy is designed to capture the
 - **Simple Wellness Appointment Reminders**
 - **Wellness Contact Storage**
 
-### Premium Tier: "Complete Wellness" - $8.99/month or $89.99/year
+### Premium Tier: "Complete Wellness" - €5.99/month or €50/year
 
 #### Premium Wellness Features:
 
 **Enhanced Pet Wellness Management:**
-- **Unlimited Pets** (vs 2 free)
+- **2 Pets** (vs 1 free)
+- **3 Family Members** (vs 2 free)
 - **Advanced Wellness Tracking**
   - Automatic wellness vet integration
   - Smart wellness scheduling with breed-specific recommendations
@@ -111,19 +111,20 @@ TailTracker's freemium wellness monetization strategy is designed to capture the
 - **Wellness telemedicine integration**
 - **Wellness insurance claim assistance"
 
-### Pro Tier: "Multi-Pet Wellness Professional" - $19.99/month or $199.99/year
+### Pro Tier: "Multi-Pet Wellness Professional" - €8.99/month or €80/year
 
 #### Target Audience:
 - Breeders, pet sitters, rescues, multi-pet wellness households (5+ pets)
 
 #### Pro Wellness Features:
 - **Unlimited pets and wellness family members**
+- **Lost Pet Creation** - Ability to create lost pet alerts and reports
 - **Wellness business tools for breeders/sitters**
 - **Advanced wellness reporting and analytics**
 - **API access for wellness integrations**
 - **White-label wellness options**
 - **Bulk wellness operations and management**
-- **Advanced wellness export capabilities"
+- **Advanced wellness export capabilities**
 
 ---
 

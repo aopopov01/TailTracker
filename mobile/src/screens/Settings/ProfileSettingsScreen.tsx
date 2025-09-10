@@ -160,9 +160,9 @@ export const ProfileSettingsScreen: React.FC = () => {
 
       // Update profile with new avatar URL
       const { error: updateError } = await supabase
-        .from('user_profiles')
+        .from('users')
         .update({ avatar_url: avatarUrl })
-        .eq('id', user?.id);
+        .eq('auth_user_id', user?.id);
 
       if (updateError) {
         throw updateError;
@@ -183,9 +183,9 @@ export const ProfileSettingsScreen: React.FC = () => {
   const removeProfileImage = async () => {
     try {
       const { error } = await supabase
-        .from('user_profiles')
+        .from('users')
         .update({ avatar_url: null })
-        .eq('id', user?.id);
+        .eq('auth_user_id', user?.id);
 
       if (error) {
         throw error;
@@ -253,9 +253,9 @@ export const ProfileSettingsScreen: React.FC = () => {
       };
 
       const { error } = await supabase
-        .from('user_profiles')
+        .from('users')
         .update(updateData)
-        .eq('id', user?.id);
+        .eq('auth_user_id', user?.id);
 
       if (error) {
         throw error;

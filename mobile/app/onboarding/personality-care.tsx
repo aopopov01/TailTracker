@@ -23,6 +23,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { TailTrackerModal } from '../../src/components/UI/TailTrackerModal';
 import { useTailTrackerModal } from '../../src/hooks/useTailTrackerModal';
+import { PetPersonalityService } from '../../src/services/PetPersonalityService';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -104,95 +105,6 @@ const TraitButton: React.FC<TraitButtonProps> = ({
   );
 };
 
-interface ExerciseLevelProps {
-  level: 'low' | 'moderate' | 'high';
-  selected: boolean;
-  onPress: () => void;
-  delay?: number;
-}
-
-const ExerciseLevel: React.FC<ExerciseLevelProps> = ({
-  level,
-  selected,
-  onPress,
-  delay = 0,
-}) => {
-  const levelConfig = {
-    low: {
-      label: 'Low Energy',
-      description: 'Enjoys relaxing, short walks',
-      icon: 'bed-outline' as keyof typeof Ionicons.glyphMap,
-      color: COLORS.mediumGray,
-    },
-    moderate: {
-      label: 'Moderate Energy',
-      description: 'Daily walks and playtime',
-      icon: 'walk-outline' as keyof typeof Ionicons.glyphMap,
-      color: COLORS.midCyan,
-    },
-    high: {
-      label: 'High Energy',
-      description: 'Needs lots of exercise and activity',
-      icon: 'flash-outline' as keyof typeof Ionicons.glyphMap,
-      color: COLORS.green,
-    },
-  };
-
-  const config = levelConfig[level];
-
-  return (
-    <Animated.View entering={SlideInDown.delay(delay).springify()}>
-      <TouchableOpacity
-        style={[
-          styles.exerciseLevelButton,
-          {
-            backgroundColor: selected ? COLORS.softGray : COLORS.white,
-            borderColor: selected ? config.color : COLORS.lightGray,
-          },
-          selected ? styles.exerciseLevelButtonSelected : styles.exerciseLevelButtonDefault
-        ]}
-        onPress={onPress}
-        activeOpacity={0.8}
-      >
-        <View style={styles.exerciseLevelContent}>
-          <View style={[
-            styles.exerciseLevelIcon,
-            { backgroundColor: selected ? config.color : COLORS.softGray }
-          ]}>
-            <Ionicons 
-              name={config.icon} 
-              size={24} 
-              color={selected ? COLORS.white : config.color} 
-            />
-          </View>
-          <View style={styles.exerciseLevelText}>
-            <Text style={[
-              styles.exerciseLevelLabel,
-              { color: selected ? COLORS.deepNavy : COLORS.mediumGray }
-            ]}>
-              {config.label}
-            </Text>
-            <Text style={styles.exerciseLevelDescription}>
-              {config.description}
-            </Text>
-          </View>
-          {selected && (
-            <View style={styles.exerciseLevelCheck}>
-              <LinearGradient
-                colors={[COLORS.lightCyan, COLORS.midCyan]}
-                style={styles.exerciseLevelCheckGradient}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-              >
-                <Ionicons name="checkmark" size={16} color={COLORS.white} />
-              </LinearGradient>
-            </View>
-          )}
-        </View>
-      </TouchableOpacity>
-    </Animated.View>
-  );
-};
 
 export default function PersonalityCareScreen() {
   const router = useRouter();
@@ -211,102 +123,127 @@ export default function PersonalityCareScreen() {
   const params = useLocalSearchParams<{ species?: string }>();
   const species = params.species ?? 'dog';
 
-  // Species-specific personality traits
-  const getPersonalityOptions = () => {
-    if (species === 'dog') {
-      return [
-        { trait: 'Playful', icon: 'game-controller-outline' as keyof typeof Ionicons.glyphMap },
-        { trait: 'Loyal', icon: 'heart-outline' as keyof typeof Ionicons.glyphMap },
-        { trait: 'Social', icon: 'people-outline' as keyof typeof Ionicons.glyphMap },
-        { trait: 'Protective', icon: 'shield-outline' as keyof typeof Ionicons.glyphMap },
-        { trait: 'Energetic', icon: 'flash-outline' as keyof typeof Ionicons.glyphMap },
-        { trait: 'Calm', icon: 'leaf-outline' as keyof typeof Ionicons.glyphMap },
-        { trait: 'Curious', icon: 'search-outline' as keyof typeof Ionicons.glyphMap },
-        { trait: 'Gentle', icon: 'flower-outline' as keyof typeof Ionicons.glyphMap },
-      ];
-    } else if (species === 'cat') {
-      return [
-        { trait: 'Independent', icon: 'compass-outline' as keyof typeof Ionicons.glyphMap },
-        { trait: 'Affectionate', icon: 'heart-outline' as keyof typeof Ionicons.glyphMap },
-        { trait: 'Playful', icon: 'game-controller-outline' as keyof typeof Ionicons.glyphMap },
-        { trait: 'Calm', icon: 'leaf-outline' as keyof typeof Ionicons.glyphMap },
-        { trait: 'Curious', icon: 'search-outline' as keyof typeof Ionicons.glyphMap },
-        { trait: 'Social', icon: 'people-outline' as keyof typeof Ionicons.glyphMap },
-        { trait: 'Shy', icon: 'eye-off-outline' as keyof typeof Ionicons.glyphMap },
-        { trait: 'Vocal', icon: 'chatbubble-outline' as keyof typeof Ionicons.glyphMap },
-      ];
-    } else if (species === 'bird') {
-      return [
-        { trait: 'Vocal', icon: 'chatbubble-outline' as keyof typeof Ionicons.glyphMap },
-        { trait: 'Social', icon: 'people-outline' as keyof typeof Ionicons.glyphMap },
-        { trait: 'Intelligent', icon: 'bulb-outline' as keyof typeof Ionicons.glyphMap },
-        { trait: 'Playful', icon: 'game-controller-outline' as keyof typeof Ionicons.glyphMap },
-        { trait: 'Curious', icon: 'search-outline' as keyof typeof Ionicons.glyphMap },
-        { trait: 'Gentle', icon: 'flower-outline' as keyof typeof Ionicons.glyphMap },
-        { trait: 'Active', icon: 'flash-outline' as keyof typeof Ionicons.glyphMap },
-        { trait: 'Calm', icon: 'leaf-outline' as keyof typeof Ionicons.glyphMap },
-      ];
-    } else {
-      return [
-        { trait: 'Playful', icon: 'game-controller-outline' as keyof typeof Ionicons.glyphMap },
-        { trait: 'Calm', icon: 'leaf-outline' as keyof typeof Ionicons.glyphMap },
-        { trait: 'Social', icon: 'people-outline' as keyof typeof Ionicons.glyphMap },
-        { trait: 'Independent', icon: 'compass-outline' as keyof typeof Ionicons.glyphMap },
-        { trait: 'Curious', icon: 'search-outline' as keyof typeof Ionicons.glyphMap },
-        { trait: 'Gentle', icon: 'flower-outline' as keyof typeof Ionicons.glyphMap },
-      ];
-    }
+  // Icon mapping for personality traits
+  const getTraitIcon = (traitLabel: string): keyof typeof Ionicons.glyphMap => {
+    const iconMap: Record<string, keyof typeof Ionicons.glyphMap> = {
+      // Temperament traits
+      'Loyal': 'heart-outline',
+      'Calm': 'leaf-outline',
+      'Protective': 'shield-outline',
+      'Intelligent': 'bulb-outline',
+      'Independent': 'compass-outline',
+      'Gentle': 'flower-outline',
+      'Shy': 'eye-off-outline',
+      'Territorial': 'lock-closed-outline',
+      
+      // Behavior traits
+      'Playful': 'game-controller-outline',
+      'Energetic': 'flash-outline',
+      'Curious': 'search-outline',
+      'Vocal': 'chatbubble-outline',
+      'Hunter': 'eye-outline',
+      'Active': 'fitness-outline',
+      
+      // Social traits
+      'Friendly': 'people-outline',
+      'Social': 'people-outline',
+      'Affectionate': 'heart-outline',
+      'Lap Cat': 'heart-circle-outline',
+    };
+    
+    return iconMap[traitLabel] || 'ellipse-outline';
   };
 
-  // Species-specific activity options
-  const getActivityOptions = () => {
-    if (species === 'dog') {
-      return [
-        { activity: 'Fetch', icon: 'baseball-outline' as keyof typeof Ionicons.glyphMap, color: 'green' as const },
-        { activity: 'Walking', icon: 'walk-outline' as keyof typeof Ionicons.glyphMap, color: 'blue' as const },
-        { activity: 'Running', icon: 'flash-outline' as keyof typeof Ionicons.glyphMap, color: 'green' as const },
-        { activity: 'Swimming', icon: 'water-outline' as keyof typeof Ionicons.glyphMap, color: 'blue' as const },
-        { activity: 'Playing with toys', icon: 'extension-puzzle-outline' as keyof typeof Ionicons.glyphMap, color: 'green' as const },
-        { activity: 'Meeting new people', icon: 'people-outline' as keyof typeof Ionicons.glyphMap, color: 'cyan' as const },
-        { activity: 'Car rides', icon: 'car-outline' as keyof typeof Ionicons.glyphMap, color: 'blue' as const },
-        { activity: 'Cuddling', icon: 'heart-outline' as keyof typeof Ionicons.glyphMap, color: 'cyan' as const },
-      ];
-    } else if (species === 'cat') {
-      return [
-        { activity: 'Playing with toys', icon: 'extension-puzzle-outline' as keyof typeof Ionicons.glyphMap, color: 'green' as const },
-        { activity: 'Climbing', icon: 'trending-up-outline' as keyof typeof Ionicons.glyphMap, color: 'blue' as const },
-        { activity: 'Hunting games', icon: 'eye-outline' as keyof typeof Ionicons.glyphMap, color: 'green' as const },
-        { activity: 'Sunbathing', icon: 'sunny-outline' as keyof typeof Ionicons.glyphMap, color: 'cyan' as const },
-        { activity: 'Cuddling', icon: 'heart-outline' as keyof typeof Ionicons.glyphMap, color: 'cyan' as const },
-        { activity: 'Exploring', icon: 'compass-outline' as keyof typeof Ionicons.glyphMap, color: 'blue' as const },
-        { activity: 'Grooming', icon: 'brush-outline' as keyof typeof Ionicons.glyphMap, color: 'cyan' as const },
-        { activity: 'Napping', icon: 'bed-outline' as keyof typeof Ionicons.glyphMap, color: 'cyan' as const },
-      ];
-    } else if (species === 'bird') {
-      return [
-        { activity: 'Flying', icon: 'airplane-outline' as keyof typeof Ionicons.glyphMap, color: 'blue' as const },
-        { activity: 'Singing', icon: 'musical-notes-outline' as keyof typeof Ionicons.glyphMap, color: 'green' as const },
-        { activity: 'Playing with toys', icon: 'extension-puzzle-outline' as keyof typeof Ionicons.glyphMap, color: 'green' as const },
-        { activity: 'Socializing', icon: 'people-outline' as keyof typeof Ionicons.glyphMap, color: 'cyan' as const },
-        { activity: 'Foraging', icon: 'search-outline' as keyof typeof Ionicons.glyphMap, color: 'blue' as const },
-        { activity: 'Preening', icon: 'brush-outline' as keyof typeof Ionicons.glyphMap, color: 'cyan' as const },
-        { activity: 'Perching', icon: 'git-branch-outline' as keyof typeof Ionicons.glyphMap, color: 'cyan' as const },
-        { activity: 'Learning tricks', icon: 'bulb-outline' as keyof typeof Ionicons.glyphMap, color: 'green' as const },
-      ];
-    } else {
-      return [
-        { activity: 'Playing', icon: 'game-controller-outline' as keyof typeof Ionicons.glyphMap, color: 'green' as const },
-        { activity: 'Exploring', icon: 'compass-outline' as keyof typeof Ionicons.glyphMap, color: 'blue' as const },
-        { activity: 'Resting', icon: 'bed-outline' as keyof typeof Ionicons.glyphMap, color: 'cyan' as const },
-        { activity: 'Socializing', icon: 'people-outline' as keyof typeof Ionicons.glyphMap, color: 'cyan' as const },
-        { activity: 'Exercise', icon: 'fitness-outline' as keyof typeof Ionicons.glyphMap, color: 'green' as const },
-        { activity: 'Cuddling', icon: 'heart-outline' as keyof typeof Ionicons.glyphMap, color: 'cyan' as const },
-      ];
-    }
+  // Icon mapping for activities
+  const getActivityIcon = (activityLabel: string): keyof typeof Ionicons.glyphMap => {
+    const iconMap: Record<string, keyof typeof Ionicons.glyphMap> = {
+      // Dog activities
+      'Playing Fetch': 'baseball-outline',
+      'Long Walks': 'walk-outline', 
+      'Running/Jogging': 'flash-outline',
+      'Swimming': 'water-outline',
+      'Training Sessions': 'school-outline',
+      'Puzzle Toys': 'extension-puzzle-outline',
+      'Tug of War': 'fitness-outline',
+      'Dog Parks': 'people-outline',
+      'Hiking': 'trail-sign-outline',
+      'Agility Training': 'ribbon-outline',
+      
+      // Cat activities
+      'Laser Pointer': 'radio-button-on-outline',
+      'Feather Wand Play': 'leaf-outline',
+      'Catnip Toys': 'flower-outline',
+      'Window Bird Watching': 'eye-outline',
+      'Cat Tree Climbing': 'trending-up-outline',
+      'Hunting Games': 'search-outline',
+      'Puzzle Feeders': 'extension-puzzle-outline',
+      'Sunbathing': 'sunny-outline',
+      'Exploring New Spaces': 'compass-outline',
+      'Socializing with Humans': 'people-outline',
+      
+      // Bird activities
+      'Foraging Games': 'search-outline',
+      'Mirror Interaction': 'copy-outline',
+      'Music & Dancing': 'musical-notes-outline',
+      'Talking/Mimicking': 'chatbubble-outline',
+      'Perch Swinging': 'git-branch-outline',
+      'Shredding Toys': 'cut-outline',
+      'Bath Time': 'water-outline',
+      'Supervised Exploration': 'compass-outline',
+      'Trick Training': 'school-outline',
+      
+      // Generic activities
+      'Playing': 'game-controller-outline',
+      'Exploring': 'compass-outline',
+      'Resting': 'bed-outline',
+      'Socializing': 'people-outline',
+      'Exercise': 'fitness-outline',
+      'Cuddling': 'heart-outline',
+      'Habitat Exploration': 'map-outline',
+      'Enrichment Toys': 'extension-puzzle-outline',
+      'Natural Species Behaviors': 'leaf-outline',
+      'Environmental Interaction': 'globe-outline',
+    };
+    
+    return iconMap[activityLabel] || 'ellipse-outline';
   };
 
-  const personalityOptions = getPersonalityOptions();
-  const activityOptions = getActivityOptions();
+  // Color mapping for activities
+  const getActivityColor = (activityLabel: string, category?: string): 'cyan' | 'green' | 'blue' => {
+    if (category === 'training') return 'green';
+    if (category === 'social') return 'cyan';
+    if (category === 'outdoor') return 'blue';
+    
+    // Default color mapping
+    const colorMap: Record<string, 'cyan' | 'green' | 'blue'> = {
+      'Playing Fetch': 'green',
+      'Long Walks': 'blue',
+      'Running/Jogging': 'green',
+      'Swimming': 'blue',
+      'Training Sessions': 'green',
+      'Puzzle Toys': 'green',
+      'Tug of War': 'green',
+      'Dog Parks': 'cyan',
+      'Hiking': 'blue',
+      'Agility Training': 'green',
+    };
+    
+    return colorMap[activityLabel] || 'cyan';
+  };
+
+  // Get species-specific data from service
+  const personalityProfile = PetPersonalityService.getPersonalityProfile(species as 'dog' | 'cat' | 'bird' | 'other');
+  
+  const personalityOptions = personalityProfile.personalityTraits.map(trait => ({
+    trait: trait.label,
+    icon: getTraitIcon(trait.label)
+  }));
+  
+  const activityOptions = personalityProfile.favoriteActivities.map(activity => ({
+    activity: activity.label,
+    icon: getActivityIcon(activity.label),
+    color: getActivityColor(activity.label, activity.category)
+  }));
 
   useEffect(() => {
     // Animate progress bar to show step 6 of 7
@@ -405,7 +342,7 @@ export default function PersonalityCareScreen() {
           </View>
           <Text style={styles.title}>Personality & Care</Text>
           <Text style={styles.subtitle}>
-            Help us understand your pet's unique character and preferences
+            Help us understand your {species === 'other' ? 'pet' : species}'s unique character and preferences
           </Text>
         </Animated.View>
 
@@ -429,7 +366,9 @@ export default function PersonalityCareScreen() {
               Personality Traits <Text style={styles.optional}>(optional)</Text>
             </Text>
           </View>
-          <Text style={styles.sectionSubtitle}>Select traits that best describe your pet</Text>
+          <Text style={styles.sectionSubtitle}>
+            Select traits that best describe your {species === 'other' ? 'pet' : species}
+          </Text>
           
           <View style={styles.traitsGrid}>
             {personalityOptions.map((option, index) => (
@@ -465,7 +404,9 @@ export default function PersonalityCareScreen() {
               Favorite Activities <Text style={styles.optional}>(optional)</Text>
             </Text>
           </View>
-          <Text style={styles.sectionSubtitle}>What does your pet love to do?</Text>
+          <Text style={styles.sectionSubtitle}>
+            What does your {species === 'other' ? 'pet' : species} love to do?
+          </Text>
           
           <View style={styles.traitsGrid}>
             {activityOptions.map((option, index) => (
@@ -502,17 +443,62 @@ export default function PersonalityCareScreen() {
               Exercise Needs <Text style={styles.optional}>(optional)</Text>
             </Text>
           </View>
-          <Text style={styles.sectionSubtitle}>How active is your pet?</Text>
+          <Text style={styles.sectionSubtitle}>
+            How active is your {species === 'other' ? 'pet' : species}?
+          </Text>
           
           <View style={styles.exerciseLevelsContainer}>
-            {(['low', 'moderate', 'high'] as const).map((level, index) => (
-              <ExerciseLevel
-                key={level}
-                level={level}
-                selected={exerciseNeeds === level}
-                onPress={() => setExerciseNeeds(level)}
-                delay={1500 + (index * 100)}
-              />
+            {personalityProfile.exerciseNeeds.map((exerciseOption, index) => (
+              <Animated.View key={exerciseOption.id} entering={SlideInDown.delay(1500 + (index * 100)).springify()}>
+                <TouchableOpacity
+                  style={[
+                    styles.exerciseLevelButton,
+                    {
+                      backgroundColor: exerciseNeeds === exerciseOption.value ? COLORS.softGray : COLORS.white,
+                      borderColor: exerciseNeeds === exerciseOption.value ? COLORS.lightCyan : COLORS.lightGray,
+                    },
+                    exerciseNeeds === exerciseOption.value ? styles.exerciseLevelButtonSelected : styles.exerciseLevelButtonDefault
+                  ]}
+                  onPress={() => setExerciseNeeds(exerciseOption.value)}
+                  activeOpacity={0.8}
+                >
+                  <View style={styles.exerciseLevelContent}>
+                    <View style={[
+                      styles.exerciseLevelIcon,
+                      { backgroundColor: exerciseNeeds === exerciseOption.value ? COLORS.lightCyan : COLORS.softGray }
+                    ]}>
+                      <Ionicons 
+                        name={exerciseOption.value === 'high' ? 'flash-outline' : exerciseOption.value === 'moderate' ? 'walk-outline' : 'bed-outline'} 
+                        size={24} 
+                        color={exerciseNeeds === exerciseOption.value ? COLORS.white : COLORS.lightCyan} 
+                      />
+                    </View>
+                    <View style={styles.exerciseLevelText}>
+                      <Text style={[
+                        styles.exerciseLevelLabel,
+                        { color: exerciseNeeds === exerciseOption.value ? COLORS.deepNavy : COLORS.mediumGray }
+                      ]}>
+                        {exerciseOption.label}
+                      </Text>
+                      <Text style={styles.exerciseLevelDescription}>
+                        {exerciseOption.description}
+                      </Text>
+                    </View>
+                    {exerciseNeeds === exerciseOption.value && (
+                      <View style={styles.exerciseLevelCheck}>
+                        <LinearGradient
+                          colors={[COLORS.lightCyan, COLORS.midCyan]}
+                          style={styles.exerciseLevelCheckGradient}
+                          start={{ x: 0, y: 0 }}
+                          end={{ x: 1, y: 1 }}
+                        >
+                          <Ionicons name="checkmark" size={16} color={COLORS.white} />
+                        </LinearGradient>
+                      </View>
+                    )}
+                  </View>
+                </TouchableOpacity>
+              </Animated.View>
             ))}
           </View>
         </Animated.View>

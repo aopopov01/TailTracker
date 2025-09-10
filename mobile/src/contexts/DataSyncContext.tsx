@@ -150,7 +150,7 @@ export const DataSyncProvider: React.FC<DataSyncProviderProps> = ({ children }) 
   const loadPetData = useCallback(async (petId: string) => {
     setIsLoading(true);
     try {
-      const pet = await databaseService.getPetById(parseInt(petId));
+      const pet = await databaseService.getPetById(petId);
       if (pet) {
         const petData: SharedPetData = {
           id: petId,
@@ -158,13 +158,13 @@ export const DataSyncProvider: React.FC<DataSyncProviderProps> = ({ children }) 
           species: pet.species,
           breed: pet.breed,
           color: pet.color,
-          weight: pet.weight,
-          birth_date: pet.birth_date,
-          microchip_id: pet.microchip_id,
-          photo_url: pet.photo_url,
-          medical_conditions: pet.medical_conditions,
-          dietary_restrictions: pet.dietary_restrictions,
-          is_lost: pet.is_lost,
+          weight: pet.weight_kg,
+          birth_date: pet.date_of_birth,
+          microchip_id: pet.microchip_number,
+          photo_url: pet.profile_photo_url,
+          medical_conditions: pet.allergies ? [pet.allergies] : undefined,
+          dietary_restrictions: pet.special_needs ? [pet.special_needs] : undefined,
+          is_lost: pet.status === 'lost',
         };
         
         updatePetData(petId, petData);

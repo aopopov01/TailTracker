@@ -60,7 +60,7 @@ export default function LostPetAlertScreen() {
   const loadData = useCallback(async () => {
     try {
       if (petId) {
-        const petData = await databaseService.getPetById(parseInt(petId));
+        const petData = await databaseService.getPetById(petId);
         setPet(petData);
         
         // TODO: Implement lost pet alert functionality when approved

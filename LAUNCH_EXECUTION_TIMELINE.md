@@ -414,7 +414,7 @@ This document provides a detailed, week-by-week execution timeline for TailTrack
 **Week 19-20: Pro Wellness Tier Launch**
 
 **Key Wellness Activities:**
-- [ ] Launch Pro wellness subscription tier (€19.99/month) for multi-pet wellness professionals
+- [ ] Launch Pro subscription tier (€8.99/month or €80/year) for multi-pet professionals
 - [ ] Target breeders, pet sitters, and rescue organizations focused on wellness
 - [ ] Implement advanced wellness business features and reporting tools
 - [ ] Launch B2B wellness sales and marketing campaigns

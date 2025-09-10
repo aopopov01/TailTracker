@@ -5,7 +5,7 @@
 import { Ionicons } from '@expo/vector-icons';
 
 export type ModalType = 'info' | 'success' | 'warning' | 'error';
-export type ModalActionStyle = 'primary' | 'default' | 'destructive';
+export type ModalActionStyle = 'primary' | 'secondary' | 'default' | 'destructive';
 
 export interface ModalAction {
   text: string;

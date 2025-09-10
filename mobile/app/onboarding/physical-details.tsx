@@ -130,6 +130,7 @@ export default function PhysicalDetailsScreen() {
   const [breed, setBreed] = useState('');
   const [showBreedSuggestions, setShowBreedSuggestions] = useState(false);
   const [dateOfBirth, setDateOfBirth] = useState(new Date());
+  const [tempDate, setTempDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [useApproximateAge, setUseApproximateAge] = useState(false);
   const [approximateAge, setApproximateAge] = useState('');
@@ -213,17 +214,35 @@ export default function PhysicalDetailsScreen() {
   };
 
   const handleDateChange = (event: any, selectedDate?: Date) => {
-    
-    // Handle date selection
-    if (event.type === 'set' && selectedDate) {
-      setDateOfBirth(selectedDate);
-      // Close picker after selection
-      setShowDatePicker(false);
-    } else if (event.type === 'dismissed' || event.type === 'neutralButtonPressed') {
-      // Only close on explicit dismissal/cancel
-      setShowDatePicker(false);
+    // Handle date picker changes properly for both iOS and Android
+    if (Platform.OS === 'android') {
+      // On Android, only close picker when user explicitly dismisses
+      if (event.type === 'dismissed') {
+        // User cancelled - close without saving
+        setShowDatePicker(false);
+      } else if (selectedDate) {
+        // User is still selecting - keep picker open and update temp date
+        setTempDate(selectedDate);
+      }
+    } else {
+      // On iOS, store the selected date temporarily but don't update form yet
+      if (selectedDate) {
+        setTempDate(selectedDate);
+      }
     }
-    // Note: Don't close on 'onChange' events as user might still be selecting
+  };
+
+  const handleDateConfirm = () => {
+    // Update the form data when user confirms
+    setDateOfBirth(tempDate);
+    setShowDatePicker(false);
+  };
+
+  const handleDateCancel = () => {
+    // Cancel without saving changes
+    setShowDatePicker(false);
+    // Reset temp date to current value
+    setTempDate(dateOfBirth);
   };
 
   return (
@@ -375,6 +394,8 @@ export default function PhysicalDetailsScreen() {
             <TouchableOpacity
               style={[styles.textInput, styles.dateButton]}
               onPress={() => {
+                // Initialize temp date with current value when opening picker
+                setTempDate(dateOfBirth);
                 setShowDatePicker(true);
               }}
               activeOpacity={0.7}
@@ -545,22 +566,19 @@ export default function PhysicalDetailsScreen() {
         <View style={styles.iosDatePickerContainer}>
           <View style={styles.iosDatePickerModal}>
             <View style={styles.iosDatePickerHeader}>
-              <TouchableOpacity onPress={() => setShowDatePicker(false)}>
+              <TouchableOpacity onPress={handleDateCancel}>
                 <Text style={styles.iosDatePickerCancel}>Cancel</Text>
               </TouchableOpacity>
-              <TouchableOpacity onPress={() => {
-                setShowDatePicker(false);
-              }}>
+              <TouchableOpacity onPress={handleDateConfirm}>
                 <Text style={styles.iosDatePickerDone}>Done</Text>
               </TouchableOpacity>
             </View>
             <View style={styles.datePickerWrapper}>
               <DateTimePicker
-                value={dateOfBirth}
+                value={tempDate}
                 mode="date"
                 display="spinner"
                 onChange={handleDateChange}
-                maximumDate={new Date()}
                 minimumDate={new Date(1900, 0, 1)}
                 style={styles.datePickerStyle}
                 textColor={COLORS.deepNavy}
@@ -572,14 +590,30 @@ export default function PhysicalDetailsScreen() {
       )}
       
       {showDatePicker && Platform.OS === 'android' && (
-        <DateTimePicker
-          value={dateOfBirth}
-          mode="date"
-          display="default"
-          onChange={handleDateChange}
-          maximumDate={new Date()}
-          minimumDate={new Date(1900, 0, 1)}
-        />
+        <View style={styles.iosDatePickerContainer}>
+          <View style={styles.iosDatePickerModal}>
+            <View style={styles.iosDatePickerHeader}>
+              <TouchableOpacity onPress={handleDateCancel}>
+                <Text style={styles.iosDatePickerCancel}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={handleDateConfirm}>
+                <Text style={styles.iosDatePickerDone}>Done</Text>
+              </TouchableOpacity>
+            </View>
+            <View style={styles.datePickerWrapper}>
+              <DateTimePicker
+                value={tempDate}
+                mode="date"
+                display="spinner"
+                onChange={handleDateChange}
+                minimumDate={new Date(1900, 0, 1)}
+                style={styles.datePickerStyle}
+                textColor={COLORS.deepNavy}
+                themeVariant="light"
+              />
+            </View>
+          </View>
+        </View>
       )}
       
     </KeyboardAvoidingView>

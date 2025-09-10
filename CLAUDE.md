@@ -1,7 +1,52 @@
 # TailTracker - Complete Development Documentation
 
 ## 🐾 Project Overview
-TailTracker is a cutting-edge cross-platform mobile application for comprehensive pet management, featuring digital pet passports, vaccination tracking, and an innovative lost pet alert system. Built with React Native and Expo for iOS and Android, the platform combines modern mobile development practices with a premium subscription model for advanced features.
+TailTracker is a cross-platform mobile application for comprehensive pet management, featuring digital pet passports, vaccination tracking, and lost pet alerts (Pro tier only). Built with React Native and Expo for iOS and Android, the platform combines modern mobile development practices with a tiered subscription model.
+
+### 🎯 APPROVED FEATURES ONLY
+This documentation reflects ONLY the approved features as defined in the subscription tiers. No additional features should be implemented without explicit approval.
+
+## APPROVED FEATURE SET
+
+### Free Tier (1 pet, 2 family members)
+- 1 pet profile with digital passport
+- 2 family members total (pet owner + 1)
+- Basic health tracking
+- Essential reminders (user-set only)
+- Family sharing (read-only access)
+- 1 photo per pet
+- Receive lost pet alerts (cannot create)
+- Standard support (FAQ, feedback)
+
+### Premium Tier (2 pets, 3 family members) 
+- 2 pet profiles with digital passports
+- 3 family members total (pet owner + 2)  
+- Enhanced health tracking
+- Advanced reminders (user-set only)
+- Family collaboration
+- QR code sharing
+- 6 photos per pet
+- Receive lost pet alerts (cannot create)
+- Export capabilities
+- Standard support (FAQ, feedback)
+
+### Pro Tier (unlimited pets & family)
+- Unlimited pet profiles
+- Unlimited family members
+- Create and receive lost pet alerts
+- Community notifications for lost pets
+- Advanced family management
+- Professional tools
+- Advanced analytics
+- 12 photos per pet
+- Standard support (FAQ, feedback)
+
+### Universal Features (All Tiers)
+- Vaccination tracking with user-set reminders
+- Basic push notifications
+- Photo galleries
+- Digital pet passports
+- Health record management
 
 ## Table of Contents
 1. [Critical Development Best Practices](#critical-development-best-practices)
@@ -1591,25 +1636,16 @@ export const AccessiblePetCard: FC<PetCardProps> = ({ pet }) => {
 
 ---
 
-## Future Roadmap
+## Future Considerations
 
-### Version 2.0 Features
-- [ ] AI-powered pet health insights
-- [ ] Veterinarian marketplace
-- [ ] Pet social network features
-- [ ] AR pet identification
-- [ ] Blockchain-based medical records
-- [ ] Voice-activated commands
-- [ ] Pet activity tracking with wearables
-- [ ] Emergency vet locator
-
-### Technical Improvements
+### Technical Improvements Only
 - [ ] React Native New Architecture adoption
-- [ ] Hermes engine optimization
+- [ ] Hermes engine optimization  
 - [ ] Code splitting and lazy loading
 - [ ] Advanced caching strategies
-- [ ] GraphQL migration consideration
-- [ ] Micro-frontend architecture
+- [ ] Performance optimizations
+
+**NOTE**: No new features should be added to this roadmap without explicit approval. Focus remains on delivering the approved feature set with exceptional quality.
 
 ---
 
