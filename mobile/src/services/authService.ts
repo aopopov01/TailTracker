@@ -28,8 +28,7 @@ export class AuthService {
             lastName: userData.lastName.trim(),
             full_name: `${userData.firstName.trim()} ${userData.lastName.trim()}`
           },
-          // Redirect to app after email confirmation
-          emailRedirectTo: 'tailtracker://auth/verify'
+          // Email verification disabled - users can use app immediately
         }
       });
 
@@ -47,7 +46,7 @@ export class AuthService {
               createdAt: new Date().toISOString(),
               updatedAt: new Date().toISOString(),
             },
-            requiresEmailVerification: true,
+            requiresEmailVerification: false,
             smtpDelay: true // Flag to indicate timeout occurred
           };
         }
@@ -67,9 +66,7 @@ export class AuthService {
 
       // Note: User profile will be created automatically on first sign-in
       // This avoids RLS policy issues since the user isn't authenticated yet after registration
-      console.log('📋 User profile creation deferred to first sign-in after email verification');
-
-      console.log('✅ User registration completed, email verification will be sent by Supabase');
+      console.log('✅ User registration completed, no email verification required');
 
       return {
         success: true,
@@ -81,7 +78,7 @@ export class AuthService {
           createdAt: data.user.created_at!,
           updatedAt: data.user.updated_at!,
         },
-        requiresEmailVerification: true // Always require verification since we signed out the user
+        requiresEmailVerification: false // No email verification required
       };
     } catch (error) {
       console.error('Registration error:', error);
@@ -402,61 +399,9 @@ export class AuthService {
   }
 
   /**
-   * Resends email verification using Supabase's built-in system
+   * Email verification has been disabled for better UX
+   * Users can immediately use the app after registration
    */
-  static async resendVerificationEmail(): Promise<{ success: boolean; error?: string }> {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user?.email) {
-        return {
-          success: false,
-          error: 'No email address found for verification'
-        };
-      }
-
-      console.log('📧 Resending email verification via Supabase for:', user.email);
-
-      const { error } = await supabase.auth.resend({
-        type: 'signup',
-        email: user.email,
-        options: {
-          emailRedirectTo: 'tailtracker://auth/verify'
-        }
-      });
-
-      if (error) {
-        console.error('❌ Failed to resend verification email:', error);
-        return {
-          success: false,
-          error: error.message || 'Failed to resend verification email'
-        };
-      }
-
-      console.log('✅ Verification email resent successfully');
-      return { success: true };
-
-    } catch (error) {
-      console.error('Resend verification email error:', error);
-      return {
-        success: false,
-        error: 'Failed to resend verification email. Please try again.'
-      };
-    }
-  }
-
-  /**
-   * Checks if current user's email is verified
-   */
-  static async isEmailVerified(): Promise<boolean> {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      return !!user?.email_confirmed_at;
-    } catch (error) {
-      console.error('Check email verification error:', error);
-      return false;
-    }
-  }
 
   /**
    * Validates email format

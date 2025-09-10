@@ -93,11 +93,11 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({
       });
 
       if (result.success) {
-        // Registration successful - user will receive Supabase email verification
+        // Registration successful - user can immediately log in
         modalService.showSuccess(
           'Registration Successful!',
-          'Please check your email and click the verification link to complete your registration.',
-          'mail-outline'
+          'Your account has been created successfully. You can now log in and start using TailTracker!',
+          'checkmark-circle-outline'
         );
         
         // Clear form after successful registration

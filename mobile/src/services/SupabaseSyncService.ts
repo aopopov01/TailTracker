@@ -59,8 +59,24 @@ export interface SupabasePetProfile {
   color?: string;
   sex?: string;
   neutered?: boolean;
+  
+  // Onboarding-specific fields
   personality_traits?: string[];
+  favorite_activities?: string[];
+  exercise_needs?: 'low' | 'moderate' | 'high';
   care_preferences?: string[];
+  favorite_toys?: string[];
+  feeding_schedule?: string;
+  special_notes?: string;
+  
+  // Additional onboarding fields
+  approximate_age?: string;
+  use_approximate_age?: boolean;
+  height_cm?: number;
+  weight_unit?: string;
+  height_unit?: string;
+  emergency_contact_relationship?: string;
+  
   medical_conditions?: string[];
   dietary_restrictions?: string[];
   emergency_contact?: string;
@@ -123,21 +139,13 @@ class SupabaseSyncService {
       if (authError || !user) {
         console.error('Authentication failed after retries:', authError);
         
-        // Check if this is an email verification issue
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session) {
-          console.log('Session exists but user not confirmed - email verification required');
-          throw new Error('Email verification required before sync');
-        }
+        // No email verification required - proceed with error
         
         throw new Error('User not authenticated - please log in');
       }
       
-      // Additional check for email verification
-      if (!user.email_confirmed_at) {
-        console.log('User email not verified - deferring sync');
-        throw new Error('Email verification required before sync');
-      }
+      // Email verification disabled - users can sync immediately after registration
+      console.log('✅ User authenticated, proceeding with sync (no email verification required)');
 
       // Get local pet profile
       const localProfile = await databaseService.getPetById(localPetId, user.id);
@@ -202,12 +210,27 @@ class SupabaseSyncService {
     } catch (error) {
       console.error('Onboarding sync failed:', error);
       
-      // Store for retry
-      await this.storePendingSyncData(localPetId, error);
+      // Provide more specific error context
+      const errorMessage = error instanceof Error ? error.message : 'Unknown sync error';
+      console.error('Sync error details:', {
+        localPetId,
+        errorMessage,
+        errorType: error instanceof Error ? error.constructor.name : 'Unknown',
+        timestamp: new Date().toISOString()
+      });
+      
+      // Store for retry only if it's a recoverable error
+      const isRecoverableError = this.isRecoverableError(error);
+      if (isRecoverableError) {
+        console.log('Error is recoverable, storing for retry');
+        await this.storePendingSyncData(localPetId, error);
+      } else {
+        console.log('Error is not recoverable, not storing for retry');
+      }
 
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown sync error',
+        error: errorMessage,
       };
     } finally {
       this.syncInProgress = false;
@@ -341,7 +364,7 @@ class SupabaseSyncService {
     const currentPetCount = existingPets?.length || 0;
 
     if (currentPetCount >= family.max_pets) {
-      throw new Error(`Pet limit reached (${family.max_pets}) for ${family.subscription_tier} tier`);
+      throw new Error(`Pet limit reached (${family.max_pets}) for ${family.subscription_status} tier`);
     }
   }
 
@@ -361,11 +384,24 @@ class SupabaseSyncService {
       color: localProfile.colorMarkings || undefined,
       sex: localProfile.gender || undefined,
       neutered: undefined, // Not in current profile structure
+      
+      // New onboarding fields
       personality_traits: localProfile.personalityTraits || undefined,
-      care_preferences: [
-        ...(localProfile.favoriteToys || []),
-        ...(localProfile.favoriteActivities || [])
-      ].filter(Boolean),
+      favorite_activities: localProfile.favoriteActivities || undefined,
+      exercise_needs: localProfile.exerciseNeeds || undefined,
+      care_preferences: localProfile.favoriteToys || undefined,
+      favorite_toys: localProfile.favoriteToys || undefined,
+      feeding_schedule: localProfile.feedingSchedule || undefined,
+      special_notes: localProfile.specialNotes || undefined,
+      
+      // Additional onboarding fields
+      approximate_age: localProfile.approximateAge || undefined,
+      use_approximate_age: localProfile.useApproximateAge || false,
+      height_cm: localProfile.height ? parseFloat(localProfile.height) : undefined,
+      weight_unit: localProfile.weightUnit || 'kg',
+      height_unit: localProfile.heightUnit || 'cm',
+      emergency_contact_relationship: localProfile.emergencyContact?.relationship || undefined,
+      
       medical_conditions: localProfile.medicalConditions || undefined,
       dietary_restrictions: localProfile.allergies || undefined,
       emergency_contact: localProfile.emergencyContact?.name || undefined,
@@ -510,6 +546,48 @@ class SupabaseSyncService {
       hasPendingSync: !!pendingSync,
       isAuthenticated,
     };
+  }
+
+  /**
+   * Determine if an error is recoverable and should be retried
+   */
+  private isRecoverableError(error: any): boolean {
+    if (!error) return false;
+    
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    
+    // Non-recoverable errors (don't retry these)
+    const nonRecoverableErrors = [
+      'Local pet profile not found',
+      'User not authenticated - please log in',
+      'Invalid pet data'
+    ];
+    
+    // Check if this is a non-recoverable error
+    const isNonRecoverable = nonRecoverableErrors.some(nonRecoverable => 
+      errorMessage.includes(nonRecoverable)
+    );
+    
+    if (isNonRecoverable) {
+      return false;
+    }
+    
+    // Recoverable errors (network, temporary auth issues, etc.)
+    const recoverableErrors = [
+      'Network request failed',
+      'timeout',
+      'connection',
+      'Failed to insert pet',
+      'Failed to create user profile',
+      'Failed to create family'
+    ];
+    
+    const isRecoverable = recoverableErrors.some(recoverable => 
+      errorMessage.toLowerCase().includes(recoverable.toLowerCase())
+    );
+    
+    // Default to recoverable for unknown errors
+    return isRecoverable || true;
   }
 
   /**

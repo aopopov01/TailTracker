@@ -41,7 +41,7 @@ export interface PetProfile {
   personalityTraits?: string[];
   favoriteToys?: string[];
   favoriteActivities?: string[];
-  exerciseNeeds?: 'low' | 'medium' | 'high';
+  exerciseNeeds?: 'low' | 'moderate' | 'high';
   feedingSchedule?: string;
   specialNotes?: string;
 }
@@ -381,9 +381,7 @@ export const PetProfileProvider: React.FC<{ children: ReactNode }> = ({ children
           
           // Log specific sync error types for debugging
           if (syncError instanceof Error) {
-            if (syncError.message.includes('Email verification required')) {
-              console.log('📧 Sync deferred - email verification pending');
-            } else if (syncError.message.includes('User not authenticated')) {
+            if (syncError.message.includes('User not authenticated')) {
               console.log('🔒 Sync deferred - authentication required');
             } else {
               console.log('⚠️ Sync failed - will retry later:', syncError.message);
@@ -428,11 +426,7 @@ export const PetProfileProvider: React.FC<{ children: ReactNode }> = ({ children
       
       let errorMessage = 'Failed to sync pet';
       if (error instanceof Error) {
-        if (error.message.includes('Email verification required')) {
-          errorMessage = 'Please verify your email before syncing';
-          console.log('📧 Sync deferred due to pending email verification');
-          // Don't treat this as a critical error
-        } else if (error.message.includes('User not authenticated')) {
+        if (error.message.includes('User not authenticated')) {
           errorMessage = 'Please log in to sync your pet data';
           console.log('🔒 Sync requires authentication');
         } else {
@@ -585,11 +579,32 @@ export const PetProfileProvider: React.FC<{ children: ReactNode }> = ({ children
       const checkPendingSyncs = async () => {
         const status = await supabaseSyncService.getSyncStatus();
         if (status.hasPendingSync) {
-          console.log('Pending syncs detected, will retry automatically');
-          // Could auto-retry here or show user notification
+          console.log('Pending syncs detected, attempting automatic retry...');
+          
+          // Auto-retry pending syncs for better UX
+          try {
+            const results = await supabaseSyncService.retryPendingSyncs();
+            const successfulSyncs = results.filter(r => r.success).length;
+            const failedSyncs = results.filter(r => !r.success).length;
+            
+            if (successfulSyncs > 0) {
+              console.log(`✅ Successfully synced ${successfulSyncs} pending profiles`);
+            }
+            if (failedSyncs > 0) {
+              console.log(`❌ Failed to sync ${failedSyncs} profiles, will retry later`);
+            }
+            
+            // Refresh sync status
+            await getSyncStatus();
+          } catch (error) {
+            console.error('Auto-retry failed:', error);
+          }
         }
       };
-      checkPendingSyncs();
+      
+      // Delay the check slightly to ensure auth is fully settled
+      const timeoutId = setTimeout(checkPendingSyncs, 1000);
+      return () => clearTimeout(timeoutId);
     }
   }, [isAuthenticated, user]);
 

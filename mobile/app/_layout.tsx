@@ -35,17 +35,8 @@ function DeepLinkHandler() {
 
     const handleDeepLink = (url: string) => {
       if (url.includes('/auth/verify')) {
-        console.log('🔗 Email verification link detected, navigating to verify screen');
-        // Extract query parameters and navigate
-        const urlObj = new URL(url);
-        const params = new URLSearchParams(urlObj.search || urlObj.hash?.replace('#', ''));
-        
-        // Build query string for the verification screen
-        const queryString = params.toString();
-        const verifyPath = queryString ? `/auth/verify?${queryString}` : '/auth/verify';
-        
-        console.log('🔗 Navigating to:', verifyPath);
-        router.push(verifyPath as any);
+        console.log('🔗 Email verification link detected, but verification is disabled - redirecting to login');
+        router.replace('/auth/login');
       }
     };
 

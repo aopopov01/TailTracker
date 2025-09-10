@@ -16,7 +16,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme, Button, ProgressBar } from 'react-native-paper';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { PetProfile, usePetProfile } from '../../contexts/PetProfileContext';
+import { PetProfile, usePetProfile } from '../../../contexts/PetProfileContext';
 import PetPersonalityService from '../../services/PetPersonalityService';
 
 // Step Components
@@ -133,7 +133,7 @@ export const PetOnboardingWizard: React.FC<Props> = ({
   const CurrentStepComponent = currentStepData.component;
 
   const handleStepUpdate = (updates: Partial<PetProfile>) => {
-    setWizardProfile(prev => ({ ...prev, ...updates }));
+    setWizardProfile((prev: PetProfile) => ({ ...prev, ...updates }));
   };
 
   const handleNext = () => {
@@ -321,7 +321,7 @@ export const PetOnboardingWizard: React.FC<Props> = ({
             styles.nextButton,
             { backgroundColor: theme.colors.primary },
           ]}
-          icon={currentStep === ONBOARDING_STEPS.length - 1 ? "plus" : "chevron-right"}
+          icon={currentStep === ONBOARDING_STEPS.length - 1 ? undefined : "chevron-right"}
           contentStyle={{ 
             flexDirection: currentStep === ONBOARDING_STEPS.length - 1 ? 'row' : 'row-reverse' 
           }}

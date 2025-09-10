@@ -36,7 +36,7 @@ export const supabaseHelpers = {
       password,
       options: {
         data: metadata,
-        emailRedirectTo: 'tailtracker://auth/verify', // Mobile deep link for email verification
+        // Email verification disabled for better UX
       }
     });
     if (error) throw error;
@@ -62,7 +62,7 @@ export const supabaseHelpers = {
       type: 'signup',
       email,
       options: {
-        emailRedirectTo: 'tailtracker://auth/verify', // Mobile deep link for email verification
+        // Email verification disabled for better UX
       }
     });
     if (error) throw error;

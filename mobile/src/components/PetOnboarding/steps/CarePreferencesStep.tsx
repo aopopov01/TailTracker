@@ -27,7 +27,7 @@ const CarePreferencesStep: React.FC<StepProps> = ({
     return PetPersonalityService.getExerciseOptions(profile.species);
   }, [profile.species]);
 
-  const handleExerciseSelect = (value: 'low' | 'medium' | 'high') => {
+  const handleExerciseSelect = (value: 'low' | 'moderate' | 'high') => {
     setExerciseNeed(value);
     onUpdate({ exerciseNeeds: value });
   };

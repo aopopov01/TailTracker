@@ -80,7 +80,7 @@ export interface RegistrationResult {
   user?: User;
   /** Error message if failed */
   error?: string;
-  /** Whether email verification is required */
+  /** Email verification has been disabled for better UX */
   requiresEmailVerification?: boolean;
   /** Whether SMTP timeout occurred during registration */
   smtpDelay?: boolean;
