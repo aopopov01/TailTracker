@@ -23,7 +23,6 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.tailtracker.app",
       "buildNumber": "1",
-      "deploymentTarget": "13.0",
       "requireFullScreen": false,
       "config": {
         "usesNonExemptEncryption": false
@@ -80,9 +79,6 @@
       },
       "package": "com.tailtracker.app",
       "versionCode": 1,
-      "compileSdkVersion": 34,
-      "targetSdkVersion": 34,
-      "minSdkVersion": 26,
       "permissions": [
         "android.permission.CAMERA",
         "android.permission.READ_EXTERNAL_STORAGE",
@@ -109,6 +105,9 @@
       [
         "expo-build-properties",
         {
+          "ios": {
+            "deploymentTarget": "15.1"
+          },
           "android": {
             "enableProguardInReleaseBuilds": true,
             "enableShrinkResourcesInReleaseBuilds": true,

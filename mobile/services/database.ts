@@ -6,7 +6,7 @@ const db = SQLite.openDatabaseSync('tailtracker.db');
 
 export interface StoredPetProfile extends PetProfile {
   id: number;
-  userId: number;
+  userId: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -27,7 +27,7 @@ export interface CreateUserData {
 export interface SharingToken {
   id: number;
   token: string;
-  ownerUserId: number;
+  ownerUserId: string;
   expiresAt: string;
   isActive: boolean;
   createdAt: string;
@@ -37,8 +37,8 @@ export interface SharingToken {
 export interface SharedAccess {
   id: number;
   tokenId: number;
-  guestUserId: number;
-  ownerUserId: number;
+  guestUserId: string;
+  ownerUserId: string;
   accessGrantedAt: string;
   lastAccessedAt?: string;
   isActive: boolean;
@@ -128,7 +128,7 @@ class DatabaseService {
       db.execSync(`
         CREATE TABLE IF NOT EXISTS pets (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
-          userId INTEGER NOT NULL,
+          userId TEXT NOT NULL,
           name TEXT,
           species TEXT,
           photos TEXT,
@@ -258,6 +258,102 @@ class DatabaseService {
         CREATE INDEX IF NOT EXISTS idx_lost_pet_alerts_active ON lost_pet_alerts (is_active);
       `);
 
+      // Migration: Convert userId from INTEGER to TEXT for UUID support
+      try {
+        // Check if userId column is INTEGER (old schema)
+        const tableInfo = db.getAllSync('PRAGMA table_info(pets)') as any[];
+        const userIdColumn = tableInfo.find(col => col.name === 'userId');
+        
+        if (userIdColumn && userIdColumn.type === 'INTEGER') {
+          console.log('Migrating pets.userId from INTEGER to TEXT for UUID support...');
+          
+          // Create backup table with new schema
+          db.execSync(`
+            CREATE TABLE pets_backup (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              userId TEXT NOT NULL,
+              name TEXT,
+              species TEXT,
+              photos TEXT,
+              breed TEXT,
+              dateOfBirth TEXT,
+              approximateAge TEXT,
+              useApproximateAge INTEGER,
+              gender TEXT,
+              colorMarkings TEXT,
+              weight TEXT,
+              weightUnit TEXT,
+              height TEXT,
+              heightUnit TEXT,
+              registrationNumber TEXT,
+              insuranceProvider TEXT,
+              insurancePolicyNumber TEXT,
+              medicalConditions TEXT,
+              medications TEXT,
+              allergies TEXT,
+              emergencyContact TEXT,
+              personalityTraits TEXT,
+              favoriteToys TEXT,
+              favoriteActivities TEXT,
+              exerciseNeeds TEXT,
+              feedingSchedule TEXT,
+              specialNotes TEXT,
+              createdAt TEXT DEFAULT CURRENT_TIMESTAMP,
+              updatedAt TEXT DEFAULT CURRENT_TIMESTAMP
+            );
+          `);
+          
+          // Copy data (converting integer userId to string, or setting empty string for invalid data)
+          db.execSync(`
+            INSERT INTO pets_backup SELECT 
+              id,
+              CAST(userId AS TEXT) as userId,
+              name, species, photos, breed, dateOfBirth, approximateAge, useApproximateAge,
+              gender, colorMarkings, weight, weightUnit, height, heightUnit,
+              registrationNumber, insuranceProvider, insurancePolicyNumber,
+              medicalConditions, medications, allergies, emergencyContact,
+              personalityTraits, favoriteToys, favoriteActivities, exerciseNeeds,
+              feedingSchedule, specialNotes,
+              COALESCE(createdAt, CURRENT_TIMESTAMP) as createdAt,
+              updatedAt
+            FROM pets;
+          `);
+          
+          // Drop old table and rename backup
+          db.execSync('DROP TABLE pets;');
+          db.execSync('ALTER TABLE pets_backup RENAME TO pets;');
+          
+          // Recreate index
+          db.execSync('CREATE INDEX IF NOT EXISTS idx_pets_userId ON pets (userId);');
+          
+          console.log('Migration completed successfully.');
+        }
+      } catch (migrationError) {
+        console.warn('Migration warning (non-critical):', migrationError);
+        // Continue initialization even if migration fails
+      }
+
+      // Migration: Add missing createdAt column if it doesn't exist
+      try {
+        const tableInfo = db.getAllSync('PRAGMA table_info(pets)') as any[];
+        const createdAtColumn = tableInfo.find(col => col.name === 'createdAt');
+        
+        if (!createdAtColumn) {
+          console.log('Adding missing createdAt column to pets table...');
+          
+          // Add column with NULL default first (SQLite limitation)
+          db.execSync('ALTER TABLE pets ADD COLUMN createdAt TEXT;');
+          
+          // Update all existing records to have a createdAt value
+          const currentTimestamp = new Date().toISOString();
+          db.execSync(`UPDATE pets SET createdAt = ? WHERE createdAt IS NULL;`, [currentTimestamp]);
+          
+          console.log('createdAt column added successfully.');
+        }
+      } catch (columnError) {
+        console.warn('Column migration warning (non-critical):', columnError);
+      }
+
       this.initialized = true;
     } catch (_error) {
       console.error('Database initialization error:', _error);
@@ -309,7 +405,7 @@ class DatabaseService {
     }
   }
 
-  async getUserById(userId: number): Promise<User | null> {
+  async getUserById(userId: string): Promise<User | null> {
     await this.initialize();
 
     try {
@@ -383,7 +479,7 @@ class DatabaseService {
   }
 
   // Pet Management Methods
-  async savePetProfile(profile: PetProfile, userId: number): Promise<number> {
+  async savePetProfile(profile: PetProfile, userId: string): Promise<number> {
     await this.initialize();
 
 
@@ -445,7 +541,7 @@ class DatabaseService {
     }
   }
 
-  async getAllPets(userId: number): Promise<StoredPetProfile[]> {
+  async getAllPets(userId: string): Promise<StoredPetProfile[]> {
     await this.initialize();
 
     try {
@@ -461,7 +557,7 @@ class DatabaseService {
     }
   }
 
-  async getPetById(id: number, userId: number): Promise<StoredPetProfile | null> {
+  async getPetById(id: number, userId: string): Promise<StoredPetProfile | null> {
     await this.initialize();
 
     try {

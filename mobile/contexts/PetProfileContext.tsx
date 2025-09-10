@@ -251,7 +251,7 @@ export const PetProfileProvider: React.FC<{ children: ReactNode }> = ({ children
       dispatch({ type: 'SET_LOADING', payload: true });
       dispatch({ type: 'CLEAR_ERROR' });
 
-      const pets = await databaseService.getAllPets(parseInt(user.id, 10));
+      const pets = await databaseService.getAllPets(user.id);
       dispatch({ type: 'SET_PETS', payload: pets });
     } catch (error) {
       console.error('Load pets error:', error);
@@ -271,7 +271,7 @@ export const PetProfileProvider: React.FC<{ children: ReactNode }> = ({ children
       dispatch({ type: 'SET_SAVING', payload: true });
       dispatch({ type: 'CLEAR_ERROR' });
 
-      const petId = await databaseService.savePetProfile(profile, parseInt(user.id, 10));
+      const petId = await databaseService.savePetProfile(profile, user.id);
       
       // Reload pets to get the updated list
       await loadPets();
@@ -360,7 +360,7 @@ export const PetProfileProvider: React.FC<{ children: ReactNode }> = ({ children
       dispatch({ type: 'CLEAR_ERROR' });
 
       // Save to local database first
-      const localId = await databaseService.savePetProfile(profile, parseInt(user.id, 10));
+      const localId = await databaseService.savePetProfile(profile, user.id);
       
       // Reload pets to get the updated list
       await loadPets();

@@ -30,7 +30,7 @@ export interface UserProfile {
   phone?: string;
   avatar_url?: string;
   family_id?: string;
-  subscription_tier: 'free' | 'premium' | 'pro';
+  subscription_status: 'free' | 'premium' | 'family' | 'cancelled' | 'expired';
   created_at: string;
   updated_at: string;
 }
@@ -39,7 +39,7 @@ export interface Family {
   id: string;
   name: string;
   owner_id: string;
-  subscription_tier: 'free' | 'premium' | 'pro';
+  subscription_status: 'free' | 'premium' | 'family' | 'cancelled' | 'expired';
   max_pets: number;
   max_members: number;
   created_at: string;
@@ -140,7 +140,7 @@ class SupabaseSyncService {
       }
 
       // Get local pet profile
-      const localProfile = await databaseService.getPetById(localPetId, parseInt(user.id, 10));
+      const localProfile = await databaseService.getPetById(localPetId, user.id);
       if (!localProfile) {
         throw new Error('Local pet profile not found');
       }
@@ -218,25 +218,48 @@ class SupabaseSyncService {
    * Ensure user profile exists in Supabase
    */
   private async ensureUserProfile(user: any): Promise<UserProfile> {
+    // First, try to find by auth_user_id
     const { data: existingProfile, error: fetchError } = await supabase
       .from('users')
       .select('*')
-      .eq('id', user.id)
+      .eq('auth_user_id', user.id)
       .single();
 
     if (existingProfile && !fetchError) {
       return existingProfile;
     }
 
-    // Create user profile
+    // If not found by auth_user_id, check if there's an existing user with the same email
+    const { data: emailProfile, error: emailError } = await supabase
+      .from('users')
+      .select('*')
+      .eq('email', user.email)
+      .single();
+
+    if (emailProfile && !emailError) {
+      // Update the existing profile with the correct auth_user_id
+      const { data: updatedProfile, error: updateError } = await supabase
+        .from('users')
+        .update({ auth_user_id: user.id })
+        .eq('id', emailProfile.id)
+        .select()
+        .single();
+
+      if (updateError) {
+        throw new Error(`Failed to update user profile: ${updateError.message}`);
+      }
+
+      return updatedProfile;
+    }
+
+    // Create new user profile if not found by either method
     const userProfile = {
-      id: user.id,
       auth_user_id: user.id,
       email: user.email,
       full_name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'TailTracker User',
       phone: user.user_metadata?.phone,
       avatar_url: user.user_metadata?.avatar_url,
-      subscription_tier: 'free' as const,
+      subscription_status: 'free' as const,
     };
 
     const { data: insertedProfile, error: insertError } = await supabase
@@ -277,7 +300,7 @@ class SupabaseSyncService {
     const familyData = {
       name: 'My Family',
       owner_id: userId,
-      subscription_tier: 'free' as const,
+      subscription_status: 'free' as const,
       max_pets: 1,
       max_members: 2,
     };

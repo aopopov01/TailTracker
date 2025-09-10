@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import NetInfo from '@react-native-community/netinfo';
-import { QueryClient, QueryCache, MutationCache, DefaultOptions, useQuery, useMutation } from 'react-query';
+import { QueryClient, QueryCache, MutationCache, DefaultOptions, useQuery, useMutation } from '@tanstack/react-query';
 import ErrorRecoveryService from '../services/ErrorRecoveryService';
 import { OfflineQueueManager } from '../services/OfflineQueueManager';
 
