@@ -1,0 +1,179 @@
+{
+  "expo": {
+    "name": "TailTracker",
+    "slug": "tailtracker",
+    "version": "1.0.0",
+    "sdkVersion": "54.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "tailtracker",
+    "platforms": ["ios", "android"],
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "image": "./assets/images/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.tailtracker.app",
+      "buildNumber": "1",
+      "requireFullScreen": false,
+      "config": {
+        "usesNonExemptEncryption": false
+      },
+      "entitlements": {
+        "com.apple.developer.applesignin": ["Default"],
+        "com.apple.developer.in-app-payments": true,
+        "com.apple.developer.usernotifications.time-sensitive": true,
+        "com.apple.developer.usernotifications.critical-alerts": true,
+        "aps-environment": "production"
+      },
+      "infoPlist": {
+        "NSCameraUsageDescription": "TailTracker needs camera access to take photos of your pets for their profiles.",
+        "NSPhotoLibraryUsageDescription": "TailTracker needs photo library access to select photos of your pets.",
+        "NSPhotoLibraryAddUsageDescription": "TailTracker needs permission to save photos of your pets to your photo library.",
+        "NSMicrophoneUsageDescription": "TailTracker may need microphone access for video recording features.",
+        "NSFaceIDUsageDescription": "TailTracker uses Face ID for secure authentication and to protect your pet's sensitive information.",
+        "NSAppTransportSecurity": {
+          "NSAllowsArbitraryLoads": false
+        },
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSSupportsLiveActivities": true,
+        "NSSupportsLiveActivitiesFrequentUpdates": true,
+        "BGTaskSchedulerPermittedIdentifiers": [
+          "$(PRODUCT_BUNDLE_IDENTIFIER).background-refresh",
+          "$(PRODUCT_BUNDLE_IDENTIFIER).background-notification-sync"
+        ],
+        "UIBackgroundModes": [
+          "background-processing",
+          "background-fetch",
+          "remote-notification"
+        ],
+        "LSApplicationQueriesSchemes": ["tel", "mailto"],
+        "CFBundleURLTypes": [
+          {
+            "CFBundleURLName": "com.tailtracker.app",
+            "CFBundleURLSchemes": ["tailtracker"]
+          }
+        ]
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "package": "com.tailtracker.app",
+      "versionCode": 1,
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.VIBRATE",
+        "android.permission.RECEIVE_BOOT_COMPLETED",
+        "android.permission.WAKE_LOCK",
+        "android.permission.INTERNET",
+        "android.permission.ACCESS_NETWORK_STATE",
+        "android.permission.POST_NOTIFICATIONS",
+        "android.permission.SCHEDULE_EXACT_ALARM",
+        "android.permission.USE_EXACT_ALARM"
+      ],
+      "blockedPermissions": []
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static",
+      "favicon": "./assets/images/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "deploymentTarget": "15.1"
+          },
+          "android": {
+            "enableProguardInReleaseBuilds": true,
+            "enableShrinkResourcesInReleaseBuilds": true,
+            "compileSdkVersion": 34,
+            "targetSdkVersion": 34,
+            "minSdkVersion": 26,
+            "buildToolsVersion": "34.0.0",
+            "proguardFiles": [
+              "proguard-android-optimize.txt",
+              "proguard-rules.pro"
+            ]
+          }
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "TailTracker needs camera access to take photos of your pets for their profiles.",
+          "microphonePermission": "TailTracker may need microphone access for video recording features.",
+          "recordAudioAndroid": false
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "TailTracker needs photo library access to select photos of your pets.",
+          "cameraPermission": "TailTracker needs camera access to take photos of your pets."
+        }
+      ],
+      [
+        "expo-media-library",
+        {
+          "photosPermission": "TailTracker needs access to your photo library to save and manage photos of your pets.",
+          "savePhotosPermission": "TailTracker needs permission to save photos of your pets to your photo library.",
+          "isAccessMediaLocationEnabled": false
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/notification-icon.png",
+          "color": "#ffffff",
+          "sounds": [
+            "./assets/sounds/notification.wav",
+            "./assets/sounds/pet_alert.wav",
+            "./assets/sounds/health_reminder.wav",
+            "./assets/sounds/activity_update.wav",
+            "./assets/sounds/social_notification.wav",
+            "./assets/sounds/emergency_alert.wav"
+          ],
+          "androidMode": "default",
+          "androidCollapsedTitle": "TailTracker Notifications",
+          "iosDisplayInForeground": true
+        }
+      ],
+      [
+        "expo-dev-client",
+        {
+          "addGeneratedScheme": false
+        }
+      ],
+      "expo-font",
+      "expo-mail-composer",
+      "expo-secure-store",
+      "expo-sqlite",
+      "expo-web-browser"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "d232dbc6-0d7d-4217-a36b-9f3391d3e36c"
+      }
+    },
+    "owner": "aopopov01"
+  }
+}

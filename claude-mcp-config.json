@@ -1,0 +1,28 @@
+{
+  "mcpServers": {
+    "supabase-mcp": {
+      "command": "npx",
+      "args": ["@supabase/mcp-server-supabase@latest"],
+      "env": {
+        "SUPABASE_URL": "https://tkcajpwdlsavqfqhdawy.supabase.co",
+        "SUPABASE_ACCESS_TOKEN": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRrY2FqcHdkbHNhdnFmcWhkYXd5Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NjQ1ODAxNSwiZXhwIjoyMDcyMDM0MDE1fQ.NA_3G3RXr7nq_4iKDhPp1Cb2pojSHrOFtv5Jl9Fs570"
+      }
+    },
+    "supabase-community-mcp": {
+      "command": "curl",
+      "args": [
+        "-X",
+        "POST",
+        "https://server.smithery.ai/@supabase-community/supabase-mcp/mcp",
+        "-H",
+        "Content-Type: application/json",
+        "-d",
+        "{\"method\": \"tools/list\", \"params\": {}}"
+      ],
+      "env": {
+        "SUPABASE_URL": "https://tkcajpwdlsavqfqhdawy.supabase.co",
+        "SUPABASE_SERVICE_ROLE_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRrY2FqcHdkbHNhdnFmcWhkYXd5Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NjQ1ODAxNSwiZXhwIjoyMDcyMDM0MDE1fQ.NA_3G3RXr7nq_4iKDhPp1Cb2pojSHrOFtv5Jl9Fs570"
+      }
+    }
+  }
+}
