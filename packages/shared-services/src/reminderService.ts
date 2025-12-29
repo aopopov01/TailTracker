@@ -223,7 +223,8 @@ export const getPendingRemindersCount = async (): Promise<number> => {
 };
 
 /**
- * Create a new reminder
+ * Create a new reminder (uses upsert to prevent duplicates)
+ * If a reminder already exists for the same source_id + source_type, it will be skipped
  */
 export const createReminder = async (
   data: CreateReminderData
@@ -238,13 +239,30 @@ export const createReminder = async (
 
     const dbData = mapReminderToDatabase(data, user.user.id);
 
+    // Use upsert with onConflict to handle race conditions
+    // The unique constraint (source_id, source_type) prevents duplicates
     const { data: created, error } = await supabase
       .from('reminders')
-      .insert(dbData)
+      .upsert(dbData, {
+        onConflict: 'source_id,source_type',
+        ignoreDuplicates: true, // Don't update if exists, just skip
+      })
       .select()
-      .single();
+      .maybeSingle(); // Use maybeSingle since ignoreDuplicates may return no rows
 
-    if (error) throw error;
+    if (error) {
+      // Handle unique constraint violation gracefully (shouldn't happen with upsert, but just in case)
+      if (error.code === '23505') {
+        // Reminder already exists - not an error, just skip
+        return { success: true, data: undefined as unknown as Reminder };
+      }
+      throw error;
+    }
+
+    // If created is null, it means the reminder already existed and was skipped
+    if (!created) {
+      return { success: true, data: undefined as unknown as Reminder };
+    }
 
     return {
       success: true,
@@ -475,7 +493,7 @@ export const syncReminders = async (): Promise<{ created: number; errors: number
     );
 
     // Create reminders for overdue vaccinations
-    for (const vax of overdueVaccinations || []) {
+    for (const vax of overdueVaccinations) {
       const key = `vaccination:${vax.id}`;
       if (existingSet.has(key)) continue;
 
@@ -490,15 +508,17 @@ export const syncReminders = async (): Promise<{ created: number; errors: number
         scheduledEndTime: vax.next_due_end_time ?? undefined,
       });
 
-      if (result.success) {
+      if (result.success && result.data) {
+        // Only count as created if we got data back (not skipped due to duplicate)
         created++;
-      } else {
+      } else if (!result.success) {
         errors++;
       }
+      // If success but no data, it was a duplicate - don't count
     }
 
     // Create reminders for overdue medical records
-    for (const med of overdueMedical || []) {
+    for (const med of overdueMedical) {
       const key = `medical_record:${med.id}`;
       if (existingSet.has(key)) continue;
 
@@ -513,11 +533,13 @@ export const syncReminders = async (): Promise<{ created: number; errors: number
         scheduledEndTime: med.follow_up_end_time ?? undefined,
       });
 
-      if (result.success) {
+      if (result.success && result.data) {
+        // Only count as created if we got data back (not skipped due to duplicate)
         created++;
-      } else {
+      } else if (!result.success) {
         errors++;
       }
+      // If success but no data, it was a duplicate - don't count
     }
   } catch (error) {
     console.error('Error syncing reminders:', error);
