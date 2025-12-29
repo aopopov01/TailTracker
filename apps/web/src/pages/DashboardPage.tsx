@@ -14,6 +14,7 @@ import { supabase } from '@/lib/supabase';
 
 interface NextAppointment {
   date: Date;
+  startTime: string | null;
   title: string;
   petName: string;
   petId: string;
@@ -68,30 +69,65 @@ export const DashboardPage = () => {
     const fetchNextAppointment = async () => {
       if (!user?.id || !pets || pets.length === 0 || !supabase) return;
 
+      const now = new Date();
+      // Get today's date at midnight for the query filter (we'll do precise filtering in JS)
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       const petIds = pets.map((p) => p.id);
 
       try {
-        // Fetch upcoming vaccinations
+        // Fetch upcoming vaccinations (include end time for precise filtering)
         const { data: vaccinations } = await supabase
           .from('vaccinations')
-          .select('pet_id, vaccine_name, next_due_date, next_due_start_time')
+          .select('pet_id, vaccine_name, next_due_date, next_due_start_time, next_due_end_time')
           .in('pet_id', petIds)
           .gte('next_due_date', today.toISOString().split('T')[0])
           .order('next_due_date', { ascending: true });
 
-        // Fetch upcoming medical follow-ups
+        // Fetch upcoming medical follow-ups (include end time for precise filtering)
         const { data: medicalRecords } = await supabase
           .from('medical_records')
-          .select('pet_id, title, follow_up_date, follow_up_start_time')
+          .select('pet_id, title, follow_up_date, follow_up_start_time, follow_up_end_time')
           .in('pet_id', petIds)
           .gte('follow_up_date', today.toISOString().split('T')[0])
           .order('follow_up_date', { ascending: true });
 
-        // Combine and find earliest
+        // Helper to parse time string (HH:MM or HH:MM:SS)
+        const parseTime = (timeStr: string | null | undefined): { hours: number; minutes: number; seconds: number } => {
+          if (!timeStr) return { hours: 23, minutes: 59, seconds: 59 }; // Default to end of day
+          const parts = timeStr.split(':').map(Number);
+          return {
+            hours: parts[0] || 0,
+            minutes: parts[1] || 0,
+            seconds: parts[2] || 0,
+          };
+        };
+
+        // Helper to check if appointment has ended (based on end time)
+        const isAppointmentEnded = (dateStr: string, endTimeStr: string | null | undefined): boolean => {
+          const appointmentDate = new Date(dateStr);
+          const { hours, minutes, seconds } = parseTime(endTimeStr);
+          appointmentDate.setHours(hours, minutes, seconds);
+          return appointmentDate <= now;
+        };
+
+        // Helper to create appointment datetime from date and start time
+        const createAppointmentDate = (dateStr: string, startTimeStr: string | null | undefined): Date => {
+          const date = new Date(dateStr);
+          if (startTimeStr) {
+            const { hours, minutes, seconds } = parseTime(startTimeStr);
+            date.setHours(hours, minutes, seconds);
+          } else {
+            // No start time specified - set to beginning of day
+            date.setHours(0, 0, 0, 0);
+          }
+          return date;
+        };
+
+        // Combine and filter for appointments that haven't ended yet
         const allAppointments: Array<{
           date: Date;
+          startTime: string | null;
           title: string;
           petId: string;
           type: 'vaccination' | 'medical';
@@ -99,11 +135,13 @@ export const DashboardPage = () => {
 
         vaccinations?.forEach((v) => {
           if (v.next_due_date) {
-            const dateStr = v.next_due_start_time
-              ? `${v.next_due_date}T${v.next_due_start_time}`
-              : v.next_due_date;
+            // Skip if appointment has already ended
+            if (isAppointmentEnded(v.next_due_date, v.next_due_end_time)) {
+              return;
+            }
             allAppointments.push({
-              date: new Date(dateStr),
+              date: createAppointmentDate(v.next_due_date, v.next_due_start_time),
+              startTime: v.next_due_start_time || null,
               title: v.vaccine_name || 'Vaccination',
               petId: v.pet_id,
               type: 'vaccination',
@@ -113,11 +151,13 @@ export const DashboardPage = () => {
 
         medicalRecords?.forEach((m) => {
           if (m.follow_up_date) {
-            const dateStr = m.follow_up_start_time
-              ? `${m.follow_up_date}T${m.follow_up_start_time}`
-              : m.follow_up_date;
+            // Skip if appointment has already ended
+            if (isAppointmentEnded(m.follow_up_date, m.follow_up_end_time)) {
+              return;
+            }
             allAppointments.push({
-              date: new Date(dateStr),
+              date: createAppointmentDate(m.follow_up_date, m.follow_up_start_time),
+              startTime: m.follow_up_start_time || null,
               title: m.title || 'Follow-up',
               petId: m.pet_id,
               type: 'medical',
@@ -125,14 +165,18 @@ export const DashboardPage = () => {
           }
         });
 
-        // Sort by date and get nearest
+        // Sort by date/time and get nearest
         allAppointments.sort((a, b) => a.date.getTime() - b.date.getTime());
 
         if (allAppointments.length > 0) {
           const nearest = allAppointments[0];
           const pet = pets.find((p) => p.id === nearest.petId);
           setNextAppointment({
-            ...nearest,
+            date: nearest.date,
+            startTime: nearest.startTime,
+            title: nearest.title,
+            petId: nearest.petId,
+            type: nearest.type,
             petName: pet?.name || 'Unknown',
           });
         } else {
@@ -151,13 +195,28 @@ export const DashboardPage = () => {
   const formatNextAppointment = () => {
     if (!nextAppointment) return { main: 'None', sub: 'No upcoming appointments' };
 
-    const now = new Date();
-    const diffTime = nextAppointment.date.getTime() - now.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const appointmentDay = new Date(nextAppointment.date);
+    appointmentDay.setHours(0, 0, 0, 0);
+    const diffDays = Math.round((appointmentDay.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
 
     let main: string;
-    if (diffDays <= 0) {
-      main = 'Today';
+    if (diffDays === 0) {
+      // Today - show time if available
+      if (nextAppointment.startTime) {
+        const [hours, minutes] = nextAppointment.startTime.split(':').map(Number);
+        const timeDate = new Date();
+        timeDate.setHours(hours, minutes, 0);
+        const timeStr = timeDate.toLocaleTimeString('en-US', {
+          hour: 'numeric',
+          minute: '2-digit',
+          hour12: true,
+        });
+        main = `Today at ${timeStr}`;
+      } else {
+        main = 'Today';
+      }
     } else if (diffDays === 1) {
       main = 'Tomorrow';
     } else if (diffDays <= 7) {
