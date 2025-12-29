@@ -3,13 +3,14 @@
  * Visual calendar view showing all pet appointments from vaccinations and medical records
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import type { EventClickArg } from '@fullcalendar/core';
+import { AlertCircle, RefreshCw } from 'lucide-react';
 import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 
 interface CalendarEvent {
@@ -31,34 +32,87 @@ interface CalendarEvent {
 export const CalendarPage = () => {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
+  // Prevent duplicate requests
+  const fetchingRef = useRef(false);
+  const mountedRef = useRef(true);
+
+  // Cleanup on unmount
   useEffect(() => {
-    fetchAllAppointments();
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
+
+  // Loading timeout - prevent infinite loading
+  useEffect(() => {
+    if (!loading) return;
+
+    const timeout = setTimeout(() => {
+      if (mountedRef.current && loading) {
+        setLoading(false);
+        setError('Calendar took too long to load. Please refresh the page.');
+      }
+    }, 15000); // 15 second timeout
+
+    return () => clearTimeout(timeout);
+  }, [loading]);
+
+  useEffect(() => {
+    if (!fetchingRef.current) {
+      fetchAllAppointments();
+    }
   }, []);
 
   const fetchAllAppointments = async () => {
+    // Prevent duplicate concurrent requests
+    if (fetchingRef.current) {
+      return;
+    }
+    fetchingRef.current = true;
+
     if (!isSupabaseConfigured || !supabase) {
       setLoading(false);
+      fetchingRef.current = false;
       return;
     }
 
+    setError(null);
+
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError) {
+        console.error('Auth error:', authError);
+        throw new Error('Failed to authenticate');
+      }
       if (!user) {
-        setLoading(false);
+        if (mountedRef.current) {
+          setLoading(false);
+        }
+        fetchingRef.current = false;
         return;
       }
 
       // Get user's pets
-      const { data: pets } = await supabase
+      const { data: pets, error: petsError } = await supabase
         .from('pets')
         .select('id, name')
         .eq('user_id', user.id)
         .is('deleted_at', null);
 
+      if (petsError) {
+        console.error('Pets fetch error:', petsError);
+        throw new Error('Failed to load pets');
+      }
+
       if (!pets?.length) {
-        setLoading(false);
+        if (mountedRef.current) {
+          setLoading(false);
+        }
+        fetchingRef.current = false;
         return;
       }
 
@@ -66,16 +120,28 @@ export const CalendarPage = () => {
       const petMap = Object.fromEntries(pets.map(p => [p.id, p.name]));
 
       // Fetch ALL vaccinations (both past and future) with time fields
-      const { data: vaccinations } = await supabase
+      // Continue even if this fails
+      const { data: vaccinations, error: vaxError } = await supabase
         .from('vaccinations')
         .select('id, pet_id, vaccine_name, administered_date, next_due_date, next_due_start_time, next_due_end_time')
         .in('pet_id', petIds);
 
+      if (vaxError) {
+        console.error('Vaccinations fetch error:', vaxError);
+        // Continue with empty array - don't fail completely
+      }
+
       // Fetch ALL medical records with time fields
-      const { data: medicalRecords } = await supabase
+      // Use * to get all columns and avoid column name issues
+      const { data: medicalRecords, error: medError } = await supabase
         .from('medical_records')
-        .select('id, pet_id, title, date_of_record, follow_up_date, follow_up_start_time, follow_up_end_time, entry_type')
+        .select('*')
         .in('pet_id', petIds);
+
+      if (medError) {
+        console.error('Medical records fetch error:', medError);
+        // Continue with empty array - don't fail completely
+      }
 
       const calendarEvents: CalendarEvent[] = [];
 
@@ -198,12 +264,32 @@ export const CalendarPage = () => {
         }
       });
 
-      setEvents(calendarEvents);
+      if (mountedRef.current) {
+        setEvents(calendarEvents);
+
+        // Show warning if some data failed to load but we have partial results
+        if ((vaxError || medError) && calendarEvents.length > 0) {
+          setError('Some calendar data may be incomplete. Try refreshing if events are missing.');
+        }
+      }
     } catch (error) {
       console.error('Error fetching appointments:', error);
+      if (mountedRef.current) {
+        setError(error instanceof Error ? error.message : 'Failed to load calendar events');
+      }
     } finally {
-      setLoading(false);
+      if (mountedRef.current) {
+        setLoading(false);
+      }
+      fetchingRef.current = false;
     }
+  };
+
+  const handleRetry = () => {
+    setLoading(true);
+    setError(null);
+    fetchingRef.current = false;
+    fetchAllAppointments();
   };
 
   const handleEventClick = (clickInfo: EventClickArg) => {
@@ -269,9 +355,45 @@ export const CalendarPage = () => {
         </div>
       </div>
 
+      {/* Error Message */}
+      {error && (
+        <div
+          className="mb-4 p-4 rounded-lg flex items-center justify-between"
+          style={{
+            backgroundColor: error.includes('incomplete') ? 'var(--color-warning-bg, #fef3c7)' : 'var(--color-error-bg, #fee2e2)',
+            border: `1px solid ${error.includes('incomplete') ? 'var(--color-warning-border, #fcd34d)' : 'var(--color-error-border, #fca5a5)'}`,
+          }}
+        >
+          <div className="flex items-center gap-2">
+            <AlertCircle
+              className="h-5 w-5"
+              style={{ color: error.includes('incomplete') ? '#d97706' : '#dc2626' }}
+            />
+            <span style={{ color: error.includes('incomplete') ? '#92400e' : '#991b1b' }}>
+              {error}
+            </span>
+          </div>
+          <button
+            onClick={handleRetry}
+            className="flex items-center gap-1 px-3 py-1.5 rounded-md text-sm font-medium transition-colors"
+            style={{
+              backgroundColor: 'var(--color-bg-elevated)',
+              color: 'var(--color-text-primary)',
+              border: '1px solid var(--color-border)',
+            }}
+          >
+            <RefreshCw className="h-4 w-4" />
+            Retry
+          </button>
+        </div>
+      )}
+
       {loading ? (
-        <div className="flex justify-center py-12">
+        <div className="flex flex-col items-center justify-center py-12 gap-3">
           <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary-500"></div>
+          <p style={{ color: 'var(--color-text-muted)' }} className="text-sm">
+            Loading calendar events...
+          </p>
         </div>
       ) : (
         <div
