@@ -1,0 +1,135 @@
+# TailTracker Docker Ignore
+# Excludes files from Docker build context for faster builds
+# Updated: 2025-12-28
+
+# Git
+.git
+.gitignore
+.gitattributes
+.husky
+.gitmodules
+
+# Node modules (will be installed in container)
+node_modules
+**/node_modules
+
+# Build outputs (will be built in container)
+**/dist
+**/build
+**/.next
+**/.expo
+**/.turbo
+
+# Development files
+**/*.log
+**/*.map
+.env.local
+.env.*.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# IDE and editor
+.vscode
+.idea
+*.swp
+*.swo
+.DS_Store
+*.sublime-*
+*.code-workspace
+
+# Test and coverage
+coverage
+**/__tests__
+**/*.test.ts
+**/*.test.tsx
+**/*.spec.ts
+**/*.spec.tsx
+jest.config.*
+vitest.config.*
+playwright.config.*
+
+# Documentation
+*.md
+!README.md
+docs
+
+# Mobile app (not needed for web/admin Docker builds)
+apps/mobile
+ios
+android
+*.apk
+*.ipa
+*.aab
+
+# Infrastructure configs (not needed in app containers)
+infrastructure
+monitoring
+
+# Scripts (keep docker-dev.sh accessible)
+scripts
+auto-backup.sh
+backup-monitor.sh
+
+# Temporary files
+tmp
+temp
+*.tmp
+.cache
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Cache
+.cache
+.npm
+.pnpm-store
+.yarn
+.pnpm
+.store
+.modules.yaml
+.pnpm-debug.log
+
+# Backup files
+backups
+*.bak
+error_logs
+
+# CI/CD
+.github
+.gitlab-ci.yml
+.circleci
+.travis.yml
+
+# Docker files in subdirs (avoid recursive copies)
+**/Dockerfile*
+**/.dockerignore
+
+# Security - Never include these
+*.pem
+*.key
+*.cert
+*.p12
+*.pfx
+secrets
+.secrets
+credentials.json
+service-account*.json
+
+# Misc
+*.tsbuildinfo
+.eslintcache
+.stylelintcache
+*.pid
+*.seed
+*.pid.lock
+.nyc_output
+.turbo
+*.local
+Thumbs.db
+*.swn

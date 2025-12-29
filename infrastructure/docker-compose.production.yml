@@ -1,7 +1,14 @@
 # TailTracker Production Infrastructure
 # Docker Compose for production deployment with monitoring and scaling
-
-version: '3.8'
+#
+# Version: 1.2.0
+# Updated: 2025-12-29
+# - Pinned all image versions for reproducibility
+# - nginx: 1.28.1-alpine (stable)
+# - redis: 7.4-alpine
+# - elasticsearch/logstash/kibana: 8.17.0
+# - prometheus: v3.1.0 / grafana: 11.4.0
+# - jaeger: 1.64 / node-exporter: v1.8.2 / alertmanager: v0.28.0
 
 networks:
   tailtracker_network:
@@ -24,7 +31,7 @@ volumes:
 services:
   # Reverse Proxy & Load Balancer
   nginx:
-    image: nginx:alpine
+    image: nginx:1.28.1-alpine
     container_name: tailtracker_nginx
     ports:
       - "80:80"
@@ -130,7 +137,7 @@ services:
 
   # Redis Instances (Separated by Use Case)
   redis_cache:
-    image: redis:7-alpine
+    image: redis:7.4-alpine
     container_name: tailtracker_redis_cache
     command: redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru
     ports:
@@ -149,7 +156,7 @@ services:
       retries: 3
 
   redis_sessions:
-    image: redis:7-alpine
+    image: redis:7.4-alpine
     container_name: tailtracker_redis_sessions
     command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy volatile-ttl
     ports:
@@ -166,7 +173,7 @@ services:
       retries: 3
 
   redis_pubsub:
-    image: redis:7-alpine
+    image: redis:7.4-alpine
     container_name: tailtracker_redis_pubsub
     command: redis-server --maxmemory 128mb
     ports:
@@ -209,7 +216,7 @@ services:
 
   # Monitoring Stack
   prometheus:
-    image: prom/prometheus:latest
+    image: prom/prometheus:v3.1.0
     container_name: tailtracker_prometheus
     ports:
       - "9090:9090"
@@ -230,7 +237,7 @@ services:
     restart: unless-stopped
 
   grafana:
-    image: grafana/grafana:latest
+    image: grafana/grafana:11.4.0
     container_name: tailtracker_grafana
     ports:
       - "3001:3000"
@@ -253,7 +260,7 @@ services:
 
   # Log Management
   elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:8.8.0
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.17.0
     container_name: tailtracker_elasticsearch
     environment:
       - discovery.type=single-node
@@ -272,7 +279,7 @@ services:
           memory: 1G
 
   logstash:
-    image: docker.elastic.co/logstash/logstash:8.8.0
+    image: docker.elastic.co/logstash/logstash:8.17.0
     container_name: tailtracker_logstash
     ports:
       - "5044:5044"
@@ -292,7 +299,7 @@ services:
     restart: unless-stopped
 
   kibana:
-    image: docker.elastic.co/kibana/kibana:8.8.0
+    image: docker.elastic.co/kibana/kibana:8.17.0
     container_name: tailtracker_kibana
     ports:
       - "5601:5601"
@@ -306,7 +313,7 @@ services:
 
   # Application Performance Monitoring
   jaeger:
-    image: jaegertracing/all-in-one:latest
+    image: jaegertracing/all-in-one:1.64
     container_name: tailtracker_jaeger
     ports:
       - "16686:16686"
@@ -319,7 +326,7 @@ services:
 
   # Node Exporter for system metrics
   node_exporter:
-    image: prom/node-exporter:latest
+    image: prom/node-exporter:v1.8.2
     container_name: tailtracker_node_exporter
     ports:
       - "9100:9100"
@@ -352,7 +359,7 @@ services:
 
   # Cadvisor for container metrics
   cadvisor:
-    image: gcr.io/cadvisor/cadvisor:latest
+    image: gcr.io/cadvisor/cadvisor:v0.51.0
     container_name: tailtracker_cadvisor
     ports:
       - "8080:8080"
@@ -369,7 +376,7 @@ services:
 
   # Alertmanager for alert routing
   alertmanager:
-    image: prom/alertmanager:latest
+    image: prom/alertmanager:v0.28.0
     container_name: tailtracker_alertmanager
     ports:
       - "9093:9093"

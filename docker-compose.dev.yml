@@ -1,0 +1,115 @@
+# TailTracker Development Docker Compose
+# Run: docker compose -f docker-compose.dev.yml up --build
+# Or use: ./docker-dev.sh up
+#
+# Version: 1.4.0
+# Updated: 2025-12-29
+# - Using Node 24-slim (LTS Krypton)
+# - Using pnpm 10.26.2 (latest stable)
+# - Using nginx 1.28.1-alpine (stable)
+
+services:
+  # ===========================================
+  # Web App (User-facing)
+  # ===========================================
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      target: development
+    image: tailtracker/web:dev
+    container_name: tailtracker_web_dev
+    ports:
+      - "4000:4000"
+    env_file:
+      - ./apps/web/.env
+    environment:
+      - NODE_ENV=development
+      - VITE_APP_URL=http://localhost:4000
+      - VITE_APP_ENV=development
+    labels:
+      - "com.tailtracker.service=web"
+      - "com.tailtracker.env=development"
+    volumes:
+      # Mount source for hot reload
+      - ./packages/shared-types/src:/app/packages/shared-types/src:ro
+      - ./packages/shared-utils/src:/app/packages/shared-utils/src:ro
+      - ./packages/shared-services/src:/app/packages/shared-services/src:ro
+      # Mount compiled dist folders for package resolution
+      - ./packages/shared-types/dist:/app/packages/shared-types/dist:ro
+      - ./packages/shared-utils/dist:/app/packages/shared-utils/dist:ro
+      - ./packages/shared-services/dist:/app/packages/shared-services/dist:ro
+      - ./apps/web/src:/app/apps/web/src:ro
+      - ./apps/web/public:/app/apps/web/public:ro
+      - ./apps/web/index.html:/app/apps/web/index.html:ro
+      - ./apps/web/vite.config.ts:/app/apps/web/vite.config.ts:ro
+      - ./apps/web/tailwind.config.js:/app/apps/web/tailwind.config.js:ro
+    networks:
+      - tailtracker_dev
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:4000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+        reservations:
+          memory: 512M
+
+  # ===========================================
+  # Admin Dashboard
+  # ===========================================
+  admin:
+    build:
+      context: .
+      dockerfile: apps/admin/Dockerfile
+      target: development
+    image: tailtracker/admin:dev
+    container_name: tailtracker_admin_dev
+    ports:
+      - "4001:4001"
+    env_file:
+      - ./apps/admin/.env
+    environment:
+      - NODE_ENV=development
+      - VITE_APP_ENV=development
+    labels:
+      - "com.tailtracker.service=admin"
+      - "com.tailtracker.env=development"
+    volumes:
+      # Mount source for hot reload
+      - ./packages/shared-types/src:/app/packages/shared-types/src:ro
+      - ./packages/shared-utils/src:/app/packages/shared-utils/src:ro
+      - ./packages/shared-services/src:/app/packages/shared-services/src:ro
+      # Mount compiled dist folders for package resolution
+      - ./packages/shared-types/dist:/app/packages/shared-types/dist:ro
+      - ./packages/shared-utils/dist:/app/packages/shared-utils/dist:ro
+      - ./packages/shared-services/dist:/app/packages/shared-services/dist:ro
+      - ./apps/admin/src:/app/apps/admin/src:ro
+      - ./apps/admin/public:/app/apps/admin/public:ro
+      - ./apps/admin/index.html:/app/apps/admin/index.html:ro
+      - ./apps/admin/vite.config.ts:/app/apps/admin/vite.config.ts:ro
+      - ./apps/admin/tailwind.config.js:/app/apps/admin/tailwind.config.js:ro
+    networks:
+      - tailtracker_dev
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:4001"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+        reservations:
+          memory: 512M
+
+networks:
+  tailtracker_dev:
+    driver: bridge

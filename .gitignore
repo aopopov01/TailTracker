@@ -242,6 +242,22 @@ ERROR_LOG*.md
 backup.log
 backup-health.log
 
+# Test and debug files
+test-*.js
+test_*.js
+debug-*.js
+lint_output.txt
+typescript-errors.log
+
+# Database migration duplicates
+*migration*.sql
+fix_*.sql
+verify_*.sql
+sync-*.sql
+combined-*.sql
+COMPLETE_MIGRATION.sql
+MANUAL_MIGRATION_INSTRUCTIONS.sql
+
 #===========================================
 # ALLOW CRITICAL RECOVERY FILES
 #===========================================

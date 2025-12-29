@@ -49,18 +49,58 @@ This documentation reflects ONLY the approved features as defined in the subscri
 - Health record management
 
 ## Table of Contents
-1. [Critical Development Best Practices](#critical-development-best-practices)
-2. [Error Learning System](#error-learning-system)
-3. [Technical Architecture](#technical-architecture)
-4. [Tech Stack Decisions](#tech-stack-decisions)
-5. [Development Guidelines](#development-guidelines)
-6. [Feature Implementation](#feature-implementation)
-7. [Testing Strategy](#testing-strategy)
-8. [Security & Privacy](#security--privacy)
-9. [Performance Optimization](#performance-optimization)
-10. [CI/CD Pipeline](#cicd-pipeline)
-11. [Error Handling](#error-handling)
-12. [Deployment Strategy](#deployment-strategy)
+1. [Recent Development Log](#recent-development-log)
+2. [Critical Development Best Practices](#critical-development-best-practices)
+3. [Error Learning System](#error-learning-system)
+4. [Technical Architecture](#technical-architecture)
+5. [Tech Stack Decisions](#tech-stack-decisions)
+6. [Development Guidelines](#development-guidelines)
+7. [Feature Implementation](#feature-implementation)
+8. [Testing Strategy](#testing-strategy)
+9. [Security & Privacy](#security--privacy)
+10. [Performance Optimization](#performance-optimization)
+11. [CI/CD Pipeline](#cicd-pipeline)
+12. [Error Handling](#error-handling)
+13. [Deployment Strategy](#deployment-strategy)
+
+---
+
+## Recent Development Log
+
+### 2025-12-26: Authentication Role Fix
+
+**Issue**: Admin tab not showing in web app sidebar despite user having `role: 'admin'` in database.
+
+**Root Cause**: The authentication service was not fetching user role from the `users` table. Multiple functions only used Supabase auth data (via `transformUser()`) which doesn't include database fields like `role`.
+
+**Files Modified**:
+- `packages/shared-types/src/index.ts` - Added `role?: 'user' | 'admin' | 'super_admin'` to `User` interface
+- `packages/shared-services/src/authService.ts`:
+  - `getCurrentUser()` - Now fetches role from `users` table
+  - `getSession()` - Now fetches role from `users` table
+  - `signIn()` - Now fetches role after successful authentication
+  - `onAuthStateChange()` - Now fetches role on each auth state change
+- `apps/web/src/components/layouts/AppLayout.tsx` - Changed from `isAdmin` query to `user?.role === 'admin'`
+
+**Database Schema**:
+```sql
+-- users table has role column
+role VARCHAR DEFAULT 'user' -- Values: 'user', 'admin', 'super_admin'
+auth_user_id UUID -- Links to auth.users.id
+```
+
+**Prevention**:
+- All auth functions now consistently fetch profile data including role from `users` table
+- User object always includes role field (defaults to 'user' if not found)
+- Removed dependency on separate `isAdmin()` query for sidebar visibility
+
+**User Action Required**:
+```javascript
+// Clear cached session to get fresh user data with role:
+localStorage.removeItem('auth-storage');
+location.reload();
+// Then sign back in
+```
 
 ---
 
@@ -1004,7 +1044,45 @@ export class ScreenErrorBoundary extends Component<Props, State> {
 
 ### Core Features
 
-#### 1. Pet Passport System
+#### 1. Pet Onboarding Wizard
+**7-Step Progressive Onboarding:**
+- **Step 1 - Basic Information**: Pet name and species selection with clear indication that species affects later steps
+- **Step 2 - Physical Details**: Size, breed, and appearance characteristics  
+- **Step 3 - Health Information**: Medical conditions and care requirements
+- **Step 4 - Personality**: Character traits and temperament selection
+- **Step 5 - Care Preferences**: Daily care and feeding requirements
+- **Step 6 - Favorite Activities**: Species-specific activity selection based on chosen pet type
+- **Step 7 - Review & Save**: Profile confirmation with clean "Create" button (no cloud icon)
+
+**Species-Specific Activity System:**
+```typescript
+// PetPersonalityService provides tailored activities
+const dogActivities = ['Playing Fetch', 'Long Walks', 'Dog Parks', 'Swimming'];
+const catActivities = ['Laser Pointer', 'Window Bird Watching', 'Catnip Toys'];
+const birdActivities = ['Foraging Games', 'Talking/Mimicking', 'Perch Swinging'];
+
+// Step 6 dynamically shows relevant options
+const activities = PetPersonalityService.getAllFavoriteActivities(petSpecies);
+```
+
+**Implementation Architecture:**
+```typescript
+// Onboarding flow integration
+export const PetOnboardingWizard: React.FC = () => {
+  // Step 6 uses species from Step 1 to filter activities
+  const speciesActivities = useMemo(() => {
+    if (!profile.species) return [];
+    return PetPersonalityService.getAllFavoriteActivities(profile.species);
+  }, [profile.species]);
+
+  // Step 7 shows clean "Create" button without icon
+  const isLastStep = currentStep === ONBOARDING_STEPS.length - 1;
+  const buttonIcon = isLastStep ? undefined : "chevron-right";
+  const buttonText = isLastStep ? 'Create' : 'Next';
+};
+```
+
+#### 2. Pet Passport System
 **Database Schema:**
 ```sql
 -- Pets table with comprehensive profile data

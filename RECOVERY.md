@@ -89,7 +89,6 @@ API_BASE_URL=https://your-api-domain.com
 
 # Optional Services
 FIREBASE_API_KEY=your_firebase_key
-GOOGLE_MAPS_API_KEY=your_google_maps_key
 ```
 
 ### Step 4: Backend Configuration
@@ -225,7 +224,6 @@ These files must be recreated from secure storage:
    - Play Console API access
 
 ### Third-Party Integrations
-- **Google Maps**: API key for location services
 - **Firebase**: Push notifications (optional)
 - **Sentry**: Error tracking (optional)
 - **Analytics**: Mixpanel/Google Analytics (optional)
