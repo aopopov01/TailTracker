@@ -373,6 +373,10 @@ export const deleteReminder = async (id: string): Promise<ApiResult<void>> => {
 /**
  * Sync reminders - Create reminders for overdue scheduled appointments
  * This should be called on Dashboard and Pet Detail page mount
+ *
+ * An appointment is considered overdue when:
+ * - The date is before today, OR
+ * - The date is today AND the end time has passed
  */
 export const syncReminders = async (): Promise<{ created: number; errors: number }> => {
   const supabase = getSupabaseClient();
@@ -380,9 +384,34 @@ export const syncReminders = async (): Promise<{ created: number; errors: number
   const { data: user } = await supabase.auth.getUser();
   if (!user.user) return { created: 0, errors: 0 };
 
-  const today = new Date().toISOString().split('T')[0];
+  const now = new Date();
+  const today = now.toISOString().split('T')[0];
+  // Get tomorrow's date for inclusive query (we'll filter today's by time in JS)
+  const tomorrow = new Date(now);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const tomorrowStr = tomorrow.toISOString().split('T')[0];
+
   let created = 0;
   let errors = 0;
+
+  // Helper to parse time string (HH:MM or HH:MM:SS)
+  const parseTime = (timeStr: string | null | undefined): { hours: number; minutes: number; seconds: number } => {
+    if (!timeStr) return { hours: 23, minutes: 59, seconds: 59 }; // Default to end of day
+    const parts = timeStr.split(':').map(Number);
+    return {
+      hours: parts[0] || 0,
+      minutes: parts[1] || 0,
+      seconds: parts[2] || 0,
+    };
+  };
+
+  // Helper to check if appointment end time has passed
+  const isAppointmentEnded = (dateStr: string, endTimeStr: string | null | undefined): boolean => {
+    const appointmentDate = new Date(dateStr);
+    const { hours, minutes, seconds } = parseTime(endTimeStr);
+    appointmentDate.setHours(hours, minutes, seconds);
+    return appointmentDate <= now;
+  };
 
   try {
     // Get user's pets
@@ -396,23 +425,43 @@ export const syncReminders = async (): Promise<{ created: number; errors: number
 
     const petIds = pets.map((p) => p.id);
 
-    // Find overdue scheduled vaccinations (no administered_date, past next_due_date)
-    const { data: overdueVaccinations } = await supabase
+    // Find scheduled vaccinations up to and including today (no administered_date)
+    // We include today and filter by time in JS
+    const { data: scheduledVaccinations } = await supabase
       .from('vaccinations')
       .select('id, pet_id, vaccine_name, next_due_date, next_due_start_time, next_due_end_time')
       .in('pet_id', petIds)
       .is('administered_date', null)
       .not('next_due_date', 'is', null)
-      .lt('next_due_date', today);
+      .lt('next_due_date', tomorrowStr);
 
-    // Find overdue scheduled medical records (entry_type = 'scheduled', past follow_up_date)
-    const { data: overdueMedical } = await supabase
+    // Find scheduled medical records up to and including today (entry_type = 'scheduled')
+    const { data: scheduledMedical } = await supabase
       .from('medical_records')
       .select('id, pet_id, title, follow_up_date, follow_up_start_time, follow_up_end_time')
       .in('pet_id', petIds)
       .eq('entry_type', 'scheduled')
       .not('follow_up_date', 'is', null)
-      .lt('follow_up_date', today);
+      .lt('follow_up_date', tomorrowStr);
+
+    // Filter to only include truly overdue appointments (date before today OR today with end time passed)
+    const overdueVaccinations = (scheduledVaccinations || []).filter((v) => {
+      if (v.next_due_date < today) return true; // Date is before today
+      if (v.next_due_date === today) {
+        // Date is today - check if end time has passed
+        return isAppointmentEnded(v.next_due_date, v.next_due_end_time);
+      }
+      return false;
+    });
+
+    const overdueMedical = (scheduledMedical || []).filter((m) => {
+      if (m.follow_up_date < today) return true; // Date is before today
+      if (m.follow_up_date === today) {
+        // Date is today - check if end time has passed
+        return isAppointmentEnded(m.follow_up_date, m.follow_up_end_time);
+      }
+      return false;
+    });
 
     // Get existing reminders to avoid duplicates
     const { data: existingReminders } = await supabase
