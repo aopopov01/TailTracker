@@ -21,11 +21,21 @@ export const TermsOfServicePage = () => {
         <p className="text-slate-500 mb-8">Last updated: December 2024</p>
 
         <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-8">
+          {/* Company Identification */}
+          <div className="mb-8 p-4 bg-slate-50 rounded-lg border border-slate-200">
+            <p className="text-slate-700">
+              These Terms of Service ("Terms") govern your use of TailTracker, a product owned and operated by Xciterr Ltd (Ексайтерр ЕООД), Company ID: 206478710, Sofia, Bulgaria ("Company", "we", "us", or "our").
+            </p>
+            <p className="text-slate-700 mt-2 font-medium">
+              By using TailTracker, you agree to these Terms with Xciterr Ltd.
+            </p>
+          </div>
+
           <section className="mb-8">
             <h2 className="text-xl font-semibold text-slate-900 mb-4">1. Introduction</h2>
             <p className="text-slate-700 mb-4">
-              Welcome to TailTracker. These Terms of Service ("Terms") govern your use of the TailTracker
-              platform and services operated by Xciterr Ltd. ("Company", "we", "us", or "our"), a company
+              Welcome to TailTracker. These Terms of Service govern your use of the TailTracker
+              platform and services operated by Xciterr Ltd., a company
               registered in Bulgaria with registration number 206478710, headquartered in Sofia, Bulgaria.
             </p>
             <p className="text-slate-700 mb-4">
@@ -130,7 +140,7 @@ export const TermsOfServicePage = () => {
       {/* Footer */}
       <footer className="bg-surface border-t border-slate-200 py-8">
         <div className="max-w-4xl mx-auto px-4 text-center text-slate-500 text-sm">
-          &copy; {new Date().getFullYear()} TailTracker. All rights reserved. | Operated by Xciterr Ltd.
+          &copy; {new Date().getFullYear()} TailTracker, a product of Xciterr Ltd. All rights reserved.
         </div>
       </footer>
     </div>

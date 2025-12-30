@@ -6,7 +6,7 @@
 
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 import {
   Bell,
   Calendar,
@@ -23,6 +23,7 @@ import {
 } from '@tailtracker/shared-services';
 import { ConfirmationModal } from '@/components/ConfirmationModal';
 import { usePreferences } from '@/contexts/PreferencesContext';
+import { invalidateReminderData } from '@/lib/cacheUtils';
 
 interface ReminderCardProps {
   reminder: ReminderWithPet;
@@ -48,7 +49,6 @@ const getSourceLabel = (sourceType: 'vaccination' | 'medical_record') => {
 
 export const ReminderCard = ({ reminder, onResolve }: ReminderCardProps) => {
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const [showDismissModal, setShowDismissModal] = useState(false);
   const { formatDate } = usePreferences();
 
@@ -59,8 +59,8 @@ export const ReminderCard = ({ reminder, onResolve }: ReminderCardProps) => {
     mutationFn: () => dismissReminder(reminder.id),
     onSuccess: (result) => {
       if (result.success) {
-        queryClient.invalidateQueries({ queryKey: ['reminders'] });
-        queryClient.invalidateQueries({ queryKey: ['pendingRemindersCount'] });
+        // Invalidate all reminder-related caches
+        invalidateReminderData();
         setShowDismissModal(false);
       }
     },

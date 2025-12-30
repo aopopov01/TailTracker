@@ -5,7 +5,8 @@
 
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
+import { invalidateFamilyData } from '@/lib/cacheUtils';
 import {
   X,
   Users,
@@ -42,7 +43,6 @@ export const FamilySharingModal = ({
   maxFamilyMembers,
   isLoading = false,
 }: FamilySharingModalProps) => {
-  const queryClient = useQueryClient();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -62,7 +62,8 @@ export const FamilySharingModal = ({
       return result.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['petFamilyMembers', petId] });
+      // Invalidate all family-related caches
+      invalidateFamilyData(petId);
       setEmail('');
       setPassword('');
       setConfirmPassword('');
@@ -79,7 +80,8 @@ export const FamilySharingModal = ({
       if (!result.success) throw new Error(result.error);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['petFamilyMembers', petId] });
+      // Invalidate all family-related caches
+      invalidateFamilyData(petId);
     },
     onError: (err: Error) => {
       setError(err.message);

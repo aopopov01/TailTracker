@@ -12,3 +12,4 @@ export {
   type SubscriptionFeatures,
   type SubscriptionTier,
 } from './useSubscription';
+export { useRealtimeUpdates, useTableUpdates } from './useRealtimeUpdates';

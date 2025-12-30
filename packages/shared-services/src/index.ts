@@ -83,6 +83,27 @@ export {
   type UserSubscription,
 } from './subscriptionService';
 
+// Subscription Management Service (upgrades, downgrades, cancellations)
+export {
+  getFullSubscription,
+  getSubscriptionHistory,
+  calculateProrationPreview,
+  upgradeSubscription as upgradeSubscriptionManaged,
+  downgradeSubscription,
+  cancelSubscription,
+  reactivateSubscription,
+  changeBillingCycle,
+  hasPendingChange,
+  getTierPricing,
+  getAllPricing,
+  createStripeCheckoutSession,
+  createStripePortalSession,
+  hasStripeSubscription,
+  type StripeCheckoutRequest,
+  type StripeCheckoutResult,
+  type StripePortalResult,
+} from './subscriptionManagementService';
+
 // Vaccination Service
 export {
   getVaccinations,

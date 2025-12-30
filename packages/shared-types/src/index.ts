@@ -43,6 +43,18 @@ export interface UserRegistration extends UserCredentials {
   lastName: string;
   confirmPassword: string;
   invitationCode?: string;
+  // GDPR Consent fields
+  consentTerms?: boolean; // Required - agree to Terms and Privacy Policy
+  consentMarketing?: boolean; // Optional - marketing communications
+}
+
+export interface UserConsentData {
+  termsVersion: string;
+  privacyVersion: string;
+  termsAcceptedAt: string;
+  privacyAcceptedAt: string;
+  marketingConsent: boolean;
+  marketingAcceptedAt?: string;
 }
 
 export interface AuthSession {
@@ -248,12 +260,28 @@ export interface FamilyInvite {
 
 export type SubscriptionTier = 'free' | 'premium' | 'pro';
 export type SubscriptionStatus = 'active' | 'expired' | 'cancelled' | 'pending';
+export type BillingCycle = 'monthly' | 'annual';
+export type SubscriptionState = 'active' | 'cancelled' | 'past_due' | 'paused';
+export type SubscriptionChangeAction =
+  | 'upgrade'
+  | 'downgrade'
+  | 'cancel'
+  | 'reactivate'
+  | 'period_end'
+  | 'payment_failed'
+  | 'billing_cycle_change'
+  | 'trial_start'
+  | 'trial_end';
 
 export interface SubscriptionLimits {
   maxPets: number;
   maxFamilyMembers: number;
   maxPhotosPerPet: number;
+  maxDocumentsPerAppointment: number;
   canCreateLostPets: boolean;
+  canSyncCalendar: boolean;
+  canReceiveEmailReminders: boolean;
+  isAdFree: boolean;
   hasAdvancedFeatures: boolean;
 }
 
@@ -283,6 +311,87 @@ export interface UserSubscription extends BaseEntity {
   providerSubscriptionId?: string;
 }
 
+/**
+ * Full subscription record from the subscriptions table
+ * Used for subscription management operations
+ */
+export interface Subscription extends BaseEntity {
+  userId: string;
+  tier: SubscriptionTier;
+  billingCycle: BillingCycle | null;
+  status: SubscriptionState;
+  currentPeriodStart: string | null;
+  currentPeriodEnd: string | null;
+  cancelAtPeriodEnd: boolean;
+  downgradeToTier: SubscriptionTier | null;
+  stripeSubscriptionId: string | null;
+  stripeCustomerId: string | null;
+}
+
+/**
+ * Subscription change history entry for audit trail
+ */
+export interface SubscriptionHistoryEntry extends BaseEntity {
+  subscriptionId: string;
+  userId: string;
+  action: SubscriptionChangeAction;
+  fromTier: SubscriptionTier | null;
+  toTier: SubscriptionTier | null;
+  fromBillingCycle: BillingCycle | null;
+  toBillingCycle: BillingCycle | null;
+  prorationAmount: number | null;
+  metadata: Record<string, unknown>;
+}
+
+/**
+ * Proration calculation preview for subscription upgrades
+ */
+export interface ProrationPreview {
+  currentTier: SubscriptionTier;
+  targetTier: SubscriptionTier;
+  billingCycle: BillingCycle;
+  daysRemaining: number;
+  currentDailyRate: number;
+  targetDailyRate: number;
+  prorationAmount: number;
+  effectiveDate: string;
+}
+
+/**
+ * Request payload for subscription upgrade
+ */
+export interface SubscriptionUpgradeRequest {
+  targetTier: SubscriptionTier;
+  billingCycle: BillingCycle;
+}
+
+/**
+ * Request payload for subscription downgrade
+ */
+export interface SubscriptionDowngradeRequest {
+  targetTier: SubscriptionTier;
+}
+
+/**
+ * Request payload for billing cycle change
+ */
+export interface BillingCycleChangeRequest {
+  newBillingCycle: BillingCycle;
+}
+
+/**
+ * Response from subscription operations
+ */
+export interface SubscriptionOperationResult {
+  success: boolean;
+  subscription?: Subscription;
+  historyEntry?: SubscriptionHistoryEntry;
+  prorationAmount?: number;
+  effectiveDate?: string;
+  message?: string;
+  error?: string;
+}
+
 // Subscription tier configurations
 export const SUBSCRIPTION_TIERS: Record<SubscriptionTier, SubscriptionTierConfig> = {
   free: {
@@ -290,54 +399,75 @@ export const SUBSCRIPTION_TIERS: Record<SubscriptionTier, SubscriptionTierConfig
     name: 'Free',
     limits: {
       maxPets: 1,
-      maxFamilyMembers: 2,
+      maxFamilyMembers: 1,
       maxPhotosPerPet: 1,
+      maxDocumentsPerAppointment: 0,
       canCreateLostPets: false,
+      canSyncCalendar: false,
+      canReceiveEmailReminders: false,
+      isAdFree: false,
       hasAdvancedFeatures: false,
     },
     features: [
       '1 pet profile',
-      '2 family members',
-      'Basic health tracking',
+      '1 family member',
+      '1 photo per pet',
+      'Unlimited vaccinations & medical records',
+      'In-app reminders',
       'Receive lost pet alerts',
+      'All calendar views',
     ],
   },
   premium: {
     tier: 'premium',
     name: 'Premium',
-    pricing: { monthlyPrice: 5.99, annualPrice: 50, currency: 'EUR' },
+    pricing: { monthlyPrice: 5.99, annualPrice: 60, currency: 'EUR' },
     limits: {
       maxPets: 2,
-      maxFamilyMembers: 3,
-      maxPhotosPerPet: 6,
+      maxFamilyMembers: 2,
+      maxPhotosPerPet: 3,
+      maxDocumentsPerAppointment: 2,
       canCreateLostPets: false,
+      canSyncCalendar: true,
+      canReceiveEmailReminders: false,
+      isAdFree: true,
       hasAdvancedFeatures: true,
     },
     features: [
       '2 pet profiles',
-      '3 family members',
-      '6 photos per pet',
-      'Export capabilities',
-      'Advanced reminders',
+      '2 family members',
+      '3 photos per pet',
+      '2 documents per appointment',
+      'Calendar sync & export',
+      'Ad-free experience',
+      'All Free tier features',
     ],
   },
   pro: {
     tier: 'pro',
     name: 'Pro',
-    pricing: { monthlyPrice: 8.99, annualPrice: 80, currency: 'EUR' },
+    pricing: { monthlyPrice: 8.99, annualPrice: 90, currency: 'EUR' },
     limits: {
-      maxPets: 999,
-      maxFamilyMembers: 999,
-      maxPhotosPerPet: 12,
+      maxPets: 10,
+      maxFamilyMembers: 5,
+      maxPhotosPerPet: 10,
+      maxDocumentsPerAppointment: 5,
       canCreateLostPets: true,
+      canSyncCalendar: true,
+      canReceiveEmailReminders: true,
+      isAdFree: true,
       hasAdvancedFeatures: true,
     },
     features: [
-      'Unlimited pets',
-      'Unlimited family members',
-      '12 photos per pet',
+      '10 pet profiles',
+      '5 family members',
+      '10 photos per pet',
+      '5 documents per appointment',
       'Create lost pet alerts',
-      'All premium features',
+      'Email reminders',
+      'Calendar sync & export',
+      'Ad-free experience',
+      'All Premium features',
     ],
   },
 };

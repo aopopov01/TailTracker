@@ -4,7 +4,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import {
   User,
   Bell,
@@ -19,6 +19,9 @@ import {
   Monitor,
   Sparkles,
   Crown,
+  Calendar,
+  ArrowUpRight,
+  Settings,
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useSubscription } from '@/hooks/useSubscription';
@@ -26,7 +29,12 @@ import { useAuthStore } from '@/stores/authStore';
 import { useTheme, type Theme } from '@/contexts/ThemeContext';
 import { usePreferences, type DateFormat, type WeightUnit, type TemperatureUnit } from '@/contexts/PreferencesContext';
 import { supabase } from '@/lib/supabase';
-import { SUBSCRIPTION_PLANS } from '@tailtracker/shared-services';
+import { SUBSCRIPTION_PLANS, getFullSubscription, createStripePortalSession } from '@tailtracker/shared-services';
+import { SUBSCRIPTION_TIERS } from '@tailtracker/shared-types';
+import { PlanSelectionModal } from '@/components/Subscription/PlanSelectionModal';
+import { CancellationFlowModal } from '@/components/Subscription/CancellationFlowModal';
+import { PendingChangeBanner } from '@/components/Subscription/PendingChangeBanner';
+import { invalidateUserData } from '@/lib/cacheUtils';
 
 const tabs = [
   { id: 'account', name: 'Account', icon: User },
@@ -81,22 +89,22 @@ const PLAN_DISPLAY = {
     name: 'Free Plan',
     color: 'primary',
     pets: '1',
-    family: '2',
+    family: '1',
     photos: '1',
   },
   premium: {
     name: 'Premium Plan',
     color: 'blue',
     pets: '2',
-    family: '3',
-    photos: '6',
+    family: '2',
+    photos: '3',
   },
   pro: {
     name: 'Pro Plan',
     color: 'purple',
-    pets: 'Unlimited',
-    family: 'Unlimited',
-    photos: '12',
+    pets: '10',
+    family: '5',
+    photos: '10',
   },
 };
 
@@ -106,6 +114,21 @@ export const SettingsPage = () => {
   const { signOut, isLoading } = useAuth();
   const { tier, isLoading: subscriptionLoading, refetch: refetchSubscription } = useSubscription();
   const { theme, setTheme } = useTheme();
+
+  // Modal states
+  const [isPlanModalOpen, setIsPlanModalOpen] = useState(false);
+  const [isCancellationModalOpen, setIsCancellationModalOpen] = useState(false);
+
+  // Stripe portal state
+  const [isPortalLoading, setIsPortalLoading] = useState(false);
+  const [portalError, setPortalError] = useState<string | null>(null);
+
+  // Fetch full subscription details
+  const { data: fullSubscription, refetch: refetchFullSubscription } = useQuery({
+    queryKey: ['subscription-full', user?.id],
+    queryFn: () => (user?.id ? getFullSubscription(user.id) : null),
+    enabled: activeTab === 'subscription' && !!user?.id,
+  });
 
   // Regional preferences from context
   const {
@@ -121,8 +144,47 @@ export const SettingsPage = () => {
   useEffect(() => {
     if (activeTab === 'subscription') {
       refetchSubscription();
+      refetchFullSubscription();
     }
-  }, [activeTab, refetchSubscription]);
+  }, [activeTab, refetchSubscription, refetchFullSubscription]);
+
+  // Handle modal close and refetch
+  const handlePlanModalClose = () => {
+    setIsPlanModalOpen(false);
+    refetchSubscription();
+    refetchFullSubscription();
+  };
+
+  const handleCancellationModalClose = () => {
+    setIsCancellationModalOpen(false);
+    refetchSubscription();
+    refetchFullSubscription();
+  };
+
+  // Handle opening Stripe Customer Portal
+  const handleManageBilling = async () => {
+    setIsPortalLoading(true);
+    setPortalError(null);
+
+    try {
+      const result = await createStripePortalSession(
+        `${window.location.origin}/settings`
+      );
+
+      if (result.success && result.url) {
+        window.location.href = result.url;
+      } else {
+        setPortalError(result.error || 'Failed to open billing portal');
+      }
+    } catch (err) {
+      setPortalError(err instanceof Error ? err.message : 'An unexpected error occurred');
+    } finally {
+      setIsPortalLoading(false);
+    }
+  };
+
+  // Check for pending changes
+  const hasPendingChange = fullSubscription?.cancelAtPeriodEnd && fullSubscription?.downgradeToTier;
 
   // Get current plan display info
   const currentPlan = PLAN_DISPLAY[tier] || PLAN_DISPLAY.free;
@@ -203,6 +265,8 @@ export const SettingsPage = () => {
       return data;
     },
     onSuccess: () => {
+      // Invalidate user-related caches
+      invalidateUserData();
       setProfileSaved(true);
       setTimeout(() => setProfileSaved(false), 3000);
     },
@@ -734,207 +798,249 @@ export const SettingsPage = () => {
 
           {/* Subscription Tab */}
           {activeTab === 'subscription' && (
-            <div className="card">
-              <div className="p-4 border-b">
-                <h2 className="font-semibold text-gray-900">Subscription</h2>
-              </div>
-              <div className="p-6">
-                {subscriptionLoading ? (
-                  <div className="flex items-center justify-center py-8">
-                    <Loader2 className="h-8 w-8 animate-spin text-primary-500" />
-                  </div>
-                ) : (
-                  <>
-                    {/* Current Plan */}
-                    <div className={`rounded-xl p-6 mb-6 ${
-                      tier === 'pro' ? 'bg-purple-50' :
-                      tier === 'premium' ? 'bg-blue-50' : 'bg-primary-50'
-                    }`}>
-                      <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center gap-3">
-                          {tier === 'pro' && <Crown className="h-6 w-6 text-purple-600" />}
-                          {tier === 'premium' && <Sparkles className="h-6 w-6 text-blue-600" />}
-                          <div>
-                            <h3 className={`text-lg font-semibold ${
+            <div className="space-y-6">
+              {/* Pending Change Banner */}
+              {hasPendingChange && fullSubscription?.currentPeriodEnd && (
+                <PendingChangeBanner
+                  currentTier={tier}
+                  downgradeToTier={fullSubscription.downgradeToTier!}
+                  effectiveDate={fullSubscription.currentPeriodEnd}
+                  onReactivated={() => {
+                    refetchSubscription();
+                    refetchFullSubscription();
+                  }}
+                />
+              )}
+
+              <div className="card">
+                <div className="p-4 border-b">
+                  <h2 className="font-semibold text-gray-900">Subscription</h2>
+                </div>
+                <div className="p-6">
+                  {subscriptionLoading ? (
+                    <div className="flex items-center justify-center py-8">
+                      <Loader2 className="h-8 w-8 animate-spin text-primary-500" />
+                    </div>
+                  ) : (
+                    <>
+                      {/* Current Plan Card */}
+                      <div className={`rounded-xl p-6 mb-6 ${
+                        tier === 'pro' ? 'bg-gradient-to-br from-purple-50 to-purple-100' :
+                        tier === 'premium' ? 'bg-gradient-to-br from-blue-50 to-blue-100' : 'bg-gradient-to-br from-primary-50 to-primary-100'
+                      }`}>
+                        <div className="flex items-center justify-between mb-4">
+                          <div className="flex items-center gap-3">
+                            <div className={`p-3 rounded-full ${
+                              tier === 'pro' ? 'bg-purple-200' :
+                              tier === 'premium' ? 'bg-blue-200' : 'bg-primary-200'
+                            }`}>
+                              {tier === 'pro' && <Crown className="h-6 w-6 text-purple-600" />}
+                              {tier === 'premium' && <Sparkles className="h-6 w-6 text-blue-600" />}
+                              {tier === 'free' && <User className="h-6 w-6 text-primary-600" />}
+                            </div>
+                            <div>
+                              <h3 className={`text-lg font-semibold ${
+                                tier === 'pro' ? 'text-purple-900' :
+                                tier === 'premium' ? 'text-blue-900' : 'text-primary-900'
+                              }`}>
+                                {currentPlan.name}
+                              </h3>
+                              <p className={`text-sm ${
+                                tier === 'pro' ? 'text-purple-700' :
+                                tier === 'premium' ? 'text-blue-700' : 'text-primary-700'
+                              }`}>
+                                {tier === 'free' ? 'No payment required' : (
+                                  fullSubscription?.billingCycle === 'annual'
+                                    ? `€${SUBSCRIPTION_PLANS[tier].price.yearly}/year`
+                                    : `€${SUBSCRIPTION_PLANS[tier].price.monthly}/month`
+                                )}
+                              </p>
+                            </div>
+                          </div>
+                          <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                            tier === 'pro' ? 'bg-purple-200 text-purple-700' :
+                            tier === 'premium' ? 'bg-blue-200 text-blue-700' : 'bg-primary-200 text-primary-700'
+                          }`}>
+                            {fullSubscription?.status === 'active' ? 'Active' : 'Current'}
+                          </span>
+                        </div>
+
+                        {/* Plan Stats */}
+                        <div className="grid grid-cols-3 gap-4 text-center mb-4">
+                          <div className={`p-3 rounded-lg ${
+                            tier === 'pro' ? 'bg-purple-100/50' :
+                            tier === 'premium' ? 'bg-blue-100/50' : 'bg-primary-100/50'
+                          }`}>
+                            <p className={`text-2xl font-bold ${
                               tier === 'pro' ? 'text-purple-900' :
                               tier === 'premium' ? 'text-blue-900' : 'text-primary-900'
-                            }`}>
-                              {currentPlan.name}
-                            </h3>
-                            <p className={`text-sm ${
+                            }`}>{currentPlan.pets}</p>
+                            <p className={`text-xs ${
                               tier === 'pro' ? 'text-purple-700' :
                               tier === 'premium' ? 'text-blue-700' : 'text-primary-700'
-                            }`}>
-                              {currentPlan.pets} {currentPlan.pets === '1' ? 'pet' : 'pets'}, {currentPlan.family} family members, {currentPlan.photos} {currentPlan.photos === '1' ? 'photo' : 'photos'} per pet
-                            </p>
+                            }`}>{currentPlan.pets === '1' ? 'Pet' : 'Pets'}</p>
+                          </div>
+                          <div className={`p-3 rounded-lg ${
+                            tier === 'pro' ? 'bg-purple-100/50' :
+                            tier === 'premium' ? 'bg-blue-100/50' : 'bg-primary-100/50'
+                          }`}>
+                            <p className={`text-2xl font-bold ${
+                              tier === 'pro' ? 'text-purple-900' :
+                              tier === 'premium' ? 'text-blue-900' : 'text-primary-900'
+                            }`}>{currentPlan.family}</p>
+                            <p className={`text-xs ${
+                              tier === 'pro' ? 'text-purple-700' :
+                              tier === 'premium' ? 'text-blue-700' : 'text-primary-700'
+                            }`}>Family</p>
+                          </div>
+                          <div className={`p-3 rounded-lg ${
+                            tier === 'pro' ? 'bg-purple-100/50' :
+                            tier === 'premium' ? 'bg-blue-100/50' : 'bg-primary-100/50'
+                          }`}>
+                            <p className={`text-2xl font-bold ${
+                              tier === 'pro' ? 'text-purple-900' :
+                              tier === 'premium' ? 'text-blue-900' : 'text-primary-900'
+                            }`}>{currentPlan.photos}</p>
+                            <p className={`text-xs ${
+                              tier === 'pro' ? 'text-purple-700' :
+                              tier === 'premium' ? 'text-blue-700' : 'text-primary-700'
+                            }`}>{currentPlan.photos === '1' ? 'Photo' : 'Photos'}</p>
                           </div>
                         </div>
-                        <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                          tier === 'pro' ? 'bg-purple-100 text-purple-700' :
-                          tier === 'premium' ? 'bg-blue-100 text-blue-700' : 'bg-primary-100 text-primary-700'
-                        }`}>
-                          Current Plan
-                        </span>
-                      </div>
-                      <div className="grid grid-cols-3 gap-4 text-center">
-                        <div>
-                          <p className={`text-2xl font-bold ${
-                            tier === 'pro' ? 'text-purple-900' :
-                            tier === 'premium' ? 'text-blue-900' : 'text-primary-900'
-                          }`}>{currentPlan.pets}</p>
-                          <p className={`text-xs ${
-                            tier === 'pro' ? 'text-purple-700' :
-                            tier === 'premium' ? 'text-blue-700' : 'text-primary-700'
-                          }`}>{currentPlan.pets === '1' ? 'Pet' : 'Pets'}</p>
-                        </div>
-                        <div>
-                          <p className={`text-2xl font-bold ${
-                            tier === 'pro' ? 'text-purple-900' :
-                            tier === 'premium' ? 'text-blue-900' : 'text-primary-900'
-                          }`}>{currentPlan.family}</p>
-                          <p className={`text-xs ${
-                            tier === 'pro' ? 'text-purple-700' :
-                            tier === 'premium' ? 'text-blue-700' : 'text-primary-700'
-                          }`}>Family</p>
-                        </div>
-                        <div>
-                          <p className={`text-2xl font-bold ${
-                            tier === 'pro' ? 'text-purple-900' :
-                            tier === 'premium' ? 'text-blue-900' : 'text-primary-900'
-                          }`}>{currentPlan.photos}</p>
-                          <p className={`text-xs ${
-                            tier === 'pro' ? 'text-purple-700' :
-                            tier === 'premium' ? 'text-blue-700' : 'text-primary-700'
-                          }`}>{currentPlan.photos === '1' ? 'Photo' : 'Photos'}</p>
-                        </div>
-                      </div>
-                    </div>
 
-                    {/* Pro Plan - Already on best plan message */}
-                    {tier === 'pro' ? (
-                      <div className="text-center py-8 border-2 border-dashed border-purple-200 rounded-xl bg-purple-50/50">
-                        <Crown className="h-12 w-12 text-purple-500 mx-auto mb-3" />
-                        <h4 className="text-lg font-semibold text-purple-900 mb-2">
-                          You're on our best plan!
-                        </h4>
-                        <p className="text-sm text-purple-700 max-w-md mx-auto">
-                          Enjoy unlimited pets, unlimited family members, and all premium features.
-                          Thank you for being a Pro member!
-                        </p>
-                      </div>
-                    ) : (
-                      /* Available Plans */
-                      <div className="space-y-4">
-                        <h4 className="font-medium text-gray-900">
-                          Upgrade Your Plan
-                        </h4>
-
-                        {/* Premium Plan - Only show if not on Premium or Pro */}
-                        {tier === 'free' && (
-                          <div className="border rounded-lg p-4 hover:border-blue-300 transition-colors">
-                            <div className="flex justify-between items-start mb-3">
-                              <div className="flex items-center gap-2">
-                                <Sparkles className="h-5 w-5 text-blue-500" />
-                                <div>
-                                  <h5 className="font-semibold text-gray-900">Premium</h5>
-                                  <p className="text-sm text-gray-500">
-                                    Perfect for pet families
-                                  </p>
-                                </div>
-                              </div>
-                              <div className="text-right">
-                                <span className="text-2xl font-bold text-gray-900">
-                                  ${SUBSCRIPTION_PLANS.premium.price.monthly.toFixed(2)}
-                                </span>
-                                <span className="text-gray-500">/mo</span>
-                              </div>
-                            </div>
-                            <ul className="space-y-2 mb-4">
-                              <li className="flex items-center gap-2 text-sm text-gray-600">
-                                <Check className="h-4 w-4 text-green-500" />2 pet profiles
-                              </li>
-                              <li className="flex items-center gap-2 text-sm text-gray-600">
-                                <Check className="h-4 w-4 text-green-500" />3 family members
-                              </li>
-                              <li className="flex items-center gap-2 text-sm text-gray-600">
-                                <Check className="h-4 w-4 text-green-500" />6 photos per pet
-                              </li>
-                              <li className="flex items-center gap-2 text-sm text-gray-600">
-                                <Check className="h-4 w-4 text-green-500" />
-                                QR code sharing
-                              </li>
-                              <li className="flex items-center gap-2 text-sm text-gray-600">
-                                <Check className="h-4 w-4 text-green-500" />
-                                Export capabilities
-                              </li>
-                            </ul>
-                            <button className="btn-outline w-full border-blue-300 text-blue-600 hover:bg-blue-50">
-                              Upgrade to Premium
-                            </button>
+                        {/* Billing Info */}
+                        {tier !== 'free' && fullSubscription?.currentPeriodEnd && (
+                          <div className={`flex items-center gap-2 text-sm ${
+                            tier === 'pro' ? 'text-purple-700' :
+                            tier === 'premium' ? 'text-blue-700' : 'text-primary-700'
+                          }`}>
+                            <Calendar className="h-4 w-4" />
+                            <span>
+                              {fullSubscription?.cancelAtPeriodEnd
+                                ? `Access until ${new Date(fullSubscription.currentPeriodEnd).toLocaleDateString()}`
+                                : `Renews on ${new Date(fullSubscription.currentPeriodEnd).toLocaleDateString()}`
+                              }
+                            </span>
                           </div>
                         )}
-
-                        {/* Pro Plan - Show for Free and Premium users */}
-                        <div className="border-2 border-purple-600 rounded-lg p-4 relative">
-                          <div className="absolute -top-3 left-4 px-2 py-0.5 bg-purple-600 text-white text-xs font-medium rounded">
-                            BEST VALUE
-                          </div>
-                          <div className="flex justify-between items-start mb-3">
-                            <div className="flex items-center gap-2">
-                              <Crown className="h-5 w-5 text-purple-500" />
-                              <div>
-                                <h5 className="font-semibold text-gray-900">Pro</h5>
-                                <p className="text-sm text-gray-500">
-                                  For dedicated pet lovers
-                                </p>
-                              </div>
-                            </div>
-                            <div className="text-right">
-                              <span className="text-2xl font-bold text-gray-900">
-                                ${SUBSCRIPTION_PLANS.pro.price.monthly.toFixed(2)}
-                              </span>
-                              <span className="text-gray-500">/mo</span>
-                            </div>
-                          </div>
-                          <ul className="space-y-2 mb-4">
-                            <li className="flex items-center gap-2 text-sm text-gray-600">
-                              <Check className="h-4 w-4 text-green-500" />
-                              Unlimited pets
-                            </li>
-                            <li className="flex items-center gap-2 text-sm text-gray-600">
-                              <Check className="h-4 w-4 text-green-500" />
-                              Unlimited family members
-                            </li>
-                            <li className="flex items-center gap-2 text-sm text-gray-600">
-                              <Check className="h-4 w-4 text-green-500" />
-                              12 photos per pet
-                            </li>
-                            <li className="flex items-center gap-2 text-sm text-gray-600">
-                              <Check className="h-4 w-4 text-green-500" />
-                              Create lost pet alerts
-                            </li>
-                            <li className="flex items-center gap-2 text-sm text-gray-600">
-                              <Check className="h-4 w-4 text-green-500" />
-                              Advanced analytics
-                            </li>
-                            <li className="flex items-center gap-2 text-sm text-gray-600">
-                              <Check className="h-4 w-4 text-green-500" />
-                              Priority support
-                            </li>
-                          </ul>
-                          <button className="w-full py-2 px-4 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg transition-colors">
-                            Upgrade to Pro
-                          </button>
-                        </div>
                       </div>
-                    )}
-                  </>
-                )}
+
+                      {/* Portal Error Message */}
+                      {portalError && (
+                        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                          <p className="text-sm text-red-700">{portalError}</p>
+                        </div>
+                      )}
+
+                      {/* Action Buttons */}
+                      <div className="flex flex-wrap gap-3 mb-6">
+                        <button
+                          onClick={() => setIsPlanModalOpen(true)}
+                          className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
+                            tier === 'pro'
+                              ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                              : 'bg-primary-600 text-white hover:bg-primary-700'
+                          }`}
+                        >
+                          <ArrowUpRight className="h-4 w-4" />
+                          {tier === 'free' ? 'Upgrade Plan' : 'Change Plan'}
+                        </button>
+
+                        {tier !== 'free' && fullSubscription?.stripeSubscriptionId && (
+                          <button
+                            onClick={handleManageBilling}
+                            disabled={isPortalLoading}
+                            className="flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            {isPortalLoading ? (
+                              <>
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                                Loading...
+                              </>
+                            ) : (
+                              <>
+                                <CreditCard className="h-4 w-4" />
+                                Manage Billing
+                              </>
+                            )}
+                          </button>
+                        )}
+
+                        {tier !== 'free' && !hasPendingChange && (
+                          <button
+                            onClick={() => setIsCancellationModalOpen(true)}
+                            className="flex items-center gap-2 px-4 py-2 border border-red-300 text-red-600 rounded-lg font-medium hover:bg-red-50 transition-colors"
+                          >
+                            Cancel Subscription
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Features List */}
+                      <div className="border-t pt-6">
+                        <h4 className="font-medium text-gray-900 mb-4 flex items-center gap-2">
+                          <Settings className="h-5 w-5 text-gray-500" />
+                          Your Plan Features
+                        </h4>
+                        <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          {SUBSCRIPTION_TIERS[tier].features.map((feature: string, index: number) => (
+                            <li key={index} className="flex items-center gap-2 text-sm text-gray-600">
+                              <Check className={`h-4 w-4 flex-shrink-0 ${
+                                tier === 'pro' ? 'text-purple-500' :
+                                tier === 'premium' ? 'text-blue-500' : 'text-green-500'
+                              }`} />
+                              {feature}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+
+                      {/* Upgrade Prompt for Free Users */}
+                      {tier === 'free' && (
+                        <div className="mt-6 p-4 bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl border border-purple-100">
+                          <div className="flex items-start gap-4">
+                            <div className="p-2 bg-purple-100 rounded-lg">
+                              <Sparkles className="h-6 w-6 text-purple-600" />
+                            </div>
+                            <div className="flex-1">
+                              <h4 className="font-semibold text-gray-900 mb-1">
+                                Unlock more with Premium or Pro
+                              </h4>
+                              <p className="text-sm text-gray-600 mb-3">
+                                Get more pets, family members, photos, and exclusive features like lost pet alerts.
+                              </p>
+                              <button
+                                onClick={() => setIsPlanModalOpen(true)}
+                                className="text-sm font-medium text-purple-600 hover:text-purple-700 flex items-center gap-1"
+                              >
+                                View all plans
+                                <ArrowUpRight className="h-4 w-4" />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
               </div>
             </div>
           )}
         </div>
       </div>
+
+      {/* Modals */}
+      <PlanSelectionModal
+        isOpen={isPlanModalOpen}
+        onClose={handlePlanModalClose}
+        currentTier={tier}
+      />
+
+      <CancellationFlowModal
+        isOpen={isCancellationModalOpen}
+        onClose={handleCancellationModalClose}
+        currentTier={tier}
+      />
     </div>
   );
 };

@@ -5,10 +5,11 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import { ArrowLeft, Loader2, Save, X } from 'lucide-react';
 import { getPetById, updatePet } from '@tailtracker/shared-services';
 import type { PetData } from '@tailtracker/shared-types';
+import { invalidatePetData } from '@/lib/cacheUtils';
 
 import type { PetOnboardingData } from '@/components/PetOnboarding/types';
 import { INITIAL_PET_DATA } from '@/components/PetOnboarding/types';
@@ -22,7 +23,6 @@ import { FavoriteActivitiesStep } from '@/components/PetOnboarding/steps/Favorit
 export const EditPetPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
 
   const [petData, setPetData] = useState<PetOnboardingData>(INITIAL_PET_DATA);
   const [error, setError] = useState<string | null>(null);
@@ -77,8 +77,8 @@ export const EditPetPage = () => {
       return result.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['pet', id] });
-      queryClient.invalidateQueries({ queryKey: ['pets'] });
+      // Invalidate all pet-related caches including vaccinations, medical records, calendar, dashboard
+      invalidatePetData(id);
       navigate(`/pets/${id}`);
     },
     onError: (err) => {

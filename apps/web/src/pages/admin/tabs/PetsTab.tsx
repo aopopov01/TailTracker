@@ -5,6 +5,7 @@
 
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { invalidateAdminData } from '@/lib/cacheUtils';
 import {
   Search,
   Filter,
@@ -167,8 +168,7 @@ export const PetsTab = () => {
       setPendingChanges(new Map());
 
       // Refresh data
-      queryClient.invalidateQueries({ queryKey: ['adminPets'] });
-      queryClient.invalidateQueries({ queryKey: ['adminStats'] });
+      invalidateAdminData();
     } catch (error) {
       console.error('Failed to save changes:', error);
     } finally {
@@ -179,8 +179,7 @@ export const PetsTab = () => {
   const deleteMutation = useMutation({
     mutationFn: (petId: string) => adminDeletePet(petId),
     onSuccess: (_, petId) => {
-      queryClient.invalidateQueries({ queryKey: ['adminPets'] });
-      queryClient.invalidateQueries({ queryKey: ['adminStats'] });
+      invalidateAdminData();
       logAdminAction('delete_pet', 'pet', petId);
     },
   });
@@ -448,8 +447,7 @@ export const PetsTab = () => {
         isOpen={showCreatePetModal}
         onClose={() => setShowCreatePetModal(false)}
         onSuccess={() => {
-          queryClient.invalidateQueries({ queryKey: ['adminPets'] });
-          queryClient.invalidateQueries({ queryKey: ['adminStats'] });
+          invalidateAdminData();
         }}
       />
 
@@ -458,8 +456,7 @@ export const PetsTab = () => {
         isOpen={!!assignPetData}
         onClose={() => setAssignPetData(null)}
         onSuccess={() => {
-          queryClient.invalidateQueries({ queryKey: ['adminPets'] });
-          queryClient.invalidateQueries({ queryKey: ['adminStats'] });
+          invalidateAdminData();
         }}
         pet={assignPetData}
       />

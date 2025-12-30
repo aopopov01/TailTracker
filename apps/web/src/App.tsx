@@ -4,7 +4,8 @@
  */
 
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
+import { Toaster } from 'sonner';
+import { useAuth, useRealtimeUpdates } from '@/hooks';
 
 // Layouts
 import { AuthLayout } from '@/components/layouts/AuthLayout';
@@ -40,7 +41,13 @@ import { PricingPage } from '@/pages/PricingPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
 import { TermsOfServicePage } from '@/pages/legal/TermsOfServicePage';
 import { PrivacyPolicyPage } from '@/pages/legal/PrivacyPolicyPage';
+import { CookiePolicyPage } from '@/pages/legal/CookiePolicyPage';
+import { ImprintPage } from '@/pages/legal/ImprintPage';
 import { AdminPage } from '@/pages/admin/AdminPage';
+import { UpgradeSuccessPage } from '@/pages/UpgradeSuccessPage';
+
+// Components
+import { CookieConsent } from '@/components/CookieConsent';
 
 // Loading component
 const LoadingScreen = () => (
@@ -87,12 +94,18 @@ const PublicRoute = ({ children }: { children: React.ReactNode }) => {
 };
 
 function App() {
+  // Enable realtime updates from Supabase
+  useRealtimeUpdates();
+
   return (
+    <>
     <Routes>
       {/* Public Routes */}
       <Route path="/" element={<LandingPage />} />
       <Route path="/terms" element={<TermsOfServicePage />} />
       <Route path="/privacy" element={<PrivacyPolicyPage />} />
+      <Route path="/cookies" element={<CookiePolicyPage />} />
+      <Route path="/imprint" element={<ImprintPage />} />
 
       {/* Auth Routes */}
       <Route
@@ -138,6 +151,7 @@ function App() {
         <Route path="reminders" element={<RemindersPage />} />
         <Route path="reminders/:id" element={<ReminderDetailPage />} />
         <Route path="settings" element={<SettingsPage />} />
+        <Route path="settings/subscription/success" element={<UpgradeSuccessPage />} />
         <Route path="pricing" element={<PricingPage />} />
         <Route path="admin" element={<AdminPage />} />
       </Route>
@@ -145,6 +159,9 @@ function App() {
       {/* 404 Not Found */}
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
+    <CookieConsent />
+    <Toaster position="top-right" richColors duration={4000} />
+    </>
   );
 }
 

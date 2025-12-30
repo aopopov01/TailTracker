@@ -5,7 +5,7 @@
 
 import { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import {
   ArrowLeft,
   Bell,
@@ -23,6 +23,8 @@ import {
   type ReminderWithPet,
 } from '@tailtracker/shared-services';
 import { ConfirmationModal } from '@/components/ConfirmationModal';
+import { useAuthStore } from '@/stores/authStore';
+import { invalidateReminderData } from '@/lib/cacheUtils';
 
 const formatDate = (dateString: string) => {
   return new Date(dateString).toLocaleDateString('en-US', {
@@ -45,14 +47,15 @@ const formatTime = (time: string | undefined) => {
 export const ReminderDetailPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
+  const { user } = useAuthStore();
   const [showDismissModal, setShowDismissModal] = useState(false);
 
   // Fetch reminder details
+  // Include user ID in query key to prevent cross-user cache pollution
   const { data: reminder, isLoading } = useQuery<ReminderWithPet | null>({
-    queryKey: ['reminder', id],
+    queryKey: ['reminder', id, user?.id],
     queryFn: () => getReminderById(id!),
-    enabled: !!id,
+    enabled: !!id && !!user?.id,
   });
 
   // Dismiss mutation
@@ -60,8 +63,8 @@ export const ReminderDetailPage = () => {
     mutationFn: () => dismissReminder(id!),
     onSuccess: (result) => {
       if (result.success) {
-        queryClient.invalidateQueries({ queryKey: ['reminders'] });
-        queryClient.invalidateQueries({ queryKey: ['pendingRemindersCount'] });
+        // Invalidate all reminder-related caches
+        invalidateReminderData();
         navigate('/reminders');
       }
     },

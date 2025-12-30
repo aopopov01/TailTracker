@@ -1,6 +1,6 @@
 /**
  * Register Page
- * User registration form
+ * User registration form with GDPR-compliant consent checkboxes
  */
 
 import { useState } from 'react';
@@ -9,6 +9,15 @@ import { useForm } from 'react-hook-form';
 import { Eye, EyeOff, Loader2, AlertTriangle } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import type { UserRegistration } from '@tailtracker/shared-types';
+
+// Current versions of legal documents (update when policies change)
+const TERMS_VERSION = '2024.12';
+const PRIVACY_VERSION = '2024.12';
+
+interface RegistrationFormData extends UserRegistration {
+  consentTerms: boolean;
+  consentMarketing: boolean;
+}
 
 export const RegisterPage = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -19,13 +28,25 @@ export const RegisterPage = () => {
     handleSubmit,
     watch,
     formState: { errors },
-  } = useForm<UserRegistration>();
+  } = useForm<RegistrationFormData>({
+    defaultValues: {
+      consentTerms: false,
+      consentMarketing: false,
+    },
+  });
 
   const password = watch('password');
 
-  const onSubmit = async (data: UserRegistration) => {
+  const onSubmit = async (data: RegistrationFormData) => {
     clearError();
-    await signUp(data);
+
+    // Include consent data in registration
+    await signUp({
+      ...data,
+      // These will be stored in user metadata
+      consentTerms: data.consentTerms,
+      consentMarketing: data.consentMarketing,
+    });
   };
 
   return (
@@ -187,24 +208,58 @@ export const RegisterPage = () => {
           )}
         </div>
 
-        <div className="flex items-start">
-          <input
-            id="terms"
-            name="terms"
-            type="checkbox"
-            required
-            className="h-4 w-4 mt-0.5 rounded border-slate-300 text-primary-600 focus:ring-primary-500"
-          />
-          <label htmlFor="terms" className="ml-2 text-sm text-slate-600">
-            I agree to the{' '}
-            <Link to="/terms" target="_blank" className="link">
-              Terms of Service
-            </Link>{' '}
-            and{' '}
-            <Link to="/privacy" target="_blank" className="link">
-              Privacy Policy
-            </Link>
-          </label>
+        {/* Consent Section */}
+        <div className="space-y-4 pt-2">
+          <p className="text-sm font-medium text-slate-700">Consent & Privacy</p>
+
+          {/* Terms & Privacy Consent (Required) */}
+          <div className="flex items-start">
+            <input
+              {...register('consentTerms', {
+                required: 'You must agree to the Terms of Service and Privacy Policy',
+              })}
+              type="checkbox"
+              id="consentTerms"
+              className={`h-4 w-4 mt-0.5 rounded border-slate-300 text-primary-600 focus:ring-primary-500 ${
+                errors.consentTerms ? 'border-red-500' : ''
+              }`}
+            />
+            <label htmlFor="consentTerms" className="ml-2 text-sm text-slate-600">
+              I agree to the{' '}
+              <Link to="/terms" target="_blank" className="link">
+                Terms of Service
+              </Link>{' '}
+              and{' '}
+              <Link to="/privacy" target="_blank" className="link">
+                Privacy Policy
+              </Link>
+              <span className="text-red-500 ml-1">*</span>
+            </label>
+          </div>
+          {errors.consentTerms && (
+            <p className="text-sm text-red-600 -mt-2 ml-6">
+              {errors.consentTerms.message}
+            </p>
+          )}
+
+          {/* Marketing Consent (Optional) */}
+          <div className="flex items-start">
+            <input
+              {...register('consentMarketing')}
+              type="checkbox"
+              id="consentMarketing"
+              className="h-4 w-4 mt-0.5 rounded border-slate-300 text-primary-600 focus:ring-primary-500"
+            />
+            <label htmlFor="consentMarketing" className="ml-2 text-sm text-slate-600">
+              I would like to receive updates, tips, and promotional offers from TailTracker via email.
+              <span className="text-slate-400 ml-1">(optional)</span>
+            </label>
+          </div>
+
+          <p className="text-xs text-slate-500 ml-6">
+            You can withdraw your consent at any time in your account settings or by contacting us at{' '}
+            <a href="mailto:info@xciterr.com" className="link">info@xciterr.com</a>.
+          </p>
         </div>
 
         <button
@@ -218,7 +273,15 @@ export const RegisterPage = () => {
             'Create account'
           )}
         </button>
+
+        <p className="text-xs text-center text-slate-500">
+          By creating an account, you acknowledge that you have read our{' '}
+          <Link to="/cookies" target="_blank" className="link">Cookie Policy</Link>.
+        </p>
       </form>
     </div>
   );
 };
+
+// Export consent version constants for use elsewhere
+export { TERMS_VERSION, PRIVACY_VERSION };

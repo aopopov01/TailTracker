@@ -4,7 +4,8 @@
  */
 
 import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { invalidateAdminData } from '@/lib/cacheUtils';
 import {
   Settings,
   FileText,
@@ -179,7 +180,6 @@ const SettingCard = ({
 };
 
 export const SettingsTab = () => {
-  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<TabType>('settings');
   const [page, setPage] = useState(1);
 
@@ -194,7 +194,7 @@ export const SettingsTab = () => {
     mutationFn: ({ key, value }: { key: string; value: string | number | boolean }) =>
       updatePlatformSetting(key, value),
     onSuccess: (_, { key }) => {
-      queryClient.invalidateQueries({ queryKey: ['platformSettings'] });
+      invalidateAdminData();
       logAdminAction('update_setting', 'settings', key);
     },
   });

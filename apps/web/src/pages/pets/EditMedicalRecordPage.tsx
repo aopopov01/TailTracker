@@ -32,6 +32,7 @@ import {
   type MedicalRecordDocument,
 } from '@tailtracker/shared-services';
 import { DocumentUpload, type DocumentMetadata } from '@/components/DocumentUpload';
+import { invalidateMedicalRecordData } from '@/lib/cacheUtils';
 
 const RECORD_TYPES: { value: MedicalRecordType; label: string }[] = [
   { value: 'checkup', label: 'Checkup' },
@@ -156,7 +157,8 @@ export const EditMedicalRecordPage = () => {
       updateMedicalRecord(recordId!, data),
     onSuccess: (result) => {
       if (result.success) {
-        queryClient.invalidateQueries({ queryKey: ['medicalRecords', id] });
+        // Invalidate all medical record-related caches including calendar/reminders/dashboard
+        invalidateMedicalRecordData(id);
         queryClient.invalidateQueries({ queryKey: ['medicalRecord', recordId] });
         queryClient.invalidateQueries({ queryKey: ['medicalRecordSummary', id] });
         navigate(`/pets/${id}/medical-records`);
@@ -179,7 +181,8 @@ export const EditMedicalRecordPage = () => {
     mutationFn: () => deleteMedicalRecord(recordId!),
     onSuccess: (result) => {
       if (result.success) {
-        queryClient.invalidateQueries({ queryKey: ['medicalRecords', id] });
+        // Invalidate all medical record-related caches including calendar/reminders/dashboard
+        invalidateMedicalRecordData(id);
         queryClient.invalidateQueries({ queryKey: ['medicalRecordSummary', id] });
         navigate(`/pets/${id}/medical-records`);
       } else {

@@ -5,6 +5,7 @@
 
 import { useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   signIn,
   signUp,
@@ -25,6 +26,7 @@ const AUTH_INIT_TIMEOUT = 3000;
 
 export const useAuth = () => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const {
     user,
     isAuthenticated,
@@ -200,6 +202,10 @@ export const useAuth = () => {
         }
       }
 
+      // CRITICAL: Clear all cached query data to prevent cross-user data leakage
+      // This must happen BEFORE the local state is cleared
+      queryClient.clear();
+
       // Always clear local state
       logout();
       navigate('/');
@@ -208,13 +214,14 @@ export const useAuth = () => {
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Sign out failed';
       console.error('Sign out error:', errorMessage);
-      // Even on error, log out locally
+      // Even on error, clear cache and log out locally
+      queryClient.clear();
       logout();
       navigate('/');
       setLoading(false);
       return { success: true }; // Return success since local logout worked
     }
-  }, [navigate, logout, setLoading]);
+  }, [navigate, logout, setLoading, queryClient]);
 
   // Refresh user data (e.g., after subscription change)
   const refreshUser = useCallback(async () => {

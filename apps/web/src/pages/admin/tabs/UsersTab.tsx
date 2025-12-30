@@ -6,6 +6,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { invalidateAdminData } from '@/lib/cacheUtils';
 import {
   Search,
   Filter,
@@ -596,7 +597,7 @@ export const UsersTab = () => {
       setPendingChanges(new Map());
 
       // Refresh data
-      queryClient.invalidateQueries({ queryKey: ['adminUsers'] });
+      invalidateAdminData();
     } catch (error) {
       console.error('Failed to save changes:', error);
     } finally {
@@ -608,7 +609,7 @@ export const UsersTab = () => {
     mutationFn: ({ userId, disabled }: { userId: string; disabled: boolean }) =>
       toggleUserStatus(userId, disabled),
     onSuccess: (_, { userId }) => {
-      queryClient.invalidateQueries({ queryKey: ['adminUsers'] });
+      invalidateAdminData();
       logAdminAction('toggle_user_status', 'user', userId);
       setOpenMenuId(null);
     },
@@ -617,7 +618,7 @@ export const UsersTab = () => {
   const deleteMutation = useMutation({
     mutationFn: (userId: string) => deleteUser(userId),
     onSuccess: (_, userId) => {
-      queryClient.invalidateQueries({ queryKey: ['adminUsers'] });
+      invalidateAdminData();
       logAdminAction('delete_user', 'user', userId);
       setOpenMenuId(null);
     },
@@ -628,7 +629,7 @@ export const UsersTab = () => {
       updateUserProfile(userId, updates),
     onSuccess: (result) => {
       if (result.success) {
-        queryClient.invalidateQueries({ queryKey: ['adminUsers'] });
+        invalidateAdminData();
         setEditingUser(null);
       } else {
         console.error('Failed to update profile:', result.error);
@@ -932,7 +933,7 @@ export const UsersTab = () => {
         isOpen={showCreateUserModal}
         onClose={() => setShowCreateUserModal(false)}
         onSuccess={() => {
-          queryClient.invalidateQueries({ queryKey: ['adminUsers'] });
+          invalidateAdminData();
         }}
       />
     </div>

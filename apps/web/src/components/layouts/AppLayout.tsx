@@ -19,6 +19,8 @@ import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useAuthStore } from '@/stores/authStore';
 import { Logo } from '@/components/Logo';
+import { Footer } from '@/components/Footer';
+import { CookieConsent } from '@/components/CookieConsent';
 
 interface NavItem {
   name: string;
@@ -37,6 +39,7 @@ const navigation: NavItem[] = [
 
 export const AppLayout = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [cookieSettingsOpen, setCookieSettingsOpen] = useState(false);
   const { user, signOut } = useAuth();
   useAuthStore(); // Keep for auth state tracking
   const location = useLocation();
@@ -167,7 +170,7 @@ export const AppLayout = () => {
       </div>
 
       {/* Main content */}
-      <div className="lg:pl-64">
+      <div className="lg:pl-64 min-h-screen flex flex-col">
         {/* Mobile header */}
         <div
           className="sticky top-0 z-40 lg:hidden backdrop-blur-sm"
@@ -190,10 +193,22 @@ export const AppLayout = () => {
         </div>
 
         {/* Page content */}
-        <main className="p-4 lg:p-8">
+        <main className="p-4 lg:p-8 flex-1">
           <Outlet />
         </main>
+
+        {/* Footer */}
+        <Footer
+          variant="minimal"
+          onCookieSettingsClick={() => setCookieSettingsOpen(true)}
+        />
       </div>
+
+      {/* Cookie Settings Modal */}
+      <CookieConsent
+        isOpen={cookieSettingsOpen}
+        onClose={() => setCookieSettingsOpen(false)}
+      />
     </div>
   );
 };

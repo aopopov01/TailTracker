@@ -7,7 +7,8 @@
 
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
+import { invalidateVaccinationData } from '@/lib/cacheUtils';
 import {
   Syringe,
   Calendar,
@@ -101,7 +102,6 @@ export const VaccinationCard = ({
   petName,
 }: VaccinationCardProps) => {
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const { formatDate } = usePreferences();
 
@@ -114,8 +114,8 @@ export const VaccinationCard = ({
     mutationFn: () => deleteVaccination(vaccination.id),
     onSuccess: (result) => {
       if (result.success) {
-        queryClient.invalidateQueries({ queryKey: ['vaccinations', petId] });
-        queryClient.invalidateQueries({ queryKey: ['vaccinationSummary', petId] });
+        // Invalidate all vaccination-related caches
+        invalidateVaccinationData(petId);
         setShowDeleteModal(false);
       }
     },

@@ -20,7 +20,7 @@ import {
   Clock,
 } from 'lucide-react';
 import { getAdminSubscriptions, getAdminStats } from '@tailtracker/shared-services';
-import type { SubscriptionTier } from '@tailtracker/shared-types';
+import { SUBSCRIPTION_TIERS, type SubscriptionTier } from '@tailtracker/shared-types';
 
 type FilterTier = SubscriptionTier | 'all';
 type FilterStatus = 'all' | 'active' | 'canceled' | 'expired' | 'trialing';
@@ -37,10 +37,16 @@ const formatDate = (dateString: string | null) => {
 };
 
 const formatCurrency = (amount: number) => {
-  return new Intl.NumberFormat('en-US', {
+  return new Intl.NumberFormat('en-EU', {
     style: 'currency',
-    currency: 'USD',
+    currency: 'EUR',
   }).format(amount);
+};
+
+// Current tier pricing (EUR)
+const TIER_PRICING = {
+  premium: { monthly: 5.99, yearly: 60.0 },
+  pro: { monthly: 8.99, yearly: 90.0 },
 };
 
 const TierBadge = ({ tier }: { tier: SubscriptionTier }) => {
@@ -213,31 +219,104 @@ export const SubscriptionsTab = () => {
             <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 rounded-full bg-blue-500" />
-                <span className="text-sm font-medium text-slate-700">Premium</span>
+                <span className="text-sm font-medium text-slate-700">Premium ({formatCurrency(TIER_PRICING.premium.monthly)}/mo)</span>
               </div>
               <span className="text-sm font-semibold text-slate-900">
-                {formatCurrency((stats?.premiumUsers || 0) * 4.99)}
+                {formatCurrency((stats?.premiumUsers || 0) * TIER_PRICING.premium.monthly)}
               </span>
             </div>
             <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 rounded-full bg-purple-500" />
-                <span className="text-sm font-medium text-slate-700">Pro</span>
+                <span className="text-sm font-medium text-slate-700">Pro ({formatCurrency(TIER_PRICING.pro.monthly)}/mo)</span>
               </div>
               <span className="text-sm font-semibold text-slate-900">
-                {formatCurrency((stats?.proUsers || 0) * 9.99)}
+                {formatCurrency((stats?.proUsers || 0) * TIER_PRICING.pro.monthly)}
               </span>
             </div>
             <div className="border-t border-slate-200 pt-3">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-semibold text-slate-800">Total MRR</span>
                 <span className="text-lg font-bold text-primary-600">
-                  {formatCurrency(stats?.monthlyRevenue || 0)}
+                  {formatCurrency(
+                    (stats?.premiumUsers || 0) * TIER_PRICING.premium.monthly +
+                    (stats?.proUsers || 0) * TIER_PRICING.pro.monthly
+                  )}
                 </span>
               </div>
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Tier Limits Overview */}
+      <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+        <h3 className="text-lg font-semibold text-slate-800 mb-4">Tier Limits Configuration</h3>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-slate-200">
+                <th className="text-left py-2 px-3 font-medium text-slate-600">Feature</th>
+                <th className="text-center py-2 px-3 font-medium text-slate-600">Free</th>
+                <th className="text-center py-2 px-3 font-medium text-blue-600">Premium</th>
+                <th className="text-center py-2 px-3 font-medium text-purple-600">Pro</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              <tr>
+                <td className="py-2 px-3 text-slate-700">Max Pets</td>
+                <td className="py-2 px-3 text-center">{SUBSCRIPTION_TIERS.free.limits.maxPets}</td>
+                <td className="py-2 px-3 text-center">{SUBSCRIPTION_TIERS.premium.limits.maxPets}</td>
+                <td className="py-2 px-3 text-center">{SUBSCRIPTION_TIERS.pro.limits.maxPets}</td>
+              </tr>
+              <tr>
+                <td className="py-2 px-3 text-slate-700">Max Family Members</td>
+                <td className="py-2 px-3 text-center">{SUBSCRIPTION_TIERS.free.limits.maxFamilyMembers}</td>
+                <td className="py-2 px-3 text-center">{SUBSCRIPTION_TIERS.premium.limits.maxFamilyMembers}</td>
+                <td className="py-2 px-3 text-center">{SUBSCRIPTION_TIERS.pro.limits.maxFamilyMembers}</td>
+              </tr>
+              <tr>
+                <td className="py-2 px-3 text-slate-700">Photos per Pet</td>
+                <td className="py-2 px-3 text-center">{SUBSCRIPTION_TIERS.free.limits.maxPhotosPerPet}</td>
+                <td className="py-2 px-3 text-center">{SUBSCRIPTION_TIERS.premium.limits.maxPhotosPerPet}</td>
+                <td className="py-2 px-3 text-center">{SUBSCRIPTION_TIERS.pro.limits.maxPhotosPerPet}</td>
+              </tr>
+              <tr>
+                <td className="py-2 px-3 text-slate-700">Documents per Appointment</td>
+                <td className="py-2 px-3 text-center">{SUBSCRIPTION_TIERS.free.limits.maxDocumentsPerAppointment}</td>
+                <td className="py-2 px-3 text-center">{SUBSCRIPTION_TIERS.premium.limits.maxDocumentsPerAppointment}</td>
+                <td className="py-2 px-3 text-center">{SUBSCRIPTION_TIERS.pro.limits.maxDocumentsPerAppointment}</td>
+              </tr>
+              <tr>
+                <td className="py-2 px-3 text-slate-700">Calendar Sync</td>
+                <td className="py-2 px-3 text-center">{SUBSCRIPTION_TIERS.free.limits.canSyncCalendar ? '✓' : '✗'}</td>
+                <td className="py-2 px-3 text-center text-green-600">{SUBSCRIPTION_TIERS.premium.limits.canSyncCalendar ? '✓' : '✗'}</td>
+                <td className="py-2 px-3 text-center text-green-600">{SUBSCRIPTION_TIERS.pro.limits.canSyncCalendar ? '✓' : '✗'}</td>
+              </tr>
+              <tr>
+                <td className="py-2 px-3 text-slate-700">Email Reminders</td>
+                <td className="py-2 px-3 text-center">{SUBSCRIPTION_TIERS.free.limits.canReceiveEmailReminders ? '✓' : '✗'}</td>
+                <td className="py-2 px-3 text-center">{SUBSCRIPTION_TIERS.premium.limits.canReceiveEmailReminders ? '✓' : '✗'}</td>
+                <td className="py-2 px-3 text-center text-green-600">{SUBSCRIPTION_TIERS.pro.limits.canReceiveEmailReminders ? '✓' : '✗'}</td>
+              </tr>
+              <tr>
+                <td className="py-2 px-3 text-slate-700">Create Lost Pet Alerts</td>
+                <td className="py-2 px-3 text-center">{SUBSCRIPTION_TIERS.free.limits.canCreateLostPets ? '✓' : '✗'}</td>
+                <td className="py-2 px-3 text-center">{SUBSCRIPTION_TIERS.premium.limits.canCreateLostPets ? '✓' : '✗'}</td>
+                <td className="py-2 px-3 text-center text-green-600">{SUBSCRIPTION_TIERS.pro.limits.canCreateLostPets ? '✓' : '✗'}</td>
+              </tr>
+              <tr>
+                <td className="py-2 px-3 text-slate-700">Ad-Free</td>
+                <td className="py-2 px-3 text-center">{SUBSCRIPTION_TIERS.free.limits.isAdFree ? '✓' : '✗'}</td>
+                <td className="py-2 px-3 text-center text-green-600">{SUBSCRIPTION_TIERS.premium.limits.isAdFree ? '✓' : '✗'}</td>
+                <td className="py-2 px-3 text-center text-green-600">{SUBSCRIPTION_TIERS.pro.limits.isAdFree ? '✓' : '✗'}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p className="mt-4 text-xs text-slate-500">
+          Note: All tiers have access to vaccinations, medical records, in-app reminders, and receiving lost pet alerts.
+        </p>
       </div>
 
       {/* Search and Filters */}

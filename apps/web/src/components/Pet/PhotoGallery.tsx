@@ -5,7 +5,8 @@
  */
 
 import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
+import { invalidatePetData } from '@/lib/cacheUtils';
 import {
   X,
   Trash2,
@@ -22,7 +23,6 @@ import {
   type PetPhoto,
 } from '@tailtracker/shared-services';
 import { PhotoUpload } from './PhotoUpload';
-import { useSubscription } from '@/hooks/useSubscription';
 
 interface PhotoGalleryProps {
   petId: string;
@@ -30,8 +30,6 @@ interface PhotoGalleryProps {
 }
 
 export const PhotoGallery = ({ petId, petName }: PhotoGalleryProps) => {
-  const queryClient = useQueryClient();
-  const { tier } = useSubscription();
   const [selectedPhoto, setSelectedPhoto] = useState<PetPhoto | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
 
@@ -50,10 +48,8 @@ export const PhotoGallery = ({ petId, petName }: PhotoGalleryProps) => {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['petPhotos', petId] });
-      // Include tier in query key to match PhotoUpload's query
-      queryClient.invalidateQueries({ queryKey: ['photoLimits', petId, tier] });
-      queryClient.invalidateQueries({ queryKey: ['pet', petId] });
+      // Invalidate all pet-related caches including photos
+      invalidatePetData(petId);
       setShowDeleteConfirm(null);
       setSelectedPhoto(null);
     },
@@ -68,8 +64,8 @@ export const PhotoGallery = ({ petId, petName }: PhotoGalleryProps) => {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['petPhotos', petId] });
-      queryClient.invalidateQueries({ queryKey: ['pet', petId] });
+      // Invalidate all pet-related caches
+      invalidatePetData(petId);
     },
   });
 

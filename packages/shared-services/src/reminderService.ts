@@ -144,10 +144,11 @@ export const getReminders = async (petId?: string): Promise<ReminderWithPet[]> =
     .from('reminders')
     .select(`
       *,
-      pets!inner(name)
+      pets!inner(name, deleted_at)
     `)
     .eq('user_id', user.user.id)
     .eq('status', 'pending')
+    .is('pets.deleted_at', null)
     .order('scheduled_date', { ascending: true });
 
   if (petId) {
@@ -180,9 +181,10 @@ export const getReminderById = async (id: string): Promise<ReminderWithPet | nul
     .from('reminders')
     .select(`
       *,
-      pets!inner(name)
+      pets!inner(name, deleted_at)
     `)
     .eq('id', id)
+    .is('pets.deleted_at', null)
     .single();
 
   if (error) {
@@ -192,7 +194,7 @@ export const getReminderById = async (id: string): Promise<ReminderWithPet | nul
 
   if (!data) return null;
 
-  const dbReminder = data as DatabaseReminder & { pets: { name: string } };
+  const dbReminder = data as DatabaseReminder & { pets: { name: string; deleted_at: string | null } };
   return {
     ...mapDatabaseToReminder(dbReminder),
     petName: dbReminder.pets.name,
@@ -201,25 +203,17 @@ export const getReminderById = async (id: string): Promise<ReminderWithPet | nul
 
 /**
  * Get count of pending reminders for dashboard
+ * Uses the same query logic as getReminders to ensure count always matches
  */
 export const getPendingRemindersCount = async (): Promise<number> => {
-  const supabase = getSupabaseClient();
-
-  const { data: user } = await supabase.auth.getUser();
-  if (!user.user) return 0;
-
-  const { count, error } = await supabase
-    .from('reminders')
-    .select('*', { count: 'exact', head: true })
-    .eq('user_id', user.user.id)
-    .eq('status', 'pending');
-
-  if (error) {
+  try {
+    // Use getReminders to ensure count always matches what the Reminders page shows
+    const reminders = await getReminders();
+    return reminders.length;
+  } catch (error) {
     console.error('Error counting reminders:', error);
     return 0;
   }
-
-  return count || 0;
 };
 
 /**

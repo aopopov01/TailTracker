@@ -5,12 +5,13 @@
 
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import { Plus, Bell, Loader2, PawPrint, CalendarClock, ChevronRight } from 'lucide-react';
 import { getPets, getPendingRemindersCount, syncReminders } from '@tailtracker/shared-services';
 import { useAuthStore } from '@/stores/authStore';
 import { PetImage } from '@/components/Pet';
 import { supabase } from '@/lib/supabase';
+import { invalidateReminderData } from '@/lib/cacheUtils';
 
 interface NextAppointment {
   date: Date;
@@ -24,7 +25,6 @@ interface NextAppointment {
 export const DashboardPage = () => {
   const { user, isInitialized, isAuthenticated } = useAuthStore();
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const [nextAppointment, setNextAppointment] = useState<NextAppointment | null>(null);
 
   const {
@@ -39,10 +39,11 @@ export const DashboardPage = () => {
   });
 
   // Fetch pending reminders count
+  // CRITICAL: Include user ID in query key to prevent cross-user cache pollution
   const { data: pendingRemindersCount = 0 } = useQuery({
-    queryKey: ['pendingRemindersCount'],
+    queryKey: ['pendingRemindersCount', user?.id],
     queryFn: getPendingRemindersCount,
-    enabled: isInitialized && isAuthenticated,
+    enabled: isInitialized && isAuthenticated && !!user?.id,
   });
 
   // Sync reminders mutation
@@ -50,8 +51,8 @@ export const DashboardPage = () => {
     mutationFn: syncReminders,
     onSuccess: (result) => {
       if (result.created > 0) {
-        queryClient.invalidateQueries({ queryKey: ['pendingRemindersCount'] });
-        queryClient.invalidateQueries({ queryKey: ['reminders'] });
+        // Invalidate all reminder-related caches
+        invalidateReminderData();
       }
     },
   });

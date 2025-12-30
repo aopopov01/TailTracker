@@ -29,6 +29,7 @@ import {
   type VaccinationDocument,
 } from '@tailtracker/shared-services';
 import { DocumentUpload, type DocumentMetadata } from '@/components/DocumentUpload';
+import { invalidateVaccinationData } from '@/lib/cacheUtils';
 
 export const EditVaccinationPage = () => {
   const { id, vacId } = useParams<{ id: string; vacId: string }>();
@@ -132,7 +133,8 @@ export const EditVaccinationPage = () => {
     },
     onSuccess: (result) => {
       if (result.success) {
-        queryClient.invalidateQueries({ queryKey: ['vaccinations', id] });
+        // Invalidate all vaccination-related caches including calendar/reminders/dashboard
+        invalidateVaccinationData(id);
         queryClient.invalidateQueries({ queryKey: ['vaccination', vacId] });
         queryClient.invalidateQueries({ queryKey: ['vaccinationSummary', id] });
         navigate(`/pets/${id}/vaccinations`);
@@ -153,7 +155,8 @@ export const EditVaccinationPage = () => {
     mutationFn: () => deleteVaccination(vacId!),
     onSuccess: (result) => {
       if (result.success) {
-        queryClient.invalidateQueries({ queryKey: ['vaccinations', id] });
+        // Invalidate all vaccination-related caches including calendar/reminders/dashboard
+        invalidateVaccinationData(id);
         queryClient.invalidateQueries({ queryKey: ['vaccinationSummary', id] });
         navigate(`/pets/${id}/vaccinations`);
       } else {

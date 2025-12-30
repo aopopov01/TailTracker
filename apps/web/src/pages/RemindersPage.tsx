@@ -5,7 +5,7 @@
  */
 
 import { useEffect } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import { Bell, RefreshCw, CheckCircle } from 'lucide-react';
 import {
   getReminders,
@@ -13,18 +13,22 @@ import {
   type ReminderWithPet,
 } from '@tailtracker/shared-services';
 import { ReminderCard } from '@/components/Health/ReminderCard';
+import { useAuthStore } from '@/stores/authStore';
+import { invalidateReminderData } from '@/lib/cacheUtils';
 
 export const RemindersPage = () => {
-  const queryClient = useQueryClient();
+  const { user } = useAuthStore();
 
   // Fetch all pending reminders
+  // CRITICAL: Include user ID in query key to prevent cross-user cache pollution
   const {
     data: reminders = [],
     isLoading,
     refetch,
   } = useQuery<ReminderWithPet[]>({
-    queryKey: ['reminders'],
+    queryKey: ['reminders', user?.id],
     queryFn: () => getReminders(),
+    enabled: !!user?.id,
   });
 
   // Sync reminders mutation
@@ -32,17 +36,19 @@ export const RemindersPage = () => {
     mutationFn: syncReminders,
     onSuccess: (result) => {
       if (result.created > 0) {
-        queryClient.invalidateQueries({ queryKey: ['reminders'] });
-        queryClient.invalidateQueries({ queryKey: ['pendingRemindersCount'] });
+        // Invalidate all reminder-related caches
+        invalidateReminderData();
       }
     },
   });
 
-  // Sync on mount
+  // Sync on mount (only when user is available)
   useEffect(() => {
-    syncMutation.mutate();
+    if (user?.id) {
+      syncMutation.mutate();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [user?.id]);
 
   const handleManualSync = () => {
     syncMutation.mutate();

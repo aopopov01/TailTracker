@@ -5,7 +5,8 @@
  */
 
 import { useCallback, useEffect } from 'react';
-import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { invalidatePetData, invalidateLostPetData } from '@/lib/cacheUtils';
 import { X, AlertTriangle, Crown } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import { LostPetAlertForm } from './LostPetAlertForm';
@@ -26,7 +27,6 @@ export const LostPetAlertModal = ({
   pet,
   userTier,
 }: LostPetAlertModalProps) => {
-  const queryClient = useQueryClient();
   const isPro = userTier === 'pro';
 
   // Fetch pet photos for the form
@@ -151,9 +151,9 @@ export const LostPetAlertModal = ({
       return report;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['pet', pet.id] });
-      queryClient.invalidateQueries({ queryKey: ['pets'] });
-      queryClient.invalidateQueries({ queryKey: ['lostPets'] });
+      // Invalidate pet and lost pet caches
+      invalidatePetData(pet.id);
+      invalidateLostPetData();
       onClose();
     },
   });
@@ -232,7 +232,7 @@ export const LostPetAlertModal = ({
               </p>
               <div className="space-y-3">
                 <a
-                  href="/settings/subscription"
+                  href="/pricing"
                   className="block w-full btn-primary"
                 >
                   Upgrade to Pro
@@ -265,11 +265,15 @@ export const LostPetAlertModal = ({
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-green-500 mt-0.5">✓</span>
-                    Unlimited pet profiles
+                    Up to 10 pet profiles
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-green-500 mt-0.5">✓</span>
-                    12 photos per pet
+                    Up to 10 photos per pet
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-green-500 mt-0.5">✓</span>
+                    Email reminders
                   </li>
                 </ul>
               </div>

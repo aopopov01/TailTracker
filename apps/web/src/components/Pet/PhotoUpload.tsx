@@ -7,7 +7,8 @@
 import { useState, useCallback, useRef } from 'react';
 import { Upload, X, Loader2, Image as ImageIcon, AlertCircle } from 'lucide-react';
 import { uploadPetPhoto, getPhotoLimits } from '@tailtracker/shared-services';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
+import { invalidatePetData } from '@/lib/cacheUtils';
 import { useSubscription } from '@/hooks/useSubscription';
 
 interface PhotoUploadProps {
@@ -16,7 +17,6 @@ interface PhotoUploadProps {
 }
 
 export const PhotoUpload = ({ petId, onUploadComplete }: PhotoUploadProps) => {
-  const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -44,10 +44,8 @@ export const PhotoUpload = ({ petId, onUploadComplete }: PhotoUploadProps) => {
       return result.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['petPhotos', petId] });
-      // Include tier in query key to match our query definition
-      queryClient.invalidateQueries({ queryKey: ['photoLimits', petId, tier] });
-      queryClient.invalidateQueries({ queryKey: ['pet', petId] });
+      // Invalidate all pet-related caches including photos
+      invalidatePetData(petId);
       setSelectedFile(null);
       setPreview(null);
       setError(null);

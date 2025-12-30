@@ -4,7 +4,8 @@
  */
 
 import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { invalidateAdminData } from '@/lib/cacheUtils';
 import {
   Plus,
   Edit2,
@@ -45,9 +46,9 @@ const formatDate = (dateString: string | null) => {
 };
 
 const formatCurrency = (amount: number) => {
-  return new Intl.NumberFormat('en-US', {
+  return new Intl.NumberFormat('en-EU', {
     style: 'currency',
-    currency: 'USD',
+    currency: 'EUR',
   }).format(amount);
 };
 
@@ -299,7 +300,7 @@ const PromoForm = ({ promo, onSave, onCancel, isPending }: PromoFormProps) => {
                   className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
                 />
                 <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">
-                  {formData.discountType === 'percentage' ? '%' : '$'}
+                  {formData.discountType === 'percentage' ? '%' : '€'}
                 </span>
               </div>
             </div>
@@ -329,7 +330,7 @@ const PromoForm = ({ promo, onSave, onCancel, isPending }: PromoFormProps) => {
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">Min Purchase Amount</label>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">$</span>
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">€</span>
               <input
                 type="number"
                 min="0"
@@ -392,7 +393,6 @@ const PromoForm = ({ promo, onSave, onCancel, isPending }: PromoFormProps) => {
 };
 
 export const AdsTab = () => {
-  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<TabType>('ads');
   const [editingAd, setEditingAd] = useState<Ad | null>(null);
   const [showAdForm, setShowAdForm] = useState(false);
@@ -409,7 +409,7 @@ export const AdsTab = () => {
   const createAdMutation = useMutation({
     mutationFn: createAd,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['adminAds'] });
+      invalidateAdminData();
       setShowAdForm(false);
       logAdminAction('create_ad', 'ad', '');
     },
@@ -418,7 +418,7 @@ export const AdsTab = () => {
   const updateAdMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<Ad> }) => updateAd(id, data),
     onSuccess: (_, { id }) => {
-      queryClient.invalidateQueries({ queryKey: ['adminAds'] });
+      invalidateAdminData();
       setEditingAd(null);
       logAdminAction('update_ad', 'ad', id);
     },
@@ -427,7 +427,7 @@ export const AdsTab = () => {
   const deleteAdMutation = useMutation({
     mutationFn: deleteAd,
     onSuccess: (_, id) => {
-      queryClient.invalidateQueries({ queryKey: ['adminAds'] });
+      invalidateAdminData();
       logAdminAction('delete_ad', 'ad', id);
     },
   });
@@ -442,7 +442,7 @@ export const AdsTab = () => {
   const createPromoMutation = useMutation({
     mutationFn: createPromoCode,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['adminPromoCodes'] });
+      invalidateAdminData();
       setShowPromoForm(false);
       logAdminAction('create_promo_code', 'promo_code', '');
     },
@@ -452,7 +452,7 @@ export const AdsTab = () => {
     mutationFn: ({ id, data }: { id: string; data: Partial<PromoCode> }) =>
       updatePromoCode(id, data),
     onSuccess: (_, { id }) => {
-      queryClient.invalidateQueries({ queryKey: ['adminPromoCodes'] });
+      invalidateAdminData();
       setEditingPromo(null);
       logAdminAction('update_promo_code', 'promo_code', id);
     },
@@ -461,7 +461,7 @@ export const AdsTab = () => {
   const deletePromoMutation = useMutation({
     mutationFn: deletePromoCode,
     onSuccess: (_, id) => {
-      queryClient.invalidateQueries({ queryKey: ['adminPromoCodes'] });
+      invalidateAdminData();
       logAdminAction('delete_promo_code', 'promo_code', id);
     },
   });

@@ -39,5 +39,8 @@
   "engines": {
     "node": ">=18.0.0",
     "pnpm": ">=9.0.0"
+  },
+  "dependencies": {
+    "react-hot-toast": "^2.6.0"
   }
 }

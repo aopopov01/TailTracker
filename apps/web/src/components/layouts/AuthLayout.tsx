@@ -5,6 +5,7 @@
 
 import { Outlet } from 'react-router-dom';
 import { Logo } from '@/components/Logo';
+import { Footer } from '@/components/Footer';
 
 export const AuthLayout = () => {
   return (
@@ -19,8 +20,8 @@ export const AuthLayout = () => {
         </div>
       </div>
 
-      <div className="mt-8 text-center text-sm text-slate-500">
-        <p>&copy; {new Date().getFullYear()} TailTracker. All rights reserved.</p>
+      <div className="mt-8">
+        <Footer variant="minimal" />
       </div>
     </div>
   );

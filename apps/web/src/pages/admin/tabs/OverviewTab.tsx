@@ -216,7 +216,7 @@ export const OverviewTab = () => {
         />
         <StatCard
           title="Revenue (Monthly)"
-          value={`$${stats.monthlyRevenue.toLocaleString()}`}
+          value={`€${stats.monthlyRevenue.toLocaleString()}`}
           icon={TrendingUp}
           color="orange"
         />

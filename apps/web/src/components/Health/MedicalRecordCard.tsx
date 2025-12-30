@@ -7,7 +7,8 @@
 
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
+import { invalidateMedicalRecordData } from '@/lib/cacheUtils';
 import {
   Stethoscope,
   Scissors,
@@ -182,7 +183,6 @@ export const MedicalRecordCard = ({
   petName,
 }: MedicalRecordCardProps) => {
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const { formatDate } = usePreferences();
 
@@ -195,10 +195,8 @@ export const MedicalRecordCard = ({
     mutationFn: () => deleteMedicalRecord(record.id),
     onSuccess: (result) => {
       if (result.success) {
-        queryClient.invalidateQueries({ queryKey: ['medicalRecords', petId] });
-        queryClient.invalidateQueries({
-          queryKey: ['medicalRecordSummary', petId],
-        });
+        // Invalidate all medical record-related caches
+        invalidateMedicalRecordData(petId);
         setShowDeleteModal(false);
       }
     },

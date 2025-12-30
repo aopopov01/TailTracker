@@ -81,28 +81,84 @@ export const useSubscription = (): UseSubscriptionReturn => {
 };
 
 /**
- * Hook for checking subscription limits
+ * Hook for checking subscription limits and feature access
+ * Provides helper functions for feature gating across the platform
  */
 export const useSubscriptionLimits = () => {
   const { features, tier, isLoading } = useSubscription();
 
+  // Limit checks - returns true if user can add more
   const canAddPet = (currentCount: number) => currentCount < features.maxPets;
   const canAddFamilyMember = (currentCount: number) => currentCount < features.maxFamilyMembers;
   const canAddPhoto = (currentCount: number) => currentCount < features.photosPerPet;
+  const canUploadDocument = (currentCount: number) => currentCount < features.maxDocumentsPerAppointment;
+
+  // Feature access checks - returns true if feature is available for tier
+  const canSyncCalendar = () => features.canSyncCalendar;
+  const canReceiveEmailReminders = () => features.canReceiveEmailReminders;
+  const canCreateLostPetAlert = () => features.canCreateLostPets;
+  const isAdFree = () => features.isAdFree;
+
+  // Legacy feature checks (kept for backwards compatibility)
   const canReportLostPet = () => features.lostPetReporting;
   const canExportHealthRecords = () => features.healthRecordExport;
 
+  // Upgrade prompts - returns required tier for feature
+  const getRequiredTierForFeature = (feature: keyof SubscriptionFeatures): SubscriptionTier | null => {
+    if (features[feature]) return null; // Already have access
+
+    // Check which tier unlocks this feature
+    const premiumFeatures = SUBSCRIPTION_PLANS.premium.features;
+    const proFeatures = SUBSCRIPTION_PLANS.pro.features;
+
+    if (premiumFeatures[feature]) return 'premium';
+    if (proFeatures[feature]) return 'pro';
+    return null;
+  };
+
+  // Check if user is at or above a specific tier
+  const isAtLeastTier = (requiredTier: SubscriptionTier): boolean => {
+    const tierOrder: SubscriptionTier[] = ['free', 'premium', 'pro'];
+    const currentIndex = tierOrder.indexOf(tier);
+    const requiredIndex = tierOrder.indexOf(requiredTier);
+    return currentIndex >= requiredIndex;
+  };
+
   return {
+    // Current tier info
+    tier,
+    isLoading,
+    isPremium: tier === 'premium' || tier === 'pro',
+    isPro: tier === 'pro',
+
+    // Limits (raw values)
     maxPets: features.maxPets,
     maxFamilyMembers: features.maxFamilyMembers,
     maxPhotosPerPet: features.photosPerPet,
+    maxDocumentsPerAppointment: features.maxDocumentsPerAppointment,
+
+    // Limit check functions
     canAddPet,
     canAddFamilyMember,
     canAddPhoto,
+    canUploadDocument,
+
+    // Feature access functions
+    canSyncCalendar,
+    canReceiveEmailReminders,
+    canCreateLostPetAlert,
+    isAdFree,
+
+    // Legacy functions (deprecated but kept for compatibility)
     canReportLostPet,
     canExportHealthRecords,
-    tier,
-    isLoading,
+
+    // Utility functions
+    getRequiredTierForFeature,
+    isAtLeastTier,
+
+    // Raw features object for advanced use cases
+    features,
   };
 };
 

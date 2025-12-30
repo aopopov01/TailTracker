@@ -2,6 +2,11 @@
  * Subscription Context
  * Global subscription tier management with Supabase Realtime sync
  * Automatically updates when subscription changes from any source (Admin, Settings, etc.)
+ *
+ * Provides:
+ * - Current subscription tier
+ * - Full subscription details (billing cycle, period dates, pending changes)
+ * - Realtime sync for instant updates
  */
 
 import {
@@ -13,11 +18,34 @@ import {
   type ReactNode,
 } from 'react';
 import { supabase, isSupabaseConfigured } from '@/lib/supabase';
-import type { SubscriptionTier } from '@tailtracker/shared-types';
+import type { SubscriptionTier, BillingCycle, SubscriptionState } from '@tailtracker/shared-types';
+
+interface SubscriptionDetails {
+  id: string;
+  tier: SubscriptionTier;
+  billingCycle: BillingCycle | null;
+  status: SubscriptionState;
+  currentPeriodStart: string | null;
+  currentPeriodEnd: string | null;
+  cancelAtPeriodEnd: boolean;
+  downgradeToTier: SubscriptionTier | null;
+}
 
 interface SubscriptionContextType {
+  // Basic tier (for feature gating)
   tier: SubscriptionTier;
+
+  // Full subscription details
+  subscription: SubscriptionDetails | null;
+
+  // State
   loading: boolean;
+
+  // Helpers
+  hasPendingChange: boolean;
+  isActive: boolean;
+
+  // Actions
   refresh: () => Promise<void>;
 }
 
@@ -25,9 +53,10 @@ const SubscriptionContext = createContext<SubscriptionContextType | undefined>(u
 
 export function SubscriptionProvider({ children }: { children: ReactNode }) {
   const [tier, setTier] = useState<SubscriptionTier>('free');
+  const [subscription, setSubscription] = useState<SubscriptionDetails | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Fetch subscription from users table (users.auth_user_id = auth user UUID)
+  // Fetch subscription from users table and subscriptions table
   const fetchSubscription = useCallback(async (authUserId?: string) => {
     if (!isSupabaseConfigured || !supabase) {
       setLoading(false);
@@ -46,28 +75,61 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
 
       if (!uid) {
         setTier('free');
+        setSubscription(null);
         setLoading(false);
         return;
       }
 
       // Fetch from users table - users.auth_user_id links to auth.users.id
-      const { data, error } = await client
+      const { data: userData, error: userError } = await client
         .from('users')
         .select('id, subscription_tier')
         .eq('auth_user_id', uid)
         .single();
 
-      console.log('SubscriptionContext: Fetched tier:', data?.subscription_tier, 'for auth_user_id:', uid);
-
-      if (error) {
-        console.warn('SubscriptionContext: Failed to fetch subscription:', error.message);
+      if (userError) {
+        console.warn('SubscriptionContext: Failed to fetch user:', userError.message);
         setTier('free');
-      } else if (data) {
-        setTier((data.subscription_tier as SubscriptionTier) || 'free');
+        setSubscription(null);
+        setLoading(false);
+        return;
+      }
+
+      const userTier = (userData?.subscription_tier as SubscriptionTier) || 'free';
+      setTier(userTier);
+      console.log('SubscriptionContext: Fetched tier:', userTier, 'for auth_user_id:', uid);
+
+      // Also fetch full subscription details from subscriptions table
+      const { data: subData, error: subError } = await client
+        .from('subscriptions')
+        .select('*')
+        .eq('user_id', uid)
+        .single();
+
+      if (subError && subError.code !== 'PGRST116') {
+        // PGRST116 = no rows found, which is OK for free tier
+        console.warn('SubscriptionContext: Failed to fetch subscription details:', subError.message);
+      }
+
+      if (subData) {
+        setSubscription({
+          id: subData.id,
+          tier: subData.tier || userTier,
+          billingCycle: subData.billing_cycle,
+          status: subData.status || 'active',
+          currentPeriodStart: subData.current_period_start,
+          currentPeriodEnd: subData.current_period_end,
+          cancelAtPeriodEnd: subData.cancel_at_period_end || false,
+          downgradeToTier: subData.downgrade_to_tier,
+        });
+      } else {
+        // Free tier or no subscription record
+        setSubscription(null);
       }
     } catch (err) {
       console.error('SubscriptionContext: Unexpected error:', err);
       setTier('free');
+      setSubscription(null);
     } finally {
       setLoading(false);
     }
@@ -120,8 +182,35 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
           (payload) => {
             // Automatically update when subscription changes
             const newTier = payload.new.subscription_tier as SubscriptionTier;
-            console.log('SubscriptionContext: Realtime update received:', newTier);
+            console.log('SubscriptionContext: Realtime update received (users):', newTier);
             setTier(newTier || 'free');
+            // Refetch full subscription details on tier change
+            fetchSubscription(user.id);
+          }
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'subscriptions',
+            filter: `user_id=eq.${user.id}`,
+          },
+          (payload) => {
+            // Automatically update when subscription details change
+            console.log('SubscriptionContext: Realtime update received (subscriptions)');
+            if (payload.new) {
+              setSubscription({
+                id: payload.new.id,
+                tier: payload.new.tier || tier,
+                billingCycle: payload.new.billing_cycle,
+                status: payload.new.status || 'active',
+                currentPeriodStart: payload.new.current_period_start,
+                currentPeriodEnd: payload.new.current_period_end,
+                cancelAtPeriodEnd: payload.new.cancel_at_period_end || false,
+                downgradeToTier: payload.new.downgrade_to_tier,
+              });
+            }
           }
         )
         .subscribe((status) => {
@@ -168,8 +257,21 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
     await fetchSubscription();
   }, [fetchSubscription]);
 
+  // Computed helpers
+  const hasPendingChange = Boolean(subscription?.cancelAtPeriodEnd && subscription?.downgradeToTier);
+  const isActive = subscription?.status === 'active' || tier === 'free';
+
   return (
-    <SubscriptionContext.Provider value={{ tier, loading, refresh }}>
+    <SubscriptionContext.Provider
+      value={{
+        tier,
+        subscription,
+        loading,
+        hasPendingChange,
+        isActive,
+        refresh,
+      }}
+    >
       {children}
     </SubscriptionContext.Provider>
   );

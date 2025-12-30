@@ -13,6 +13,12 @@ export interface SubscriptionFeatures {
   maxPets: number;
   maxFamilyMembers: number;
   photosPerPet: number;
+  maxDocumentsPerAppointment: number;
+  canCreateLostPets: boolean;
+  canSyncCalendar: boolean;
+  canReceiveEmailReminders: boolean;
+  isAdFree: boolean;
+  // Legacy fields (kept for backwards compatibility)
   lostPetReporting: boolean;
   healthRecordExport: boolean;
   enhancedFamilyCoordination: boolean;
@@ -43,6 +49,7 @@ export interface UserSubscription {
 
 /**
  * Subscription plans configuration
+ * Currency: EUR (€)
  */
 export const SUBSCRIPTION_PLANS: Record<SubscriptionTier, SubscriptionPlan> = {
   free: {
@@ -55,8 +62,14 @@ export const SUBSCRIPTION_PLANS: Record<SubscriptionTier, SubscriptionPlan> = {
     },
     features: {
       maxPets: 1,
-      maxFamilyMembers: 2,
+      maxFamilyMembers: 1,
       photosPerPet: 1,
+      maxDocumentsPerAppointment: 0,
+      canCreateLostPets: false,
+      canSyncCalendar: false,
+      canReceiveEmailReminders: false,
+      isAdFree: false,
+      // Legacy fields
       lostPetReporting: false,
       healthRecordExport: false,
       enhancedFamilyCoordination: false,
@@ -66,39 +79,51 @@ export const SUBSCRIPTION_PLANS: Record<SubscriptionTier, SubscriptionPlan> = {
   premium: {
     id: 'premium',
     name: 'Premium',
-    description: '3 family members + 2 pet profiles',
+    description: '2 pets, 2 family members, calendar sync',
     price: {
       monthly: 5.99,
-      yearly: 50.0,
+      yearly: 60.0,
     },
     features: {
       maxPets: 2,
-      maxFamilyMembers: 3,
-      photosPerPet: 6,         // Premium tier: 6 photos per pet
-      lostPetReporting: false, // Premium tier: can receive but NOT create lost pet alerts
-      healthRecordExport: true,
-      enhancedFamilyCoordination: true,
-      cloudBackup: true,
-    },
-  },
-  pro: {
-    id: 'pro',
-    name: 'Pro',
-    description: 'Unlimited family members + unlimited pets',
-    price: {
-      monthly: 8.99,
-      yearly: 80.0,
-    },
-    features: {
-      maxPets: 999,
-      maxFamilyMembers: 999,
-      photosPerPet: 12,
-      lostPetReporting: true,
+      maxFamilyMembers: 2,
+      photosPerPet: 3,
+      maxDocumentsPerAppointment: 2,
+      canCreateLostPets: false,
+      canSyncCalendar: true,
+      canReceiveEmailReminders: false,
+      isAdFree: true,
+      // Legacy fields
+      lostPetReporting: false,
       healthRecordExport: true,
       enhancedFamilyCoordination: true,
       cloudBackup: true,
     },
     popular: true,
+  },
+  pro: {
+    id: 'pro',
+    name: 'Pro',
+    description: '10 pets, 5 family members, all features',
+    price: {
+      monthly: 8.99,
+      yearly: 90.0,
+    },
+    features: {
+      maxPets: 10,
+      maxFamilyMembers: 5,
+      photosPerPet: 10,
+      maxDocumentsPerAppointment: 5,
+      canCreateLostPets: true,
+      canSyncCalendar: true,
+      canReceiveEmailReminders: true,
+      isAdFree: true,
+      // Legacy fields
+      lostPetReporting: true,
+      healthRecordExport: true,
+      enhancedFamilyCoordination: true,
+      cloudBackup: true,
+    },
   },
 };
 

@@ -5,7 +5,7 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import {
   ArrowLeft,
   Loader2,
@@ -42,6 +42,7 @@ import { calculateAge } from '@tailtracker/shared-utils';
 import { PhotoGallery, LostPetAlertModal, MarkAsFoundModal } from '@/components/Pet';
 import { useAuth } from '@/hooks/useAuth';
 import type { SubscriptionTier } from '@tailtracker/shared-types';
+import { invalidatePetData, invalidateLostPetData } from '@/lib/cacheUtils';
 
 // Get species-specific default image path
 const getSpeciesImage = (species: string): string => {
@@ -60,7 +61,6 @@ const getSpeciesImage = (species: string): string => {
 export const PetDetailPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const { user } = useAuth();
   const [showFamilySharingModal, setShowFamilySharingModal] = useState(false);
   const [showLostPetModal, setShowLostPetModal] = useState(false);
@@ -158,10 +158,11 @@ export const PetDetailPage = () => {
   });
 
   // Fetch reminder summary
+  // CRITICAL: Include user ID in query key to prevent cross-user cache pollution
   const { data: reminderSummary } = useQuery({
-    queryKey: ['reminderSummary', id],
+    queryKey: ['reminderSummary', id, user?.id],
     queryFn: () => getReminderSummary(id!),
-    enabled: !!id,
+    enabled: !!id && !!user?.id,
   });
 
   // Fetch next upcoming appointment (vaccination or medical follow-up)
@@ -245,7 +246,8 @@ export const PetDetailPage = () => {
   const deleteMutation = useMutation({
     mutationFn: () => deletePet(id!),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['pets'] });
+      // Invalidate all pet-related caches
+      invalidatePetData(id);
       navigate('/pets');
     },
   });
@@ -756,8 +758,9 @@ export const PetDetailPage = () => {
                 })
                 .eq('pet_id', pet.id)
                 .eq('status', 'lost');
-              queryClient.invalidateQueries({ queryKey: ['pet', id] });
-              queryClient.invalidateQueries({ queryKey: ['lostPets'] });
+              // Invalidate pet and lost pet caches
+              invalidatePetData(id);
+              invalidateLostPetData();
               setShowMarkAsFoundModal(false);
             }
           }}
