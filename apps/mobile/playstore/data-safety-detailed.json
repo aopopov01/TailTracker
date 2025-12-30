@@ -1,0 +1,187 @@
+{
+  "dataCollectionAndSecurity": {
+    "dataCollected": true,
+    "dataSharedWithThirdParties": true,
+    "dataTransmissionEncrypted": true,
+    "userCanRequestDataDeletion": true,
+    "privacyPolicyUrl": "https://tailtracker.com/privacy"
+  },
+  "dataTypes": {
+    "personalInfo": {
+      "name": {
+        "collected": true,
+        "shared": false,
+        "purposes": ["App functionality"],
+        "optional": false
+      },
+      "emailAddress": {
+        "collected": true,
+        "shared": false,
+        "purposes": ["App functionality", "Account management"],
+        "optional": false
+      },
+      "phoneNumber": {
+        "collected": true,
+        "shared": false,
+        "purposes": ["App functionality", "Account management"],
+        "optional": true
+      },
+      "userIds": {
+        "collected": true,
+        "shared": false,
+        "purposes": ["App functionality", "Account management"],
+        "optional": false
+      }
+    },
+    "financial": {
+      "purchaseHistory": {
+        "collected": true,
+        "shared": false,
+        "purposes": ["App functionality", "Account management"],
+        "optional": false
+      }
+    },
+    "location": {
+      "approximateLocation": {
+        "collected": true,
+        "shared": false,
+        "purposes": ["App functionality"],
+        "optional": false
+      },
+      "preciseLocation": {
+        "collected": true,
+        "shared": false,
+        "purposes": ["App functionality"],
+        "optional": false
+      }
+    },
+    "personalData": {
+      "personalCommunications": {
+        "collected": true,
+        "shared": false,
+        "purposes": ["App functionality"],
+        "optional": true
+      }
+    },
+    "photos": {
+      "photos": {
+        "collected": true,
+        "shared": false,
+        "purposes": ["App functionality"],
+        "optional": false
+      }
+    },
+    "healthAndFitness": {
+      "healthInfo": {
+        "collected": true,
+        "shared": false,
+        "purposes": ["App functionality"],
+        "optional": true
+      }
+    },
+    "appActivity": {
+      "appInteractions": {
+        "collected": true,
+        "shared": true,
+        "purposes": ["Analytics", "App functionality"],
+        "optional": true
+      },
+      "searchHistory": {
+        "collected": true,
+        "shared": false,
+        "purposes": ["App functionality"],
+        "optional": true
+      }
+    },
+    "appPerformance": {
+      "crashLogs": {
+        "collected": true,
+        "shared": true,
+        "purposes": ["Analytics"],
+        "optional": true
+      },
+      "diagnostics": {
+        "collected": true,
+        "shared": true,
+        "purposes": ["Analytics"],
+        "optional": true
+      },
+      "performanceData": {
+        "collected": true,
+        "shared": true,
+        "purposes": ["Analytics"],
+        "optional": true
+      }
+    },
+    "deviceAndIdentifiers": {
+      "deviceIds": {
+        "collected": true,
+        "shared": true,
+        "purposes": ["Analytics", "App functionality"],
+        "optional": false
+      }
+    }
+  },
+  "securityPractices": {
+    "dataEncryptedInTransit": true,
+    "dataEncryptedAtRest": true,
+    "followsDataSecurityBestPractices": true,
+    "independentSecurityReview": false
+  },
+  "dataRetention": {
+    "accountData": "Until account deletion requested",
+    "locationHistory": "30 days (Premium) / 7 days (Free)",
+    "photos": "Until manually deleted by user",
+    "healthRecords": "Until manually deleted by user",
+    "analytics": "24 months maximum",
+    "crashLogs": "12 months maximum"
+  },
+  "thirdPartyServices": [
+    {
+      "name": "Google Firebase",
+      "purpose": "Authentication, Analytics, Crash Reporting",
+      "dataShared": ["Device identifiers", "Usage data", "Crash logs"],
+      "privacyPolicy": "https://firebase.google.com/support/privacy"
+    },
+    {
+      "name": "Supabase",
+      "purpose": "Database and backend services",
+      "dataShared": ["User account data", "Pet profiles", "Location data"],
+      "privacyPolicy": "https://supabase.com/privacy"
+    }
+  ],
+  "targetAudience": {
+    "ageRange": "13+",
+    "childrenUnder13": false,
+    "coppaCompliant": true
+  },
+  "permissions": {
+    "location": {
+      "justification": "Track pet location for safety monitoring and lost pet alerts. Background location is used to monitor safe zones and provide timely notifications when pets leave designated areas.",
+      "required": true,
+      "backgroundUsage": true
+    },
+    "camera": {
+      "justification": "Take photos of pets for profile creation and identification purposes.",
+      "required": false,
+      "backgroundUsage": false
+    },
+    "storage": {
+      "justification": "Store pet photos and health records locally for offline access.",
+      "required": false,
+      "backgroundUsage": false
+    },
+    "notifications": {
+      "justification": "Send important alerts about pet location, health reminders, and safety notifications.",
+      "required": false,
+      "backgroundUsage": true
+    }
+  },
+  "contentRating": {
+    "rating": "Everyone",
+    "contentDescriptors": [],
+    "interactiveElements": ["Users Interact Online", "Shares Location"],
+    "adsPresent": false,
+    "inAppPurchases": true
+  }
+}

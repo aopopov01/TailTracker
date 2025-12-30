@@ -1,0 +1,47 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+build/
+dist/
+out/
+.expo/
+web-build/
+
+# Generated files
+*.generated.*
+*.d.ts
+
+# Platform specific
+ios/
+android/
+
+# Logs
+*.log
+
+# Package files
+package-lock.json
+yarn.lock
+
+# Config files that should maintain specific formatting
+.eslintrc.js
+babel.config.js
+metro.config.js
+
+# Markdown files (preserve manual formatting)
+*.md
+
+# Assets
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.svg
+*.ico
+*.woff
+*.woff2
+*.ttf
+*.eot
+
+# Environment files
+.env*

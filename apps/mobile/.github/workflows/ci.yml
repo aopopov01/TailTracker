@@ -1,0 +1,435 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy'
+        required: true
+        default: 'development'
+        type: choice
+        options:
+        - development
+        - staging
+        - production
+      platform:
+        description: 'Platform to build'
+        required: true
+        default: 'both'
+        type: choice
+        options:
+        - ios
+        - android
+        - both
+
+env:
+  NODE_VERSION: '18'
+  PNPM_VERSION: '8'
+
+jobs:
+  # Code Quality and Testing
+  quality-check:
+    name: Code Quality & Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run ESLint
+        run: npm run lint
+        continue-on-error: false
+
+      - name: Run TypeScript type checking
+        run: npm run type-check
+        continue-on-error: false
+
+      - name: Run tests
+        run: npm run test:coverage
+        continue-on-error: false
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage/lcov.info
+          fail_ci_if_error: false
+
+      - name: Run security audit
+        run: npm audit --audit-level high
+        continue-on-error: true
+
+  # Preflight validation
+  preflight-check:
+    name: Preflight Validation
+    runs-on: ubuntu-latest
+    needs: quality-check
+    
+    strategy:
+      matrix:
+        environment: [development, staging, production]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install jq for JSON parsing
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Create environment file
+        run: cp .env.template .env.${{ matrix.environment }}
+
+      - name: Run preflight checks
+        run: ./scripts/preflight-check.sh --environment ${{ matrix.environment }} --no-security
+        env:
+          API_BASE_URL: https://api-${{ matrix.environment }}.tailtracker.app
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          FIREBASE_PROJECT_ID: tailtracker-${{ matrix.environment }}
+
+  # Android Build Jobs
+  build-android:
+    name: Build Android (${{ matrix.environment }})
+    runs-on: ubuntu-latest
+    needs: [quality-check, preflight-check]
+    if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main'
+    
+    strategy:
+      matrix:
+        environment: [development, staging, production]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          api-level: 34
+          build-tools: 34.0.0
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Setup Expo CLI
+        run: npm install -g @expo/cli eas-cli
+
+      - name: Create environment file
+        run: |
+          cat > .env.${{ matrix.environment }} << EOF
+          NODE_ENV=${{ matrix.environment == 'development' && 'development' || 'production' }}
+          APP_VARIANT=${{ matrix.environment }}
+          EAS_BUILD_PROFILE=${{ matrix.environment == 'development' && 'development' || (matrix.environment == 'staging' && 'preview' || 'production') }}
+          API_BASE_URL=https://api${{ matrix.environment == 'production' && '' || format('-{0}', matrix.environment) }}.tailtracker.app
+          SUPABASE_URL=${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}
+          FIREBASE_PROJECT_ID=tailtracker-${{ matrix.environment }}
+          FIREBASE_API_KEY=${{ secrets.FIREBASE_API_KEY }}
+          STRIPE_PUBLISHABLE_KEY=${{ matrix.environment == 'production' && secrets.STRIPE_PUBLISHABLE_KEY_LIVE || secrets.STRIPE_PUBLISHABLE_KEY_TEST }}
+          EOF
+
+      - name: Create EAS credentials
+        if: matrix.environment != 'development'
+        run: |
+          mkdir -p ~/.expo
+          echo "${{ secrets.EXPO_TOKEN }}" > ~/.expo/token
+          echo "${{ secrets.EAS_JSON_SECRET }}" > eas-credentials.json
+
+      - name: Build Android APK/AAB
+        run: |
+          if [[ "${{ matrix.environment }}" == "development" ]]; then
+            npx eas build --platform android --profile development --local --non-interactive
+          else
+            npx eas build --platform android --profile ${{ matrix.environment == 'staging' && 'preview' || 'production' }} --non-interactive
+          fi
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Upload Android artifacts
+        if: matrix.environment == 'development'
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-${{ matrix.environment }}-${{ github.sha }}
+          path: |
+            android/app/build/outputs/**/*.apk
+            android/app/build/outputs/**/*.aab
+            android/app/build/outputs/mapping/release/mapping.txt
+          retention-days: 30
+
+      - name: Notify build completion
+        if: failure()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: failure
+          channel: '#mobile-builds'
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+
+  # iOS Build Jobs
+  build-ios:
+    name: Build iOS (${{ matrix.environment }})
+    runs-on: macos-14
+    needs: [quality-check, preflight-check]
+    if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main'
+    
+    strategy:
+      matrix:
+        environment: [development, staging, production]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Setup Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: 15.2
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Setup Expo CLI
+        run: npm install -g @expo/cli eas-cli
+
+      - name: Setup CocoaPods
+        run: sudo gem install cocoapods
+
+      - name: Create environment file
+        run: |
+          cat > .env.${{ matrix.environment }} << EOF
+          NODE_ENV=${{ matrix.environment == 'development' && 'development' || 'production' }}
+          APP_VARIANT=${{ matrix.environment }}
+          EAS_BUILD_PROFILE=${{ matrix.environment == 'development' && 'development' || (matrix.environment == 'staging' && 'preview' || 'production') }}
+          API_BASE_URL=https://api${{ matrix.environment == 'production' && '' || format('-{0}', matrix.environment) }}.tailtracker.app
+          SUPABASE_URL=${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}
+          FIREBASE_PROJECT_ID=tailtracker-${{ matrix.environment }}
+          FIREBASE_API_KEY=${{ secrets.FIREBASE_API_KEY }}
+          STRIPE_PUBLISHABLE_KEY=${{ matrix.environment == 'production' && secrets.STRIPE_PUBLISHABLE_KEY_LIVE || secrets.STRIPE_PUBLISHABLE_KEY_TEST }}
+          EOF
+
+      - name: Create EAS credentials
+        if: matrix.environment != 'development'
+        run: |
+          mkdir -p ~/.expo
+          echo "${{ secrets.EXPO_TOKEN }}" > ~/.expo/token
+
+      - name: Import iOS certificates and provisioning profiles
+        if: matrix.environment != 'development'
+        run: |
+          # Create keychain
+          security create-keychain -p "${{ secrets.MATCH_PASSWORD }}" build.keychain
+          security default-keychain -s build.keychain
+          security unlock-keychain -p "${{ secrets.MATCH_PASSWORD }}" build.keychain
+          security set-keychain-settings -t 3600 -u build.keychain
+          
+          # Import certificate
+          echo "${{ secrets.IOS_DIST_CERTIFICATE }}" | base64 -d > dist_cert.p12
+          security import dist_cert.p12 -k build.keychain -P "${{ secrets.CERT_PASSWORD }}" -T /usr/bin/codesign
+          
+          # Set key partition list
+          security set-key-partition-list -S apple-tool:,apple: -s -k "${{ secrets.MATCH_PASSWORD }}" build.keychain
+
+      - name: Build iOS App
+        run: |
+          if [[ "${{ matrix.environment }}" == "development" ]]; then
+            npx eas build --platform ios --profile simulator --local --non-interactive
+          else
+            npx eas build --platform ios --profile ${{ matrix.environment == 'staging' && 'preview' || 'production' }} --non-interactive
+          fi
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+
+      - name: Upload iOS artifacts
+        if: matrix.environment == 'development'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-${{ matrix.environment }}-${{ github.sha }}
+          path: |
+            ios/build/**/*.app
+            ios/build/**/*.ipa
+            ios/build/**/*.dSYM
+          retention-days: 30
+
+      - name: Clean up keychain
+        if: always() && matrix.environment != 'development'
+        run: |
+          security delete-keychain build.keychain
+          rm -f dist_cert.p12
+
+  # Deployment Jobs
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: [build-android, build-ios]
+    if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
+    environment: staging
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Setup EAS CLI
+        run: npm install -g eas-cli
+
+      - name: Submit to TestFlight (iOS)
+        run: npx eas submit --platform ios --profile testflight --non-interactive
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Submit to Google Play Internal Testing (Android)
+        run: npx eas submit --platform android --profile preview --non-interactive
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Notify deployment
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          channel: '#deployments'
+          text: 'Staging deployment completed for TailTracker mobile'
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [build-android, build-ios]
+    if: github.ref == 'refs/heads/main' && contains(github.event.head_commit.message, '[deploy]')
+    environment: production
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Setup EAS CLI
+        run: npm install -g eas-cli
+
+      - name: Submit to App Store (iOS)
+        run: npx eas submit --platform ios --profile production --non-interactive
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Submit to Google Play (Android)
+        run: npx eas submit --platform android --profile production --non-interactive
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Create GitHub Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ github.run_number }}
+          release_name: Release v${{ github.run_number }}
+          body: |
+            Production release of TailTracker mobile app
+            
+            Changes in this release:
+            ${{ github.event.head_commit.message }}
+          draft: false
+          prerelease: false
+
+      - name: Notify production deployment
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          channel: '#production'
+          text: '🚀 Production deployment completed for TailTracker mobile'
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+
+  # Security and Compliance Checks
+  security-scan:
+    name: Security & Compliance Scan
+    runs-on: ubuntu-latest
+    needs: quality-check
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Semgrep Security Scan
+        uses: returntocorp/semgrep-action@v1
+        with:
+          config: >-
+            p/security-audit
+            p/secrets
+            p/owasp-top-ten
+
+      - name: Run npm audit
+        run: npm audit --audit-level moderate --json > audit-results.json
+        continue-on-error: true
+
+      - name: Check for hardcoded secrets
+        run: |
+          if grep -r "AIza[0-9A-Za-z-_]{35}" src/ --include="*.ts" --include="*.tsx"; then
+            echo "❌ Found potential hardcoded API keys"
+            exit 1
+          fi
+          echo "✅ No hardcoded secrets found"
+
+      - name: Upload security scan results
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-scan-results
+          path: |
+            audit-results.json
+          retention-days: 30

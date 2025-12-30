@@ -1,0 +1,455 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_type:
+        description: 'Type of release'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+        - patch
+        - minor
+        - major
+        - prerelease
+      platform:
+        description: 'Platform to release'
+        required: true
+        default: 'both'
+        type: choice
+        options:
+        - ios
+        - android
+        - both
+      environment:
+        description: 'Environment to release to'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+        - staging
+        - production
+
+env:
+  NODE_VERSION: '18'
+
+jobs:
+  # Version Bump
+  version-bump:
+    name: Bump Version
+    runs-on: ubuntu-latest
+    outputs:
+      new_version: ${{ steps.version.outputs.new_version }}
+      old_version: ${{ steps.version.outputs.old_version }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install semver utility
+        run: npm install -g semver
+
+      - name: Configure Git
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+
+      - name: Get current version
+        id: version
+        run: |
+          OLD_VERSION=$(node -p "require('./package.json').version")
+          echo "old_version=$OLD_VERSION" >> $GITHUB_OUTPUT
+          
+          # Run version bump script
+          ./scripts/version-bump.sh --type ${{ github.event.inputs.release_type }} --platform ${{ github.event.inputs.platform }}
+          
+          NEW_VERSION=$(node -p "require('./package.json').version")
+          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          
+          echo "Version bumped from $OLD_VERSION to $NEW_VERSION"
+
+      - name: Push version changes
+        run: |
+          git push origin main
+          git push origin --tags
+
+  # Pre-release validation
+  pre-release-validation:
+    name: Pre-release Validation
+    runs-on: ubuntu-latest
+    needs: version-bump
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run comprehensive preflight check
+        run: ./scripts/preflight-check.sh --environment ${{ github.event.inputs.environment }}
+
+      - name: Run security scan
+        run: npm audit --audit-level high
+
+      - name: Validate app store readiness
+        run: |
+          # Check if required store assets exist
+          required_files=(
+            "assets/images/icon.png"
+            "assets/images/splash.png" 
+            "legal/privacy-policy.md"
+            "legal/terms-of-service.md"
+          )
+          
+          for file in "${required_files[@]}"; do
+            if [[ ! -f "$file" ]]; then
+              echo "❌ Missing required file: $file"
+              exit 1
+            fi
+          done
+          
+          echo "✅ All required store assets are present"
+
+  # Build for Release
+  build-release-android:
+    name: Build Android Release
+    runs-on: ubuntu-latest
+    needs: [version-bump, pre-release-validation]
+    if: contains(github.event.inputs.platform, 'android') || github.event.inputs.platform == 'both'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Setup EAS CLI
+        run: npm install -g eas-cli
+
+      - name: Create release environment file
+        run: |
+          cat > .env.${{ github.event.inputs.environment }} << EOF
+          NODE_ENV=production
+          APP_VARIANT=${{ github.event.inputs.environment }}
+          API_BASE_URL=https://api${{ github.event.inputs.environment == 'production' && '' || format('-{0}', github.event.inputs.environment) }}.tailtracker.app
+          SUPABASE_URL=${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}
+          FIREBASE_PROJECT_ID=tailtracker-${{ github.event.inputs.environment }}
+          FIREBASE_API_KEY=${{ secrets.FIREBASE_API_KEY }}
+          STRIPE_PUBLISHABLE_KEY=${{ github.event.inputs.environment == 'production' && secrets.STRIPE_PUBLISHABLE_KEY_LIVE || secrets.STRIPE_PUBLISHABLE_KEY_TEST }}
+          EOF
+
+      - name: Build Android Release
+        run: |
+          PROFILE=${{ github.event.inputs.environment == 'staging' && 'preview' || 'production' }}
+          npx eas build --platform android --profile $PROFILE --non-interactive
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
+  build-release-ios:
+    name: Build iOS Release
+    runs-on: macos-14
+    needs: [version-bump, pre-release-validation]
+    if: contains(github.event.inputs.platform, 'ios') || github.event.inputs.platform == 'both'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Setup Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: 15.2
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Setup EAS CLI
+        run: npm install -g eas-cli
+
+      - name: Create release environment file
+        run: |
+          cat > .env.${{ github.event.inputs.environment }} << EOF
+          NODE_ENV=production
+          APP_VARIANT=${{ github.event.inputs.environment }}
+          API_BASE_URL=https://api${{ github.event.inputs.environment == 'production' && '' || format('-{0}', github.event.inputs.environment) }}.tailtracker.app
+          SUPABASE_URL=${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}
+          FIREBASE_PROJECT_ID=tailtracker-${{ github.event.inputs.environment }}
+          FIREBASE_API_KEY=${{ secrets.FIREBASE_API_KEY }}
+          APPLE_MAPS_API_KEY=${{ secrets.APPLE_MAPS_API_KEY }}
+          STRIPE_PUBLISHABLE_KEY=${{ github.event.inputs.environment == 'production' && secrets.STRIPE_PUBLISHABLE_KEY_LIVE || secrets.STRIPE_PUBLISHABLE_KEY_TEST }}
+          EOF
+
+      - name: Build iOS Release
+        run: |
+          PROFILE=${{ github.event.inputs.environment == 'staging' && 'preview' || 'production' }}
+          npx eas build --platform ios --profile $PROFILE --non-interactive
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
+  # Store Submission
+  submit-android:
+    name: Submit Android to Play Store
+    runs-on: ubuntu-latest
+    needs: [build-release-android]
+    if: success() && (contains(github.event.inputs.platform, 'android') || github.event.inputs.platform == 'both')
+    environment: ${{ github.event.inputs.environment }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Setup EAS CLI
+        run: npm install -g eas-cli
+
+      - name: Submit to Google Play
+        run: |
+          if [[ "${{ github.event.inputs.environment }}" == "production" ]]; then
+            npx eas submit --platform android --profile production --non-interactive
+          else
+            npx eas submit --platform android --profile preview --non-interactive
+          fi
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
+  submit-ios:
+    name: Submit iOS to App Store
+    runs-on: ubuntu-latest
+    needs: [build-release-ios]
+    if: success() && (contains(github.event.inputs.platform, 'ios') || github.event.inputs.platform == 'both')
+    environment: ${{ github.event.inputs.environment }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Setup EAS CLI
+        run: npm install -g eas-cli
+
+      - name: Submit to App Store
+        run: |
+          if [[ "${{ github.event.inputs.environment }}" == "production" ]]; then
+            npx eas submit --platform ios --profile production --non-interactive
+          else
+            npx eas submit --platform ios --profile testflight --non-interactive
+          fi
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
+  # Release Notes and Documentation
+  create-release-notes:
+    name: Create Release Notes
+    runs-on: ubuntu-latest
+    needs: [version-bump, build-release-android, build-release-ios]
+    if: always() && needs.version-bump.result == 'success'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Generate release notes
+        id: release_notes
+        run: |
+          # Get commits since last release
+          LAST_TAG=$(git describe --tags --abbrev=0 HEAD~1 2>/dev/null || echo "")
+          if [[ -n "$LAST_TAG" ]]; then
+            COMMITS=$(git log --pretty=format:"- %s" $LAST_TAG..HEAD)
+          else
+            COMMITS=$(git log --pretty=format:"- %s" --max-count=10)
+          fi
+          
+          # Create release notes
+          cat > release_notes.md << EOF
+          # Release ${{ needs.version-bump.outputs.new_version }}
+          
+          ## What's Changed
+          $COMMITS
+          
+          ## Platform Support
+          - **Android**: ${{ contains(github.event.inputs.platform, 'android') || github.event.inputs.platform == 'both' && '✅ Included' || '❌ Not included' }}
+          - **iOS**: ${{ contains(github.event.inputs.platform, 'ios') || github.event.inputs.platform == 'both' && '✅ Included' || '❌ Not included' }}
+          
+          ## Environment
+          - **Target**: ${{ github.event.inputs.environment }}
+          - **Release Type**: ${{ github.event.inputs.release_type }}
+          
+          ## Installation
+          ${{ github.event.inputs.environment == 'production' && '- Download from App Store or Google Play' || '- Available through TestFlight or Google Play Internal Testing' }}
+          
+          ---
+          *This release was automatically generated by GitHub Actions*
+          EOF
+          
+          # Set multiline output
+          echo "RELEASE_NOTES<<EOF" >> $GITHUB_OUTPUT
+          cat release_notes.md >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ needs.version-bump.outputs.new_version }}
+          release_name: TailTracker v${{ needs.version-bump.outputs.new_version }}
+          body: ${{ steps.release_notes.outputs.RELEASE_NOTES }}
+          draft: ${{ github.event.inputs.environment != 'production' }}
+          prerelease: ${{ github.event.inputs.release_type == 'prerelease' }}
+
+      - name: Update changelog
+        run: |
+          # Update CHANGELOG.md with detailed release information
+          if [[ -f "CHANGELOG.md" ]]; then
+            TEMP_FILE=$(mktemp)
+            echo "# Changelog" > $TEMP_FILE
+            echo "" >> $TEMP_FILE
+            echo "## [${{ needs.version-bump.outputs.new_version }}] - $(date +%Y-%m-%d)" >> $TEMP_FILE
+            echo "" >> $TEMP_FILE
+            echo "### Release Information" >> $TEMP_FILE
+            echo "- **Type**: ${{ github.event.inputs.release_type }}" >> $TEMP_FILE
+            echo "- **Environment**: ${{ github.event.inputs.environment }}" >> $TEMP_FILE
+            echo "- **Platform**: ${{ github.event.inputs.platform }}" >> $TEMP_FILE
+            echo "" >> $TEMP_FILE
+            tail -n +2 CHANGELOG.md >> $TEMP_FILE
+            mv $TEMP_FILE CHANGELOG.md
+            
+            # Commit updated changelog
+            git config --local user.email "action@github.com"
+            git config --local user.name "GitHub Action"
+            git add CHANGELOG.md
+            git commit -m "docs: update changelog for v${{ needs.version-bump.outputs.new_version }}" || echo "No changes to commit"
+            git push origin main
+          fi
+
+  # Post-release notifications and cleanup
+  post-release:
+    name: Post-release Tasks
+    runs-on: ubuntu-latest
+    needs: [submit-android, submit-ios, create-release-notes]
+    if: always()
+    
+    steps:
+      - name: Send release notification
+        uses: 8398a7/action-slack@v3
+        with:
+          status: custom
+          custom_payload: |
+            {
+              "channel": "#releases",
+              "text": "🚀 TailTracker ${{ needs.version-bump.outputs.new_version }} Released!",
+              "attachments": [
+                {
+                  "color": "${{ contains(needs.*.result, 'failure') && 'danger' || 'good' }}",
+                  "fields": [
+                    {
+                      "title": "Version",
+                      "value": "${{ needs.version-bump.outputs.old_version }} → ${{ needs.version-bump.outputs.new_version }}",
+                      "short": true
+                    },
+                    {
+                      "title": "Environment",
+                      "value": "${{ github.event.inputs.environment }}",
+                      "short": true
+                    },
+                    {
+                      "title": "Platform",
+                      "value": "${{ github.event.inputs.platform }}",
+                      "short": true
+                    },
+                    {
+                      "title": "Release Type",
+                      "value": "${{ github.event.inputs.release_type }}",
+                      "short": true
+                    }
+                  ],
+                  "actions": [
+                    {
+                      "type": "button",
+                      "text": "View Release",
+                      "url": "https://github.com/${{ github.repository }}/releases/tag/v${{ needs.version-bump.outputs.new_version }}"
+                    }
+                  ]
+                }
+              ]
+            }
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+
+      - name: Update team documentation
+        run: |
+          echo "Release ${{ needs.version-bump.outputs.new_version }} completed"
+          echo "Android submission: ${{ needs.submit-android.result }}"
+          echo "iOS submission: ${{ needs.submit-ios.result }}"
+          
+          # Here you could trigger documentation updates, 
+          # notify QA team, update monitoring dashboards, etc.
