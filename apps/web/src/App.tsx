@@ -48,6 +48,7 @@ import { UpgradeSuccessPage } from '@/pages/UpgradeSuccessPage';
 import { FamilySharingPage } from '@/pages/FamilySharingPage';
 import { SharedPetsPage } from '@/pages/SharedPetsPage';
 import { SharedPetDetailPage } from '@/pages/SharedPetDetailPage';
+import { LostPetsNearbyPage } from '@/pages/LostPetsNearbyPage';
 
 // Components
 import { CookieConsent } from '@/components/CookieConsent';
@@ -154,6 +155,7 @@ function App() {
         <Route path="family-sharing" element={<FamilySharingPage />} />
         <Route path="shared-pets" element={<SharedPetsPage />} />
         <Route path="shared-pets/:id" element={<SharedPetDetailPage />} />
+        <Route path="lost-pets-nearby" element={<LostPetsNearbyPage />} />
         <Route path="reminders" element={<RemindersPage />} />
         <Route path="reminders/:id" element={<ReminderDetailPage />} />
         <Route path="settings" element={<SettingsPage />} />

@@ -15,6 +15,7 @@ import {
   X,
   Shield,
   Users,
+  MapPin,
 } from 'lucide-react';
 import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
@@ -35,6 +36,7 @@ const navigation: NavItem[] = [
   { name: 'My Pets', href: '/pets', icon: Dog },
   { name: 'My Calendar', href: '/calendar', icon: CalendarDays },
   { name: 'Family Sharing', href: '/family-sharing', icon: Users },
+  { name: 'Lost Pets Nearby', href: '/lost-pets-nearby', icon: MapPin },
   { name: 'Settings', href: '/settings', icon: Settings },
   { name: 'Admin', href: '/admin', icon: Shield, adminOnly: true },
 ];
