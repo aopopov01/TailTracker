@@ -33,7 +33,7 @@ import {
   getVaccinationSummary,
   getMedicalRecordSummary,
   getReminderSummary,
-  getPetFamilyMembers,
+  getMyFamilyMembers,
   checkPetAccess,
   getMaxFamilyMembersAllowed,
 } from '@tailtracker/shared-services';
@@ -90,11 +90,11 @@ export const PetDetailPage = () => {
 
   const isOwner = accessInfo?.isOwner ?? true;
 
-  // Fetch family members for the pet
+  // Fetch family members for the user
   const { data: familyMembers = [], isLoading: isFamilyLoading } = useQuery({
-    queryKey: ['petFamilyMembers', id],
-    queryFn: () => getPetFamilyMembers(id!),
-    enabled: !!id && isOwner,
+    queryKey: ['myFamilyMembers'],
+    queryFn: getMyFamilyMembers,
+    enabled: isOwner,
   });
 
   // Get max family members allowed by subscription

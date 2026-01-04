@@ -112,15 +112,22 @@ export const invalidateSubscriptionData = () => {
 /**
  * Invalidate family sharing data
  * Call after adding or removing family members
+ * @param client - Optional QueryClient instance (uses default if not provided)
  */
-export const invalidateFamilyData = (petId?: string) => {
-  queryClient.invalidateQueries({ queryKey: ['family'] });
-  queryClient.invalidateQueries({ queryKey: ['family-members'] });
-  queryClient.invalidateQueries({ queryKey: ['user'] });
+export const invalidateFamilyData = (client?: typeof queryClient) => {
+  const qc = client || queryClient;
 
-  if (petId) {
-    queryClient.invalidateQueries({ queryKey: ['pet', petId] });
-  }
+  // Invalidate all family sharing queries
+  qc.invalidateQueries({ queryKey: ['familySharing'] });
+
+  // Legacy keys for backwards compatibility
+  qc.invalidateQueries({ queryKey: ['family'] });
+  qc.invalidateQueries({ queryKey: ['family-members'] });
+
+  // Related data
+  qc.invalidateQueries({ queryKey: ['user'] });
+  qc.invalidateQueries({ queryKey: ['pets'] });
+  qc.invalidateQueries({ queryKey: ['dashboard'] });
 };
 
 /**

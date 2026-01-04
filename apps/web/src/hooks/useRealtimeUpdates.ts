@@ -8,6 +8,17 @@ import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 
+// Helper to safely get property from realtime payload
+type PayloadRecord = Record<string, unknown>;
+const getPayloadId = (
+  payload: { new: PayloadRecord | object; old: PayloadRecord | object },
+  prop: string
+): string | undefined => {
+  const newRecord = payload.new as PayloadRecord;
+  const oldRecord = payload.old as PayloadRecord;
+  return (newRecord?.[prop] ?? oldRecord?.[prop]) as string | undefined;
+};
+
 /**
  * Subscribe to realtime database changes and auto-invalidate queries
  * Use this in App.tsx or main layout to enable live updates
@@ -36,7 +47,7 @@ export function useRealtimeUpdates() {
           queryClient.invalidateQueries({ queryKey: ['dashboard'] });
 
           // If we have the pet ID, invalidate specific pet data
-          const petId = payload.new?.id || payload.old?.id;
+          const petId = getPayloadId(payload, 'id');
           if (petId) {
             queryClient.invalidateQueries({ queryKey: ['pet', petId] });
           }
@@ -53,7 +64,7 @@ export function useRealtimeUpdates() {
           queryClient.invalidateQueries({ queryKey: ['reminders'] });
           queryClient.invalidateQueries({ queryKey: ['dashboard'] });
 
-          const petId = payload.new?.pet_id || payload.old?.pet_id;
+          const petId = getPayloadId(payload, 'pet_id');
           if (petId) {
             queryClient.invalidateQueries({ queryKey: ['vaccinations', petId] });
           }
@@ -70,7 +81,7 @@ export function useRealtimeUpdates() {
           queryClient.invalidateQueries({ queryKey: ['reminders'] });
           queryClient.invalidateQueries({ queryKey: ['dashboard'] });
 
-          const petId = payload.new?.pet_id || payload.old?.pet_id;
+          const petId = getPayloadId(payload, 'pet_id');
           if (petId) {
             queryClient.invalidateQueries({ queryKey: ['medical-records', petId] });
           }
@@ -86,7 +97,7 @@ export function useRealtimeUpdates() {
           queryClient.invalidateQueries({ queryKey: ['calendar'] });
           queryClient.invalidateQueries({ queryKey: ['dashboard'] });
 
-          const petId = payload.new?.pet_id || payload.old?.pet_id;
+          const petId = getPayloadId(payload, 'pet_id');
           if (petId) {
             queryClient.invalidateQueries({ queryKey: ['reminders', petId] });
           }
@@ -130,7 +141,7 @@ export function useRealtimeUpdates() {
           console.log('Lost pet alerts table changed:', payload.eventType);
           queryClient.invalidateQueries({ queryKey: ['lost-pets'] });
 
-          const petId = payload.new?.pet_id || payload.old?.pet_id;
+          const petId = getPayloadId(payload, 'pet_id');
           if (petId) {
             queryClient.invalidateQueries({ queryKey: ['pet', petId] });
           }

@@ -14,6 +14,7 @@ import {
   Menu,
   X,
   Shield,
+  Users,
 } from 'lucide-react';
 import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
@@ -33,6 +34,7 @@ const navigation: NavItem[] = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'My Pets', href: '/pets', icon: Dog },
   { name: 'My Calendar', href: '/calendar', icon: CalendarDays },
+  { name: 'Family Sharing', href: '/family-sharing', icon: Users },
   { name: 'Settings', href: '/settings', icon: Settings },
   { name: 'Admin', href: '/admin', icon: Shield, adminOnly: true },
 ];

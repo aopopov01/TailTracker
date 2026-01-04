@@ -100,10 +100,11 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
       console.log('SubscriptionContext: Fetched tier:', userTier, 'for auth_user_id:', uid);
 
       // Also fetch full subscription details from subscriptions table
+      // Note: subscriptions.user_id references users.id (not auth.users.id)
       const { data: subData, error: subError } = await client
         .from('subscriptions')
         .select('*')
-        .eq('user_id', uid)
+        .eq('user_id', userData.id)
         .single();
 
       if (subError && subError.code !== 'PGRST116') {

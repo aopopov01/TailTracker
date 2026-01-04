@@ -6,12 +6,13 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { Plus, Bell, Loader2, PawPrint, CalendarClock, ChevronRight } from 'lucide-react';
+import { Plus, Bell, Loader2, PawPrint, CalendarClock, ChevronRight, Users, Eye } from 'lucide-react';
 import { getPets, getPendingRemindersCount, syncReminders } from '@tailtracker/shared-services';
 import { useAuthStore } from '@/stores/authStore';
 import { PetImage } from '@/components/Pet';
 import { supabase } from '@/lib/supabase';
 import { invalidateReminderData } from '@/lib/cacheUtils';
+import { usePetsSharedWithMe, useHasSharedPets } from '@/hooks';
 
 interface NextAppointment {
   date: Date;
@@ -26,6 +27,10 @@ export const DashboardPage = () => {
   const { user, isInitialized, isAuthenticated } = useAuthStore();
   const navigate = useNavigate();
   const [nextAppointment, setNextAppointment] = useState<NextAppointment | null>(null);
+
+  // Fetch pets shared with me
+  const { sharedPets, isLoading: loadingSharedPets } = usePetsSharedWithMe();
+  const { hasSharedPets } = useHasSharedPets();
 
   const {
     data: pets,
@@ -419,6 +424,61 @@ export const DashboardPage = () => {
           </div>
         )}
       </div>
+
+      {/* Shared With Me Section - Only show if user has shared pets */}
+      {hasSharedPets && (
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <h2 className="text-lg font-semibold text-slate-900">Shared with Me</h2>
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-700 rounded-full">
+                <Eye className="h-3 w-3" />
+                Read-only
+              </span>
+            </div>
+            <Link to="/shared-pets" className="text-sm text-primary-600 hover:text-primary-700 font-medium">
+              View all
+            </Link>
+          </div>
+
+          {loadingSharedPets ? (
+            <div className="card p-8 flex items-center justify-center">
+              <Loader2 className="h-6 w-6 animate-spin text-primary-500" />
+            </div>
+          ) : sharedPets && sharedPets.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {sharedPets.slice(0, 3).map((sharedPet) => (
+                <Link
+                  key={sharedPet.id}
+                  to={`/shared-pets/${sharedPet.petId}`}
+                  className="card p-4 hover:shadow-md transition-shadow group border-l-4 border-l-blue-400"
+                >
+                  <div className="flex items-center gap-4">
+                    <PetImage
+                      petId={sharedPet.petId}
+                      species={sharedPet.petSpecies || 'dog'}
+                      petName={sharedPet.petName || 'Pet'}
+                      className="w-16 h-16 rounded-xl bg-blue-50"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-slate-900 group-hover:text-primary-600 transition-colors truncate">
+                        {sharedPet.petName || 'Unknown'}
+                      </h3>
+                      <p className="text-sm text-slate-500 capitalize truncate">
+                        {sharedPet.petSpecies}
+                      </p>
+                      <p className="text-xs text-slate-400 mt-1 flex items-center gap-1">
+                        <Users className="h-3 w-3" />
+                        {sharedPet.ownerName || 'Shared'}
+                      </p>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          ) : null}
+        </div>
+      )}
     </div>
   );
 };

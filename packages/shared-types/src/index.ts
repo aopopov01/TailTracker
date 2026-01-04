@@ -255,6 +255,155 @@ export interface FamilyInvite {
 }
 
 // ===================================
+// FAMILY SHARING TYPES (NEW SYSTEM)
+// ===================================
+
+/**
+ * Status of a family share invitation
+ * - pending: Invitation sent, awaiting response
+ * - accepted: Family member accepted and can view shared pets
+ * - declined: Family member declined the invitation
+ */
+export type FamilyShareStatus = 'pending' | 'accepted' | 'declined';
+
+/**
+ * Access level for shared pets
+ * Currently only 'reader' is supported (read-only access)
+ */
+export type FamilyShareAccessLevel = 'reader';
+
+/**
+ * Represents a family sharing relationship between pet owner and family member
+ */
+export interface FamilyShare extends BaseEntity {
+  ownerId: string;
+  ownerEmail?: string;
+  ownerName?: string;
+  sharedWithEmail: string;
+  sharedWithUserId: string | null;
+  sharedWithName?: string;
+  status: FamilyShareStatus;
+  accessLevel: FamilyShareAccessLevel;
+  acceptedAt: string | null;
+  sharedPetsCount?: number;
+}
+
+/**
+ * Database representation of family_shares table
+ */
+export interface DatabaseFamilyShare {
+  id: string;
+  owner_id: string;
+  shared_with_email: string;
+  shared_with_user_id: string | null;
+  status: FamilyShareStatus;
+  access_level: FamilyShareAccessLevel;
+  created_at: string;
+  updated_at: string;
+  accepted_at: string | null;
+}
+
+/**
+ * Represents which pets are shared with a family member
+ * and what data they can access
+ */
+export interface SharedPet extends BaseEntity {
+  familyShareId: string;
+  petId: string;
+  petName?: string;
+  petSpecies?: PetSpecies;
+  petPhotoUrl?: string;
+  shareCalendar: boolean;
+  shareVaccinations: boolean;
+  shareMedicalRecords: boolean;
+  ownerName?: string;
+  ownerId?: string;
+}
+
+/**
+ * Database representation of shared_pets table
+ */
+export interface DatabaseSharedPet {
+  id: string;
+  family_share_id: string;
+  pet_id: string;
+  share_calendar: boolean;
+  share_vaccinations: boolean;
+  share_medical_records: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+/**
+ * Request payload for inviting a family member
+ */
+export interface InviteFamilyMemberRequest {
+  email: string;
+  petIds?: string[];
+}
+
+/**
+ * Request payload for updating shared pets settings
+ */
+export interface UpdateSharedPetsRequest {
+  familyShareId: string;
+  pets: {
+    petId: string;
+    shareCalendar: boolean;
+    shareVaccinations: boolean;
+    shareMedicalRecords: boolean;
+  }[];
+}
+
+/**
+ * Request payload for responding to a family share invitation
+ */
+export interface RespondToShareRequest {
+  shareId: string;
+  response: 'accept' | 'decline';
+}
+
+/**
+ * Result from family sharing operations
+ */
+export interface FamilySharingResult {
+  success: boolean;
+  familyShare?: FamilyShare;
+  sharedPets?: SharedPet[];
+  error?: string;
+  errorCode?: string;
+}
+
+/**
+ * Summary of family sharing status for a user
+ */
+export interface FamilySharingSummary {
+  totalSharedByMe: number;
+  totalSharedWithMe: number;
+  pendingInvitations: number;
+  acceptedShares: number;
+  remainingSlots: number;
+  maxAllowed: number;
+}
+
+/**
+ * Pet with sharing information for family member view
+ */
+export interface SharedPetDetails extends Pet {
+  sharedBy: {
+    userId: string;
+    name: string;
+    email: string;
+  };
+  permissions: {
+    canViewCalendar: boolean;
+    canViewVaccinations: boolean;
+    canViewMedicalRecords: boolean;
+  };
+  familyShareId: string;
+}
+
+// ===================================
 // SUBSCRIPTION TYPES
 // ===================================
 

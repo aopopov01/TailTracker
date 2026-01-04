@@ -11,7 +11,6 @@ import {
   X,
   Users,
   Mail,
-  Lock,
   Loader2,
   Trash2,
   Crown,
@@ -19,7 +18,7 @@ import {
   Eye,
 } from 'lucide-react';
 import {
-  addFamilyMember,
+  inviteFamilyMember,
   removeFamilyMember,
   type FamilyMember,
 } from '@tailtracker/shared-services';
@@ -37,15 +36,13 @@ interface FamilySharingModalProps {
 export const FamilySharingModal = ({
   isOpen,
   onClose,
-  petId,
+  petId: _petId, // Reserved for future per-pet sharing
   petName,
   currentFamilyMembers,
   maxFamilyMembers,
   isLoading = false,
 }: FamilySharingModalProps) => {
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
 
   const canAddMore = currentFamilyMembers.length < maxFamilyMembers;
@@ -53,20 +50,15 @@ export const FamilySharingModal = ({
   const addMemberMutation = useMutation({
     mutationFn: async () => {
       if (!email.trim()) throw new Error('Email is required');
-      if (!password) throw new Error('Password is required');
-      if (password !== confirmPassword) throw new Error('Passwords do not match');
-      if (password.length < 6) throw new Error('Password must be at least 6 characters');
 
-      const result = await addFamilyMember(petId, email.trim(), password);
+      const result = await inviteFamilyMember({ email: email.trim() });
       if (!result.success) throw new Error(result.error);
-      return result.data;
+      return result;
     },
     onSuccess: () => {
       // Invalidate all family-related caches
-      invalidateFamilyData(petId);
+      invalidateFamilyData();
       setEmail('');
-      setPassword('');
-      setConfirmPassword('');
       setError(null);
     },
     onError: (err: Error) => {
@@ -81,7 +73,7 @@ export const FamilySharingModal = ({
     },
     onSuccess: () => {
       // Invalidate all family-related caches
-      invalidateFamilyData(petId);
+      invalidateFamilyData();
     },
     onError: (err: Error) => {
       setError(err.message);
@@ -214,11 +206,11 @@ export const FamilySharingModal = ({
             <form onSubmit={handleSubmit}>
               <h3 className="font-medium text-slate-900 mb-3 flex items-center gap-2">
                 <UserPlus className="h-4 w-4" />
-                Add Family Member
+                Invite Family Member
               </h3>
               <p className="text-sm text-slate-500 mb-4">
-                Create an account for a family member. They will receive
-                read-only access to {petName}'s profile.
+                Send an invitation to a family member. They will receive
+                read-only access to your pets once they accept.
               </p>
 
               <div className="space-y-4">
@@ -240,44 +232,6 @@ export const FamilySharingModal = ({
                   </div>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Create Password
-                  </label>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
-                    <input
-                      type="password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="Minimum 6 characters"
-                      required
-                      minLength={6}
-                      className="input pl-10"
-                      disabled={addMemberMutation.isPending}
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Confirm Password
-                  </label>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
-                    <input
-                      type="password"
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      placeholder="Confirm password"
-                      required
-                      minLength={6}
-                      className="input pl-10"
-                      disabled={addMemberMutation.isPending}
-                    />
-                  </div>
-                </div>
-
                 {/* Error message */}
                 {error && (
                   <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
@@ -293,12 +247,12 @@ export const FamilySharingModal = ({
                   {addMemberMutation.isPending ? (
                     <>
                       <Loader2 className="h-4 w-4 animate-spin" />
-                      Adding...
+                      Sending...
                     </>
                   ) : (
                     <>
                       <UserPlus className="h-4 w-4" />
-                      Add Family Member
+                      Send Invitation
                     </>
                   )}
                 </button>

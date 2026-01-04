@@ -169,17 +169,46 @@ export {
 
 // Family Sharing Service
 export {
-  getPetFamilyMembers,
-  getPetFamilyMemberCount,
-  getTotalFamilyMemberCount,
-  addFamilyMember,
+  // Family Shares Management
+  getMyFamilyShares,
+  getSharesWithMe,
+  getPendingInvitations,
+  getFamilyMemberCount,
+  getFamilySharingSummary,
+  inviteFamilyMember,
+  respondToShareInvitation,
   removeFamilyMember,
-  getSharedPetsWithMe,
-  isUserFamilyMember,
+  // Shared Pets Management
+  getSharedPetsForShare,
+  getPetsSharedWithMe,
+  updateSharedPets,
+  addPetToShare,
+  removePetFromShare,
+  // Access Control
   checkPetAccess,
-  type PetShare,
+  getSharedPetDetails,
+  hasSharedPets,
+  // Legacy Compatibility
+  getMyFamilyMembers,
+  getTotalFamilyMemberCount,
   type FamilyMember,
 } from './familySharingService';
+
+// Re-export family sharing types from shared-types for convenience
+export type {
+  FamilyShare,
+  SharedPet,
+  FamilyShareStatus,
+  FamilyShareAccessLevel,
+  FamilySharingSummary,
+  SharedPetDetails,
+  InviteFamilyMemberRequest,
+  UpdateSharedPetsRequest,
+  RespondToShareRequest,
+  FamilySharingResult,
+  DatabaseFamilyShare,
+  DatabaseSharedPet,
+} from '@tailtracker/shared-types';
 
 // Admin Service
 export {

@@ -45,6 +45,9 @@ import { CookiePolicyPage } from '@/pages/legal/CookiePolicyPage';
 import { ImprintPage } from '@/pages/legal/ImprintPage';
 import { AdminPage } from '@/pages/admin/AdminPage';
 import { UpgradeSuccessPage } from '@/pages/UpgradeSuccessPage';
+import { FamilySharingPage } from '@/pages/FamilySharingPage';
+import { SharedPetsPage } from '@/pages/SharedPetsPage';
+import { SharedPetDetailPage } from '@/pages/SharedPetDetailPage';
 
 // Components
 import { CookieConsent } from '@/components/CookieConsent';
@@ -148,6 +151,9 @@ function App() {
         <Route path="pets/:id/medical-records/:recordId/edit" element={<EditMedicalRecordPage />} />
         <Route path="pets/new" element={<AddPetPage />} />
         <Route path="calendar" element={<CalendarPage />} />
+        <Route path="family-sharing" element={<FamilySharingPage />} />
+        <Route path="shared-pets" element={<SharedPetsPage />} />
+        <Route path="shared-pets/:id" element={<SharedPetDetailPage />} />
         <Route path="reminders" element={<RemindersPage />} />
         <Route path="reminders/:id" element={<ReminderDetailPage />} />
         <Route path="settings" element={<SettingsPage />} />
