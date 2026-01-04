@@ -233,12 +233,22 @@ export const useFamilySharingSummary = () => {
     maxAllowed: maxFamilyMembers,
   };
 
+  // Always override maxAllowed with correct tier limit from features
+  // The backend may return stale/incorrect values
+  const correctedSummary: FamilySharingSummary = summary
+    ? {
+        ...summary,
+        maxAllowed: maxFamilyMembers,
+        remainingSlots: maxFamilyMembers - (summary.acceptedShares || 0),
+      }
+    : defaultSummary;
+
   return {
-    summary: summary || defaultSummary,
+    summary: correctedSummary,
     isLoading,
     error: error as Error | null,
     refetch,
-    canInviteMore: (summary?.remainingSlots || 0) > 0,
+    canInviteMore: correctedSummary.remainingSlots > 0,
   };
 };
 
