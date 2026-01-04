@@ -74,8 +74,8 @@ perform_health_check() {
         ((issues++))
     fi
     
-    # Check 2: Critical files
-    local critical_files=("CLAUDE.md" "ERROR_LOG.md" "auto-backup.sh")
+    # Check 2: Critical files (ERROR_LOG.md excluded - it's gitignored and local-only)
+    local critical_files=("CLAUDE.md" "auto-backup.sh" "backup-monitor.sh")
     for file in "${critical_files[@]}"; do
         if [ -f "$file" ]; then
             log_health "✅ Critical file exists: $file"
@@ -251,7 +251,7 @@ generate_status_report() {
 
 ## 📋 Critical Files Status
 
-$(for file in "CLAUDE.md" "ERROR_LOG.md" "auto-backup.sh" "backup-monitor.sh"; do
+$(for file in "CLAUDE.md" "auto-backup.sh" "backup-monitor.sh"; do
     if [ -f "$file" ]; then
         size=$(wc -l < "$file" 2>/dev/null || echo "0")
         echo "- **$file**: ✅ Present ($size lines)"
