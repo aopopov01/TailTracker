@@ -558,7 +558,7 @@ export const FamilySharingPage = () => {
   const [managePetsShare, setManagePetsShare] = useState<FamilyShare | null>(null);
   const [removingShareId, setRemovingShareId] = useState<string | null>(null);
 
-  const { tier } = useSubscription();
+  const { tier, features } = useSubscription();
   const { shares: myShares, isLoading: loadingMyShares } = useMyFamilyShares();
   const { invitations, isLoading: loadingInvitations } = usePendingInvitations();
   const { summary, canInviteMore, isLoading: loadingSummary } = useFamilySharingSummary();
@@ -639,7 +639,7 @@ export const FamilySharingPage = () => {
             <div>
               <h2 className="font-semibold text-slate-900">Family Members</h2>
               <p className="text-sm text-slate-500">
-                {tier === 'pro' ? 'Unlimited family sharing' : `${tier} plan`}
+                {features.maxFamilyMembers} family member{features.maxFamilyMembers !== 1 ? 's' : ''} ({tier} plan)
               </p>
             </div>
           </div>
@@ -657,7 +657,7 @@ export const FamilySharingPage = () => {
         <div className="mb-2">
           <div className="flex items-center justify-between text-sm mb-1">
             <span className="text-slate-600">
-              {summary.acceptedShares} of {summary.maxAllowed >= 999 ? 'unlimited' : summary.maxAllowed} slots used
+              {summary.acceptedShares} of {summary.maxAllowed} slots used
             </span>
             {summary.pendingInvitations > 0 && (
               <span className="text-amber-600">
@@ -665,19 +665,17 @@ export const FamilySharingPage = () => {
               </span>
             )}
           </div>
-          {summary.maxAllowed < 999 && (
-            <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-primary-500 rounded-full transition-all"
-                style={{
-                  width: `${Math.min((summary.acceptedShares / summary.maxAllowed) * 100, 100)}%`,
-                }}
-              />
-            </div>
-          )}
+          <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-primary-500 rounded-full transition-all"
+              style={{
+                width: `${Math.min((summary.acceptedShares / summary.maxAllowed) * 100, 100)}%`,
+              }}
+            />
+          </div>
         </div>
 
-        {!canInviteMore && summary.maxAllowed < 999 && (
+        {!canInviteMore && tier !== 'pro' && (
           <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-lg">
             <div className="flex items-center gap-3">
               <Crown className="h-5 w-5 text-amber-500 flex-shrink-0" />
