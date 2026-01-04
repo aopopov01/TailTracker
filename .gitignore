@@ -81,6 +81,9 @@ expo-env.d.ts
 *.tsbuildinfo
 .tscache/
 
+# Turbo
+.turbo/
+
 #===========================================
 # PLATFORM SPECIFIC
 #===========================================
